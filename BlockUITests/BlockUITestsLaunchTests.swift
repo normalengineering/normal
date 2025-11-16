@@ -1,10 +1,3 @@
-//
-//  BlockUITestsLaunchTests.swift
-//  BlockUITests
-//
-//  Created by Yahya Kisana on 2025-11-16.
-//
-
 import XCTest
 
 final class BlockUITestsLaunchTests: XCTestCase {

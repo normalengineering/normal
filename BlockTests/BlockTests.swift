@@ -1,10 +1,3 @@
-//
-//  BlockTests.swift
-//  BlockTests
-//
-//  Created by Yahya Kisana on 2025-11-16.
-//
-
 import Testing
 @testable import Block
 
