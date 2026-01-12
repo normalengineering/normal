@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MainTabView: View {
+struct MainTabView : View {
     var body: some View {
         TabView {
             Tab("Home", systemImage: "house"){
@@ -10,10 +10,5 @@ struct MainTabView: View {
                 AppSelectView()
             }
         }
-        
     }
-}
-
-#Preview {
-    MainTabView()
 }

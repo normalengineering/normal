@@ -29,20 +29,63 @@
 		2F58EFFF2EC9C5DF00A38180 /* BlockUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlockUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		2F58EFEA2EC9C5DE00A38180 /* Block */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Block;
-			sourceTree = "<group>";
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2F4301C92ECAFE2D001FBF91 /* Exceptions for "Block" folder in "Block" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
 		};
-		2F58EFF82EC9C5DF00A38180 /* BlockTests */ = {
+		2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Block" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BlockUITests.swift,
+				BlockUITestsLaunchTests.swift,
+			);
+			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
+		};
+		2F4301EE2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "BlockUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BlockUITests.swift,
+				BlockUITestsLaunchTests.swift,
+			);
+			target = 2F58EFFE2EC9C5DF00A38180 /* BlockUITests */;
+		};
+		2F4301EF2ECBBAA7001FBF91 /* Exceptions for "BlockTests" folder in "BlockTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BlockTests.swift,
+			);
+			target = 2F58EFF42EC9C5DF00A38180 /* BlockTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		2F4301E62ECBBAA7001FBF91 /* BlockTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F4301EF2ECBBAA7001FBF91 /* Exceptions for "BlockTests" folder in "BlockTests" target */,
+			);
 			path = BlockTests;
 			sourceTree = "<group>";
 		};
-		2F58F0022EC9C5DF00A38180 /* BlockUITests */ = {
+		2F4301E92ECBBAA7001FBF91 /* BlockUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Block" target */,
+				2F4301EE2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "BlockUITests" target */,
+			);
 			path = BlockUITests;
+			sourceTree = "<group>";
+		};
+		2F58EFEA2EC9C5DE00A38180 /* Block */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F4301C92ECAFE2D001FBF91 /* Exceptions for "Block" folder in "Block" target */,
+			);
+			path = Block;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -76,9 +119,9 @@
 			isa = PBXGroup;
 			children = (
 				2F58EFEA2EC9C5DE00A38180 /* Block */,
-				2F58EFF82EC9C5DF00A38180 /* BlockTests */,
-				2F58F0022EC9C5DF00A38180 /* BlockUITests */,
 				2F58EFE92EC9C5DE00A38180 /* Products */,
+				2F4301E62ECBBAA7001FBF91 /* BlockTests */,
+				2F4301E92ECBBAA7001FBF91 /* BlockUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -108,6 +151,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				2F4301E92ECBBAA7001FBF91 /* BlockUITests */,
 				2F58EFEA2EC9C5DE00A38180 /* Block */,
 			);
 			name = Block;
@@ -130,9 +174,6 @@
 			dependencies = (
 				2F58EFF72EC9C5DF00A38180 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				2F58EFF82EC9C5DF00A38180 /* BlockTests */,
-			);
 			name = BlockTests;
 			packageProductDependencies = (
 			);
@@ -152,9 +193,6 @@
 			);
 			dependencies = (
 				2F58F0012EC9C5DF00A38180 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				2F58F0022EC9C5DF00A38180 /* BlockUITests */,
 			);
 			name = BlockUITests;
 			packageProductDependencies = (
@@ -328,6 +366,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -384,6 +423,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -393,10 +433,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Block/Block.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8FNVWC4DBU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Block/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -424,10 +467,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Block/Block.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8FNVWC4DBU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Block/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
