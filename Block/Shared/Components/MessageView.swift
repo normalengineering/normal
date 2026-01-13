@@ -3,7 +3,7 @@ import SwiftUI
 struct MessageView: View {
     let message: String
     let color: Color
-    
+
     var body: some View {
         Text(message)
             .font(.subheadline)

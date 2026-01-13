@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct PermissionRequestView : View {
+struct PermissionRequestView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
-    
+
     var body: some View {
         ContentUnavailableView {
             Label("Permission Needed", systemImage: "lock.shield")
