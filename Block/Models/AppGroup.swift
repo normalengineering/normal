@@ -5,16 +5,16 @@ import SwiftData
 
 @Model
 final class AppGroup: Identifiable {
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var name: String
     var isBlocked: Bool
     var selection: FamilyActivitySelection
     
-    init(name: String){
+    init(name: String, selection: FamilyActivitySelection){
         self.id = UUID()
         self.name = name
         self.isBlocked = false
-        self.selection = FamilyActivitySelection()
+        self.selection = selection
     }
 }
 
