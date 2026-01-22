@@ -13,7 +13,7 @@ struct CardView<Content: View>: View {
                 content
                 Spacer()
                 Text(secondaryText)
-                    .font(.subheadline)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundColor(.secondary)
             }
         }
