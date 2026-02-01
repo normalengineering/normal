@@ -8,6 +8,12 @@ enum AuthorizationState {
     case notAuthorized
 }
 
+enum BlockStatus {
+    case all
+    case some
+    case none
+}
+
 @Observable
 class ScreenTimeService {
     static let shared = ScreenTimeService()
@@ -17,10 +23,6 @@ class ScreenTimeService {
     private let store = ManagedSettingsStore()
     private let authCenter = AuthorizationCenter.shared
     private let authorizedKey = "hasAuthorizedFamilyControls"
-
-    private(set) var activeApplicationShields = Set<ApplicationToken>()
-    private(set) var activeCategoryShields = Set<ActivityCategoryToken>()
-    private(set) var activeWebDomainShields = Set<WebDomainToken>()
 
     init() {
         Task {
@@ -52,7 +54,6 @@ class ScreenTimeService {
 
     func applyShieldOnAll(selection: FamilyActivitySelection) {
         store.shield.applications = selection.applicationTokens
-        store.shield.applicationCategories = .specific(selection.categoryTokens)
         store.shield.webDomains = selection.webDomainTokens
     }
 
@@ -62,49 +63,46 @@ class ScreenTimeService {
         store.shield.webDomains = nil
         store.application.denyAppRemoval = false
     }
-    
-    func enableStrictMode(){
+
+    func enableStrictMode() {
         store.application.denyAppRemoval = true
     }
 
     // TO DO: Group Shield Logic
 
-    func setShieldOnGroup(selection: FamilyActivitySelection, shouldBlock: Bool) {
-        if shouldBlock {
-            addToShields(selection: selection)
-        } else {
-            subtractFromShields(selection: selection)
-        }
-
-        applyShields()
-    }
-
-    func applyShields() {
-        store.shield.applications = activeApplicationShields.isEmpty ? nil : activeApplicationShields
-        store.shield.applicationCategories = activeCategoryShields.isEmpty ? nil : .specific(activeCategoryShields)
-        store.shield.webDomains = activeWebDomainShields.isEmpty ? nil : activeWebDomainShields
-
-        print("Applying Shields: \(activeApplicationShields.count) apps")
-        for app in activeApplicationShields {
-            print(app.hashValue)
-        }
-    }
-
     func addToShields(selection: FamilyActivitySelection) {
-        activeApplicationShields.formUnion(selection.applicationTokens)
-        activeCategoryShields.formUnion(selection.categoryTokens)
-        activeWebDomainShields.formUnion(selection.webDomainTokens)
+        var currentApplications = store.shield.applications ?? Set<ApplicationToken>()
+        currentApplications.formUnion(selection.applicationTokens)
+        store.shield.applications = currentApplications
+
+        var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
+        currentWebDomains.formUnion(selection.webDomainTokens)
+        store.shield.webDomains = currentWebDomains
     }
 
-    func subtractFromShields(selection: FamilyActivitySelection) {
-        activeApplicationShields.subtract(selection.applicationTokens)
-        activeCategoryShields.subtract(selection.categoryTokens)
-        activeWebDomainShields.subtract(selection.webDomainTokens)
-    }
+    func removeFromShields(selection: FamilyActivitySelection) {
+        var currentApplications = store.shield.applications ?? Set<ApplicationToken>()
+        currentApplications.subtract(selection.applicationTokens)
+        store.shield.applications = currentApplications
 
-    func removeAllFromShields() {
-        activeApplicationShields.removeAll()
-        activeCategoryShields.removeAll()
-        activeWebDomainShields.removeAll()
+        var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
+        currentWebDomains.subtract(selection.webDomainTokens)
+        store.shield.webDomains = currentWebDomains
+    }
+    
+    func blockStatus(selection: FamilyActivitySelection) -> BlockStatus {
+        let currentApplications = store.shield.applications ?? Set<ApplicationToken>()
+        let currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
+        
+        if (selection.applicationTokens.isDisjoint(with: currentApplications) && selection.webDomainTokens.isDisjoint(with: currentWebDomains)){
+            return .none
+        }
+        
+        if (selection.applicationTokens.isSubset(of: currentApplications) && selection.webDomainTokens.isSubset(of: currentWebDomains)){
+            return .all
+        }
+        
+        return .some
+        
     }
 }

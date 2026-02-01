@@ -7,25 +7,18 @@ struct HomeView: View {
     @Query private var selectedApps: [SelectedApps]
     @State private var strictModeToggle = false
 
-    private var master: SelectedApps? { selectedApps.first }
-
-    private var hasSelection: Bool {
-        guard let selection = master?.selection else { return false }
-        return !selection.applicationTokens.isEmpty ||
-               !selection.categoryTokens.isEmpty ||
-               !selection.webDomainTokens.isEmpty
-    }
+    private var mainSelection: SelectedApps? { selectedApps.first }
 
     var body: some View {
         NavigationStack {
             List {
-                if let master = master, hasSelection {
+                if let mainSelection = mainSelection, !isSelectionEmpty(selection: mainSelection.selection) {
                     Section {
                         Button(action: buttonToggle) {
                             HStack {
-                                Label(master.isBlocked ? "Unblock All" : "Activate Block",
-                                      systemImage: master.isBlocked ? "lock.open.fill" : "lock.fill")
-                                    .foregroundStyle(master.isBlocked ? .red : .blue)
+                                Label(mainSelection.isBlocked ? "Unblock All" : "Block All",
+                                      systemImage: mainSelection.isBlocked ? "lock.open.fill" : "lock.fill")
+                                    .foregroundStyle(mainSelection.isBlocked ? .red : .blue)
                                 Spacer()
                             }
                         }
@@ -35,7 +28,7 @@ struct HomeView: View {
                         Toggle("Strict Mode", isOn: $strictModeToggle)
                             .tint(.accentColor)
                             .onChange(of: strictModeToggle) { _, newValue in
-                                master.strictMode = newValue
+                                mainSelection.strictMode = newValue
                             }
                     }
                 } else {
@@ -47,22 +40,22 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear {
-                if let master = master {
-                    strictModeToggle = master.strictMode
+                if let mainSelection = mainSelection {
+                    strictModeToggle = mainSelection.strictMode
                 }
             }
         }
     }
 
     func buttonToggle() {
-        guard let master = master else { return }
+        guard let mainSelection = mainSelection else { return }
         withAnimation(.spring) {
-            master.toggleBlockedStatus()
+            mainSelection.toggleBlockedStatus()
         }
 
-        if master.isBlocked {
-            screenTimeService.applyShieldOnAll(selection: master.selection)
-            if master.strictMode {
+        if mainSelection.isBlocked {
+            screenTimeService.applyShieldOnAll(selection: mainSelection.selection)
+            if mainSelection.strictMode {
                 screenTimeService.enableStrictMode()
             }
         } else {

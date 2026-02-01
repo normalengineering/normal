@@ -6,7 +6,7 @@ struct CreateGroupSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @State private var isFamilyActivityPickerPresented = false
+    @State private var isShowingAppSelectSheet = false
 
     @State private var name: String = ""
     @State private var selection = FamilyActivitySelection()
@@ -20,12 +20,12 @@ struct CreateGroupSheet: View {
 
                 Section("Apps to Block") {
                     Button {
-                        isFamilyActivityPickerPresented = true
+                        isShowingAppSelectSheet = true
                     } label: {
                         HStack {
                             Text("Select Apps")
                             Spacer()
-                            Text("\(selection.applicationTokens.count + selection.categoryTokens.count) selected")
+                            Text("\(selection.applicationTokens.count + selection.webDomainTokens.count) selected")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -33,7 +33,6 @@ struct CreateGroupSheet: View {
             }
             .navigationTitle("New Group")
             .navigationBarTitleDisplayMode(.inline)
-            .familyActivityPicker(isPresented: $isFamilyActivityPickerPresented, selection: $selection)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -42,8 +41,11 @@ struct CreateGroupSheet: View {
                     Button("Save") {
                         saveAndDismiss()
                     }
-                    .disabled(name.isEmpty || (selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty))
+                    .disabled(name.isEmpty || (selection.applicationTokens.isEmpty && selection.webDomainTokens.isEmpty))
                 }
+            }
+            .sheet(isPresented: $isShowingAppSelectSheet) {
+                SelectAppsForGroupSheet(currentGroupSelection: $selection)
             }
         }
     }

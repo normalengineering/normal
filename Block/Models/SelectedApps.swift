@@ -4,7 +4,7 @@ import SwiftData
 
 @Model
 final class SelectedApps {
-    @Attribute(.unique) var id: String = "APP_MASTER_SELECTION"
+    @Attribute(.unique) var id: String = "APP_MAIN_SELECTION"
     var selection: FamilyActivitySelection
     var lastUpdated: Date
     var isBlocked: Bool

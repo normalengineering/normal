@@ -5,9 +5,14 @@ func tokenToHashableArray<T: Hashable>(tokens: Set<T>) -> [AnyHashable] {
 }
 
 func allTokensFromSelection(selection: FamilyActivitySelection) -> [AnyHashable] {
-    let categories = tokenToHashableArray(tokens: selection.categoryTokens)
     let apps = tokenToHashableArray(tokens: selection.applicationTokens)
     let webDomains = tokenToHashableArray(tokens: selection.webDomainTokens)
 
-    return categories + apps + webDomains
+    return apps + webDomains
+}
+
+func isSelectionEmpty(selection: FamilyActivitySelection?) -> Bool {
+    guard let selection = selection else { return true }
+    return selection.applicationTokens.isEmpty &&
+        selection.webDomainTokens.isEmpty
 }

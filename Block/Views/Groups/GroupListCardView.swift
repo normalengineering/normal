@@ -26,7 +26,13 @@ struct GroupListCardView: View {
             }
         }
         .contextMenu {
-            toggleBlockedStatusButtonView
+            let blockStaus = screenTimeService.blockStatus(selection: appGroup.selection)
+            if blockStaus != .all {
+                lockButton
+            }
+            if blockStaus != .none {
+                unlockButton
+            }
             Button(role: .destructive) {
                 modelContext.delete(appGroup)
             } label: {
@@ -34,46 +40,33 @@ struct GroupListCardView: View {
             }
         }
     }
-
-    private var toggleBlockedStatusButtonView: some View {
-        let text = appGroup.isBlocked ? "Unblock" : "Block"
-        let icon = appGroup.isBlocked ? "lock.open" : "lock"
+    
+    
+    private var lockButton: some View {
         return Button(role: .confirm) {
             appGroup.toggleBlockedStatus()
-            screenTimeService.setShieldOnGroup(selection: appGroup.selection, shouldBlock: appGroup.isBlocked)
+            screenTimeService.addToShields(selection: appGroup.selection)
         } label: {
-            Label(text, systemImage: icon)
+            Label("Block", systemImage: "lock")
         }
     }
+    
+    private var unlockButton: some View {
+        return Button(role: .confirm) {
+            appGroup.toggleBlockedStatus()
+            screenTimeService.removeFromShields(selection: appGroup.selection)
+        } label: {
+            Label("Unblock", systemImage: "lock.open")
+        }
+    }
+
 
     private var groupIconView: some View {
         let allTokens = allTokensFromSelection(selection: appGroup.selection)
-        let iconsToShow = allTokens.prefix(displayLimit)
 
-        return HStack(spacing: -4) {
-            ForEach(iconsToShow, id: \.self) { token in
-                Group {
-                    if let appToken = token as? ApplicationToken {
-                        Label(appToken)
-                    } else if let categoryToken = token as? ActivityCategoryToken {
-                        Label(categoryToken)
-                    } else if let webDomainToken = token as? WebDomainToken {
-                        Label(webDomainToken)
-                    }
-                }
-                .labelStyle(.iconOnly)
-            }
+        return                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 24))], spacing: 8) {
+            SelectionIconsView(tokens: allTokens)
 
-            if allTokens.count > displayLimit {
-                moreIndicator
-            }
         }
-    }
-
-    private var moreIndicator: some View {
-        Text("+\(allTokens.count - displayLimit)")
-            .font(.system(size: 11, weight: .bold, design: .rounded))
-            .foregroundStyle(.secondary)
-            .padding(.leading, 4)
     }
 }
