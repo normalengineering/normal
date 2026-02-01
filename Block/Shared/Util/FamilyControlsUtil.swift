@@ -16,3 +16,8 @@ func isSelectionEmpty(selection: FamilyActivitySelection?) -> Bool {
     return selection.applicationTokens.isEmpty &&
         selection.webDomainTokens.isEmpty
 }
+
+func selectionCount(selection: FamilyActivitySelection?) -> Int {
+    guard let selection = selection else { return 0 }
+    return selection.applicationTokens.count + selection.webDomainTokens.count
+}

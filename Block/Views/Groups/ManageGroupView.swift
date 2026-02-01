@@ -25,7 +25,7 @@ struct CreateGroupSheet: View {
                         HStack {
                             Text("Select Apps")
                             Spacer()
-                            Text("\(selection.applicationTokens.count + selection.webDomainTokens.count) selected")
+                            Text("\(selectionCount(selection: selection)) selected")
                                 .foregroundStyle(.secondary)
                         }
                     }

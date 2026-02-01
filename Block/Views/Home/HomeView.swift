@@ -14,21 +14,43 @@ struct HomeView: View {
             List {
                 if let mainSelection = mainSelection, !isSelectionEmpty(selection: mainSelection.selection) {
                     Section {
-                        Button(action: buttonToggle) {
-                            HStack {
-                                Label(mainSelection.isBlocked ? "Unblock All" : "Block All",
-                                      systemImage: mainSelection.isBlocked ? "lock.open.fill" : "lock.fill")
-                                    .foregroundStyle(mainSelection.isBlocked ? .red : .blue)
-                                Spacer()
+                        let blockStatus = screenTimeService.blockStatus(selection: mainSelection.selection)
+                        if blockStatus != .all {
+                            Button(action: { screenTimeService.applyShieldOnAll(selection: mainSelection.selection) }) {
+                                HStack {
+                                    Label("Block All",
+                                          systemImage: "lock.fill")
+                                        .foregroundStyle(.blue)
+                                    Spacer()
+                                }
                             }
+                            .padding(.vertical, 8)
+                        }
+                        if blockStatus != .none {
+                            Button(action: { screenTimeService.removeShieldOnAll() }) {
+                                HStack {
+                                    Label("Unblock All",
+                                          systemImage: "lock.open.fill")
+                                        .foregroundStyle(.red)
+                                    Spacer()
+                                }
+                            }
+                            .padding(.vertical, 8)
                         }
                     }
+                    Section("Status") {
+                        BlockStatusView(mainSelection: mainSelection)
+                    }
 
-                    Section(header: Text("Configuration"), footer: Text("Strict mode prevents app deletion and modification while active.")) {
+                    Section(header: Text("Configuration"), footer: Text("Strict mode prevents app deletion when activated.")) {
                         Toggle("Strict Mode", isOn: $strictModeToggle)
                             .tint(.accentColor)
                             .onChange(of: strictModeToggle) { _, newValue in
-                                mainSelection.strictMode = newValue
+                                if newValue == true {
+                                    screenTimeService.enableStrictMode()
+                                } else {
+                                    screenTimeService.disableStrictMode()
+                                }
                             }
                     }
                 } else {
@@ -40,26 +62,8 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear {
-                if let mainSelection = mainSelection {
-                    strictModeToggle = mainSelection.strictMode
-                }
+                strictModeToggle = screenTimeService.isStrictModeEnabled
             }
-        }
-    }
-
-    func buttonToggle() {
-        guard let mainSelection = mainSelection else { return }
-        withAnimation(.spring) {
-            mainSelection.toggleBlockedStatus()
-        }
-
-        if mainSelection.isBlocked {
-            screenTimeService.applyShieldOnAll(selection: mainSelection.selection)
-            if mainSelection.strictMode {
-                screenTimeService.enableStrictMode()
-            }
-        } else {
-            screenTimeService.removeShieldOnAll()
         }
     }
 }

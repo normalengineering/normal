@@ -24,10 +24,21 @@ class ScreenTimeService {
     private let authCenter = AuthorizationCenter.shared
     private let authorizedKey = "hasAuthorizedFamilyControls"
 
+    var lastUpdate: Date = .now
+
     init() {
         Task {
             await checkAuthorizationStatus()
         }
+    }
+
+    var isStrictModeEnabled: Bool {
+        _ = lastUpdate
+        return store.application.denyAppRemoval ?? false
+    }
+
+    private func notifyUpdate() {
+        lastUpdate = .now
     }
 
     func checkAuthorizationStatus() async {
@@ -55,6 +66,7 @@ class ScreenTimeService {
     func applyShieldOnAll(selection: FamilyActivitySelection) {
         store.shield.applications = selection.applicationTokens
         store.shield.webDomains = selection.webDomainTokens
+        notifyUpdate()
     }
 
     func removeShieldOnAll() {
@@ -62,18 +74,24 @@ class ScreenTimeService {
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
         store.application.denyAppRemoval = false
+        notifyUpdate()
     }
 
     func enableStrictMode() {
         store.application.denyAppRemoval = true
+        notifyUpdate()
     }
 
-    // TO DO: Group Shield Logic
+    func disableStrictMode() {
+        store.application.denyAppRemoval = false
+        notifyUpdate()
+    }
 
     func addToShields(selection: FamilyActivitySelection) {
         var currentApplications = store.shield.applications ?? Set<ApplicationToken>()
         currentApplications.formUnion(selection.applicationTokens)
         store.shield.applications = currentApplications
+        notifyUpdate()
 
         var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
         currentWebDomains.formUnion(selection.webDomainTokens)
@@ -88,9 +106,19 @@ class ScreenTimeService {
         var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
         currentWebDomains.subtract(selection.webDomainTokens)
         store.shield.webDomains = currentWebDomains
+        notifyUpdate()
     }
 
-    func blockStatus(selection: FamilyActivitySelection) -> BlockStatus {
+    func activeShieldCount() -> Int {
+        let applicationCount = store.shield.applications?.count ?? 0
+        let webDomainCount = store.shield.webDomains?.count ?? 0
+
+        return applicationCount + webDomainCount
+    }
+
+    func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus {
+        _ = lastUpdate
+        guard let selection = selection else { return .none }
         let currentApplications = store.shield.applications ?? Set<ApplicationToken>()
         let currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
 

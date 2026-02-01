@@ -4,6 +4,7 @@ import SwiftData
 import SwiftUI
 
 struct AppSelectView: View {
+    @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(\.modelContext) private var modelContext
     @Query private var selectedApps: [SelectedApps]
     @Query private var appGroups: [AppGroup]
@@ -17,11 +18,12 @@ struct AppSelectView: View {
     @State private var selection = FamilyActivitySelection()
 
     var body: some View {
+        let blockStatus = screenTimeService.blockStatus(selection: mainSelection?.selection)
         NavigationStack {
             List {
-                Section(header: Text("Selection"), footer: isSelectionEmpty(selection: mainSelection?.selection) ? Text("Note: Categories are not supported, please select individual apps and websites instead. Categories prevent custom group functionality.") : nil) {
+                Section(header: Text("Selection"), footer: isSelectionEmpty(selection: mainSelection?.selection) ? Text("Note: Categories are not supported, please select individual apps and websites instead. Categories prevent custom group functionality.") : blockStatus != .none ? Text("Unblock all to modify selection") : nil) {
                     Button(isSelectionEmpty(selection: mainSelection?.selection) ? "Select Apps" : "Update Selected Apps", action: onUpdateSelectionButton)
-                        .disabled(mainSelection?.isBlocked ?? false)
+                        .disabled(blockStatus != .none)
 
                     Text("\(selection.applicationTokens.count) Apps, \(selection.webDomainTokens.count) Websites")
                         .font(.caption)

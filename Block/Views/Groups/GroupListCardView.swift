@@ -11,22 +11,20 @@ struct GroupListCardView: View {
     let appGroup: AppGroup
     let displayLimit = 3
 
-    private var allTokens: [AnyHashable] { allTokensFromSelection(selection: appGroup.selection) }
-
     var body: some View {
+        let blockStaus = screenTimeService.blockStatus(selection: appGroup.selection)
         CardView {
             Text(appGroup.name)
                 .font(.headline)
             HStack {
                 groupIconView
                 Spacer()
-                Text("\(allTokens.count) total")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundColor(.secondary)
+                Circle()
+                    .fill(blockStaus.color)
+                    .frame(width: 10, height: 10)
             }
         }
         .contextMenu {
-            let blockStaus = screenTimeService.blockStatus(selection: appGroup.selection)
             if blockStaus != .all {
                 lockButton
             }
@@ -43,7 +41,6 @@ struct GroupListCardView: View {
 
     private var lockButton: some View {
         return Button(role: .confirm) {
-            appGroup.toggleBlockedStatus()
             screenTimeService.addToShields(selection: appGroup.selection)
         } label: {
             Label("Block", systemImage: "lock")
@@ -52,7 +49,6 @@ struct GroupListCardView: View {
 
     private var unlockButton: some View {
         return Button(role: .confirm) {
-            appGroup.toggleBlockedStatus()
             screenTimeService.removeFromShields(selection: appGroup.selection)
         } label: {
             Label("Unblock", systemImage: "lock.open")
