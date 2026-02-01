@@ -9,7 +9,7 @@ struct BlockApp: App {
         WindowGroup {
             ContentView()
                 .environment(screenTimeService)
-                .modelContainer(for: [AppGroup.self])
+                .modelContainer(for: [AppGroup.self, SelectedApps.self])
         }
     }
 }

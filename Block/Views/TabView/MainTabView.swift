@@ -6,8 +6,11 @@ struct MainTabView: View {
             Tab("Home", systemImage: "house") {
                 HomeView()
             }
-            Tab("App Groups", systemImage: "app.shadow") {
+            Tab("App Select", systemImage: "app.dashed") {
                 AppSelectView()
+            }
+            Tab("Groups", systemImage: "app.shadow") {
+                GroupsView()
             }
         }
     }

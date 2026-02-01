@@ -2,7 +2,7 @@ import FamilyControls
 import SwiftData
 import SwiftUI
 
-struct CreateAppGroupSheet: View {
+struct CreateGroupSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 

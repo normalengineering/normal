@@ -15,4 +15,8 @@ final class AppGroup: Identifiable {
         isBlocked = false
         self.selection = selection
     }
+
+    func toggleBlockedStatus() {
+        isBlocked.toggle()
+    }
 }

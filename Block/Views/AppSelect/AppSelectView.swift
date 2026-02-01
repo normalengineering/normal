@@ -1,25 +1,46 @@
+import FamilyControls
+import ManagedSettings
 import SwiftData
 import SwiftUI
 
 struct AppSelectView: View {
-    @State private var isShowingSheet = false
-    @State private var showPopover = false
-    @State private var selectedGroupForMenu: AppGroup?
+    @Environment(\.modelContext) private var modelContext
+    @Query private var selectedApps: [SelectedApps]
+    private var masterSelection: SelectedApps? {
+        selectedApps.first
+    }
+
+    @State private var isFamilyActivityPickerPresented = false
+    @State private var selection = FamilyActivitySelection()
 
     var body: some View {
         NavigationStack {
-            AppGroupListView()
-                .navigationTitle("App Groups")
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: { isShowingSheet.toggle() }) {
-                            Label("Add Group", systemImage: "plus")
-                        }
-                        .sheet(isPresented: $isShowingSheet) {
-                            CreateAppGroupSheet()
-                        }
+            List {
+                Section("Update Selection") {
+                    Button("Update Selected Apps") {
+                        isFamilyActivityPickerPresented = true
                     }
+                    .disabled(masterSelection!.isBlocked)
+
+                    Text("\(selection.applicationTokens.count) Apps, \(selection.categoryTokens.count) Categories, \(selection.webDomainTokens.count) Websites")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                SelectionListView(selection: selection)
+            }
+            .navigationTitle("App Select")
+            .familyActivityPicker(isPresented: $isFamilyActivityPickerPresented, selection: $selection)
+            .onAppear {
+                if let masterSelection {
+                    selection = masterSelection.selection
+                }
+            }
+            .onChange(of: selection) { _, newValue in
+                try? modelContext.delete(model: SelectedApps.self)
+
+                let newRecord = SelectedApps(selection: newValue)
+                modelContext.insert(newRecord)
+            }
         }
     }
 }
