@@ -89,20 +89,19 @@ class ScreenTimeService {
         currentWebDomains.subtract(selection.webDomainTokens)
         store.shield.webDomains = currentWebDomains
     }
-    
+
     func blockStatus(selection: FamilyActivitySelection) -> BlockStatus {
         let currentApplications = store.shield.applications ?? Set<ApplicationToken>()
         let currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
-        
-        if (selection.applicationTokens.isDisjoint(with: currentApplications) && selection.webDomainTokens.isDisjoint(with: currentWebDomains)){
+
+        if selection.applicationTokens.isDisjoint(with: currentApplications) && selection.webDomainTokens.isDisjoint(with: currentWebDomains) {
             return .none
         }
-        
-        if (selection.applicationTokens.isSubset(of: currentApplications) && selection.webDomainTokens.isSubset(of: currentWebDomains)){
+
+        if selection.applicationTokens.isSubset(of: currentApplications) && selection.webDomainTokens.isSubset(of: currentWebDomains) {
             return .all
         }
-        
+
         return .some
-        
     }
 }

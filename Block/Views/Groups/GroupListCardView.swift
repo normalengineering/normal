@@ -40,8 +40,7 @@ struct GroupListCardView: View {
             }
         }
     }
-    
-    
+
     private var lockButton: some View {
         return Button(role: .confirm) {
             appGroup.toggleBlockedStatus()
@@ -50,7 +49,7 @@ struct GroupListCardView: View {
             Label("Block", systemImage: "lock")
         }
     }
-    
+
     private var unlockButton: some View {
         return Button(role: .confirm) {
             appGroup.toggleBlockedStatus()
@@ -60,13 +59,11 @@ struct GroupListCardView: View {
         }
     }
 
-
     private var groupIconView: some View {
         let allTokens = allTokensFromSelection(selection: appGroup.selection)
 
-        return                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 24))], spacing: 8) {
+        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 24))], spacing: 8) {
             SelectionIconsView(tokens: allTokens)
-
         }
     }
 }
