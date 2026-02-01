@@ -60,6 +60,11 @@ class ScreenTimeService {
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
+        store.application.denyAppRemoval = false
+    }
+    
+    func enableStrictMode(){
+        store.application.denyAppRemoval = true
     }
 
     // TO DO: Group Shield Logic
