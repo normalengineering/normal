@@ -4,68 +4,116 @@ import SwiftData
 import SwiftUI
 
 struct SelectAppsForGroupSheet: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
     @Query private var selectedApps: [SelectedApps]
-    private var mainSelection: SelectedApps? { selectedApps.first }
 
-    @Binding var currentGroupSelection: FamilyActivitySelection
+    @Binding var selection: FamilyActivitySelection
+
+    @State private var workingSelection = FamilyActivitySelection()
+
+    private var mainSelection: FamilyActivitySelection? {
+        selectedApps.first?.selection
+    }
+
+    private var workingCount: Int {
+        workingSelection.applicationTokens.count + workingSelection.webDomainTokens.count
+    }
 
     var body: some View {
         NavigationStack {
-            List {
-                if let selection = mainSelection?.selection {
-                    if !selection.applicationTokens.isEmpty { Section("Apps") {
-                        ForEach(Array(selection.applicationTokens), id: \.self) { token in
-                            appRow(token: token)
+            Group {
+                if let source = mainSelection,
+                   !source.applicationTokens.isEmpty || !source.webDomainTokens.isEmpty {
+                    List {
+                        if !source.applicationTokens.isEmpty {
+                            Section("Apps") {
+                                let sortedApps = sortTokens(tokens: tokenToHashableArray(tokens: source.applicationTokens) )
+                                ForEach(sortedApps, id: \.self) { token in
+                                    row(for: token)
+                                }
+                            }
+                        }
+                        if !source.webDomainTokens.isEmpty {
+                            Section("Websites") {
+                                let sortedDomains = sortTokens(tokens: tokenToHashableArray(tokens: source.webDomainTokens))
+                                ForEach(sortedDomains, id: \.self) { token in
+                                    row(for: token)
+                                }
+                            }
                         }
                     }
-                    }
-                    if !selection.webDomainTokens.isEmpty { Section("Web Domains") {
-                        ForEach(Array(selection.webDomainTokens), id: \.self) { token in
-                            appRow(token: token)
-                        }
-                    }
-                    }
+                    .listStyle(.insetGrouped)
                 } else {
-                    ContentUnavailableView("No Source Apps", systemImage: "apps.iphone", description: Text("Select apps in the main picker first."))
+                    ContentUnavailableView(
+                        "No Apps Available",
+                        systemImage: "apps.iphone",
+                        description: Text("Select apps in the main picker first.")
+                    )
                 }
             }
             .navigationTitle("Select Apps")
             .navigationBarTitleDisplayMode(.inline)
-            .listStyle(.insetGrouped)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        selection = workingSelection
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .onAppear {
+            workingSelection = selection
         }
     }
 
-    // MARK: - Logic Helpers
-
-    private func isAppSelected(token: AnyHashable) -> Bool {
-        if let appToken = token as? ApplicationToken {
-            return currentGroupSelection.applicationTokens.contains(appToken)
-        } else if let webDomainToken = token as? WebDomainToken {
-            return currentGroupSelection.webDomainTokens.contains(webDomainToken)
-        } else { return false }
-    }
-
-    private func toggleAppSelect(token: AnyHashable) {
-        if let appToken = token as? ApplicationToken {
-            if currentGroupSelection.applicationTokens.contains(appToken) {
-                currentGroupSelection.applicationTokens.remove(appToken)
-            } else {
-                currentGroupSelection.applicationTokens.insert(appToken)
-            }
-        } else if let webDomainToken = token as? WebDomainToken {
-            if currentGroupSelection.webDomainTokens.contains(webDomainToken) {
-                currentGroupSelection.webDomainTokens.remove(webDomainToken)
-            } else {
-                currentGroupSelection.webDomainTokens.insert(webDomainToken)
+    private func row(for token: some Hashable) -> some View {
+        let selected = isSelected(token)
+        return SelectAppForGroupRowView(
+            token: token as AnyHashable,
+            isSelected: selected
+        ) {
+            toggle(token)
+        }
+        .overlay(alignment: .trailing) {
+            if selected {
+                Image(systemName: "checkmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.tint)
             }
         }
     }
 
-    private func appRow(token: AnyHashable) -> some View {
-        return SelectAppForGroupRowView(token: token, isSelected: isAppSelected(token: token)) {
-            toggleAppSelect(token: token)
+    private func isSelected(_ token: some Hashable) -> Bool {
+        if let app = token as? ApplicationToken {
+            return workingSelection.applicationTokens.contains(app)
+        } else if let web = token as? WebDomainToken {
+            return workingSelection.webDomainTokens.contains(web)
+        }
+        return false
+    }
+
+    private func toggle(_ token: some Hashable) {
+        if let app = token as? ApplicationToken {
+            if workingSelection.applicationTokens.contains(app) {
+                workingSelection.applicationTokens.remove(app)
+            } else {
+                workingSelection.applicationTokens.insert(app)
+            }
+        } else if let web = token as? WebDomainToken {
+            if workingSelection.webDomainTokens.contains(web) {
+                workingSelection.webDomainTokens.remove(web)
+            } else {
+                workingSelection.webDomainTokens.insert(web)
+            }
         }
     }
 }

@@ -12,6 +12,9 @@ struct MainTabView: View {
             Tab("Groups", systemImage: "app.shadow") {
                 GroupsView()
             }
+            Tab("Keys", systemImage: "key.viewfinder") {
+                KeysView()
+            }
         }
     }
 }

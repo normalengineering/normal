@@ -14,6 +14,7 @@ enum BlockStatus {
     case none
 }
 
+@MainActor
 @Observable
 class ScreenTimeService {
     static let shared = ScreenTimeService()
@@ -42,9 +43,7 @@ class ScreenTimeService {
     }
 
     func checkAuthorizationStatus() async {
-        let status = authCenter.authorizationStatus
-
-        if status == .approved {
+        if authCenter.authorizationStatus == .approved {
             authorizationState = .authorized
         } else if UserDefaults.standard.bool(forKey: authorizedKey) {
             await requestAuthorization()
@@ -91,11 +90,11 @@ class ScreenTimeService {
         var currentApplications = store.shield.applications ?? Set<ApplicationToken>()
         currentApplications.formUnion(selection.applicationTokens)
         store.shield.applications = currentApplications
-        notifyUpdate()
 
         var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
         currentWebDomains.formUnion(selection.webDomainTokens)
         store.shield.webDomains = currentWebDomains
+        notifyUpdate()
     }
 
     func removeFromShields(selection: FamilyActivitySelection) {

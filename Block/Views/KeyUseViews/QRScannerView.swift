@@ -1,0 +1,154 @@
+// QRScannerView.swift
+// Views/Shared/
+//
+// Camera view with result overlay. Works as a navigation destination —
+// no sheet management needed. The parent decides how to present it
+// (navigation push from KeySelectView, navigation push from CreateKeySheet, etc.)
+
+import AVFoundation
+import SwiftUI
+
+struct QRScannerView: View {
+    let qrService: QRService
+
+    var body: some View {
+        ZStack {
+            QRCameraRepresentable(
+                onScan: { qrService.handleScan($0) },
+                scanResult: qrService.scanResult
+            )
+            .ignoresSafeArea()
+
+            resultOverlay
+        }
+        .navigationTitle("Scan QR Code")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private var resultOverlay: some View {
+        switch qrService.scanResult {
+        case .none:
+            EmptyView()
+        case .valid:
+            ScanResultBadge(
+                icon: "checkmark.circle.fill",
+                color: .green,
+                text: "Key Verified"
+            )
+        case .invalid:
+            ScanResultBadge(
+                icon: "xmark.circle.fill",
+                color: .red,
+                text: "Invalid Key"
+            )
+        }
+    }
+}
+
+// MARK: - Result Badge
+
+private struct ScanResultBadge: View {
+    let icon: String
+    let color: Color
+    let text: String
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 60))
+                .foregroundStyle(color)
+            Text(text)
+                .font(.headline)
+                .foregroundStyle(.white)
+        }
+        .padding(32)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+    }
+}
+
+// MARK: - Camera
+
+private struct QRCameraRepresentable: UIViewControllerRepresentable {
+    let onScan: (String) -> Void
+    let scanResult: QRService.ScanResult
+
+    func makeUIViewController(context: Context) -> QRCameraController {
+        let controller = QRCameraController()
+        controller.onScan = onScan
+        return controller
+    }
+
+    func updateUIViewController(_ controller: QRCameraController, context: Context) {
+        if scanResult == .none {
+            controller.resetForRescan()
+        }
+    }
+}
+
+final class QRCameraController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
+    var onScan: ((String) -> Void)?
+
+    private var captureSession: AVCaptureSession?
+    private var hasScanned = false
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let session = AVCaptureSession()
+        guard let device = AVCaptureDevice.default(for: .video),
+              let input = try? AVCaptureDeviceInput(device: device)
+        else { return }
+
+        session.addInput(input)
+
+        let output = AVCaptureMetadataOutput()
+        session.addOutput(output)
+        output.setMetadataObjectsDelegate(self, queue: .main)
+        output.metadataObjectTypes = [.qr]
+
+        let preview = AVCaptureVideoPreviewLayer(session: session)
+        preview.frame = view.bounds
+        preview.videoGravity = .resizeAspectFill
+        view.layer.addSublayer(preview)
+
+        captureSession = session
+        DispatchQueue.global(qos: .userInitiated).async { session.startRunning() }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if let preview = view.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
+            preview.frame = view.bounds
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        captureSession?.stopRunning()
+    }
+
+    func resetForRescan() {
+        hasScanned = false
+        if captureSession?.isRunning == false {
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.captureSession?.startRunning()
+            }
+        }
+    }
+
+    func metadataOutput(
+        _: AVCaptureMetadataOutput,
+        didOutput results: [AVMetadataObject],
+        from _: AVCaptureConnection
+    ) {
+        guard !hasScanned,
+              let readable = results.first as? AVMetadataMachineReadableCodeObject,
+              let value = readable.stringValue
+        else { return }
+
+        hasScanned = true
+        captureSession?.stopRunning()
+        onScan?(value)
+    }
+}

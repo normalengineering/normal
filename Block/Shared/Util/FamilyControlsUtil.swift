@@ -21,3 +21,7 @@ func selectionCount(selection: FamilyActivitySelection?) -> Int {
     guard let selection = selection else { return 0 }
     return selection.applicationTokens.count + selection.webDomainTokens.count
 }
+
+func sortTokens(tokens: [AnyHashable]) -> [AnyHashable]{
+    return tokens.sorted { String(describing: $0) < String(describing: $1) }
+}

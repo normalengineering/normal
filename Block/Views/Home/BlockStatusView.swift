@@ -36,17 +36,19 @@ struct BlockStatusView: View {
     }
 
     var body: some View {
-        HStack(spacing: 15) {
-            Image(systemName: currentStatus.icon)
-                .font(.title)
-                .foregroundStyle(currentStatus.color)
+        Section("Status") {
+            HStack(spacing: 15) {
+                Image(systemName: currentStatus.icon)
+                    .font(.title)
+                    .foregroundStyle(currentStatus.color)
 
-            VStack(alignment: .leading) {
-                Text(currentStatus.title)
-                    .font(.headline)
-                Text("\(screenTimeService.activeShieldCount()) of \(selectionCount(selection: mainSelection.selection)) Blocked")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading) {
+                    Text(currentStatus.title)
+                        .font(.headline)
+                    Text("\(screenTimeService.activeShieldCount()) of \(selectionCount(selection: mainSelection.selection)) Blocked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

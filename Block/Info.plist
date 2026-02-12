@@ -4,5 +4,29 @@
 <dict>
 	<key>Privacy - Family Controls Usage Description</key>
 	<string>We need Screen Time access to block apps.</string>
+	<key>com.apple.developer.nfc.readersession.felica.systemcodes</key>
+	<array>
+		<string>12FC</string>
+		<string>0003</string>
+		<string>FE00</string>
+	</array>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>D2760000850101</string>
+		<string>A0000000031010</string>
+		<string>A0000000041010</string>
+		<string>A0000000030000</string>
+		<string>A0000002471001</string>
+		<string>A000000025010801</string>
+		<string>A0000001523010</string>
+		<string>A0000000043060</string>
+		<string>A0000002771010</string>
+		<string>A0000004581010</string>
+		<string>A0000000032010</string>
+		<string>A0000003960000</string>
+		<string>A0000001524010</string>
+		<string>A0000000651010</string>
+		<string>D2760000850100</string>
+	</array>
 </dict>
 </plist>
