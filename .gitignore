@@ -1,0 +1,11 @@
+xcuserdata/
+*.xcuserstate
+*.xcdebugger/
+Breakpoints_v2.xcbkptlist
+
+
+build/
+DerivedData/
+
+
+.DS_Store
