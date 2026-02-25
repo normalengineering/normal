@@ -2,28 +2,40 @@ import FamilyControls
 import SwiftData
 import SwiftUI
 
-struct CreateGroupSheet: View {
+struct GroupFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    @State private var name: String = ""
-    @State private var selection = FamilyActivitySelection()
+    let existing: AppGroup?
+
+    @State private var name: String
+    @State private var selection: FamilyActivitySelection
     @State private var isShowingAppSelectSheet = false
+
+    private var isNew: Bool { existing == nil }
 
     private var totalSelected: Int {
         selectionCount(selection: selection)
     }
 
+    private var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && totalSelected > 0
+    }
+
+    init(existing: AppGroup? = nil) {
+        self.existing = existing
+        _name = State(initialValue: existing?.name ?? "")
+        _selection = State(initialValue: existing?.selection ?? FamilyActivitySelection())
+    }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section {
+                Section("Name") {
                     TextField("Group Name", text: $name)
-                } header: {
-                    Text("Name")
                 }
 
-                Section {
+                Section("Apps to Block") {
                     Button {
                         isShowingAppSelectSheet = true
                     } label: {
@@ -41,24 +53,18 @@ struct CreateGroupSheet: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                } header: {
-                    Text("Apps to Block")
                 }
             }
-            .navigationTitle("New Group")
+            .navigationTitle(isNew ? "New Group" : "Edit Group")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveAndDismiss()
-                    }
-                    .fontWeight(.semibold)
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || totalSelected <= 0)
+                    Button(isNew ? "Save" : "Update") { save() }
+                        .fontWeight(.semibold)
+                        .disabled(!canSave)
                 }
             }
             .sheet(isPresented: $isShowingAppSelectSheet) {
@@ -67,11 +73,18 @@ struct CreateGroupSheet: View {
         }
     }
 
-    private func saveAndDismiss() {
+    private func save() {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        let newGroup = AppGroup(name: trimmed, selection: selection)
-        modelContext.insert(newGroup)
+
+        if let existing {
+            existing.name = trimmed
+            existing.selection = selection
+            existing.lastUpdated = .now
+        } else {
+            modelContext.insert(AppGroup(name: trimmed, selection: selection))
+        }
+
         dismiss()
     }
 }
