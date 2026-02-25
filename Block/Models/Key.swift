@@ -5,7 +5,7 @@ import SwiftData
 enum KeyType: String, Codable, CaseIterable, Identifiable {
     case nfc = "NFC"
     case qr = "QR"
-    
+
     var id: String { self.rawValue }
 
     var icon: String {
@@ -46,7 +46,7 @@ final class Key: Identifiable {
         self.type = type
         let salt = Self.generateSalt()
         self.salt = salt
-        hashedValue = Key.hash(unhashedString: rawValue, salt: salt)
+        hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
     }
 
     private static func hash(unhashedString: String, salt: String) -> String {
@@ -73,7 +73,8 @@ final class Key: Identifiable {
     }
 
     static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {
-        return keys.contains { $0.hashedValue == Key.hash(unhashedString: unhashedId, salt: $0.salt)
+        keys.contains {
+            $0.hashedValue == Self.hash(unhashedString: unhashedId, salt: $0.salt)
         }
     }
 }

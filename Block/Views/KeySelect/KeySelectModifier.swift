@@ -12,14 +12,32 @@ struct KeySelectModifier: ViewModifier {
 
     @State private var showKeySelect = false
     @State private var showQRScanner = false
+    @State private var showNoKeysAlert = false
+    @State private var actionTrigger = false
 
     func body(content: Content) -> some View {
         content
+            .onChange(of: actionTrigger) { _, _ in
+                if action != nil {
+                    if keys.isEmpty {
+                        showNoKeysAlert = true
+                    } else {
+                        showQRScanner = false
+                        showKeySelect = true
+                    }
+                }
+            }
             .onChange(of: action != nil) { _, hasAction in
                 if hasAction {
-                    showQRScanner = false
-                    showKeySelect = true
+                    actionTrigger.toggle()
                 }
+            }
+            .alert("No Keys", isPresented: $showNoKeysAlert) {
+                Button("OK", role: .cancel) {
+                    action = nil
+                }
+            } message: {
+                Text("Add a key in the Keys tab before blocking apps.")
             }
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
                 NavigationStack {

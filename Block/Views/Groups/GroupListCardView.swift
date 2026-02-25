@@ -8,10 +8,11 @@ struct GroupListCardView: View {
     @Environment(\.modelContext) private var modelContext
 
     let appGroup: AppGroup
-    let displayLimit = 3
 
     @State private var authAction: (@MainActor () -> Void)?
     @State private var allowBypass = false
+    @State private var isEditing = false
+    @State private var showDeleteConfirmation = false
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: appGroup.selection)
@@ -19,52 +20,101 @@ struct GroupListCardView: View {
 
     var body: some View {
         CardView {
-            Text(appGroup.name)
-                .font(.headline)
-            HStack {
-                groupIconView
+            HStack(alignment: .center) {
+                Text(appGroup.name)
+                    .font(.headline)
+
                 Spacer()
-                Circle()
-                    .fill(blockStatus.color)
-                    .frame(width: 10, height: 10)
+
+                Label(blockStatus.shortLabel, systemImage: blockStatus.icon)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(blockStatus.color)
+            }
+
+            // MARK: - App Icons
+            HStack(spacing: 8) {
+                let allTokens = allTokensFromSelection(selection: appGroup.selection)
+                SelectionIconsView(tokens: allTokens)
+            }
+
+            // MARK: - Actions
+            HStack(spacing: 10) {
+                if blockStatus != .all {
+                    Button {
+                        allowBypass = true
+                        authAction = {
+                            screenTimeService.addToShields(selection: appGroup.selection)
+                        }
+                    } label: {
+                        Label(
+                            blockStatus == .some ? "Block All" : "Block",
+                            systemImage: "lock.fill"
+                        )
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                }
+
+                if blockStatus != .none {
+                    Button {
+                        allowBypass = false
+                        authAction = {
+                            screenTimeService.removeFromShields(selection: appGroup.selection)
+                        }
+                    } label: {
+                        Label(
+                            blockStatus == .some ? "Unblock All" : "Unblock",
+                            systemImage: "lock.open.fill"
+                        )
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
         }
-        .contextMenu {
-            if blockStatus != .all {
-                Button {
-                    allowBypass = true
-                    authAction = {
-                        screenTimeService.addToShields(selection: appGroup.selection)
-                    }
-                } label: {
-                    Label("Block", systemImage: "lock")
-                }
-            }
-
-            if blockStatus != .none {
-                Button {
-                    allowBypass = false
-                    authAction = {
-                        screenTimeService.removeFromShields(selection: appGroup.selection)
-                    }
-                } label: {
-                    Label("Unblock", systemImage: "lock.open")
-                }
-            }
-
-            Button(role: .destructive) {
+        .onTapGesture { isEditing = true }
+        .contextMenu { contextActions }
+        .sheet(isPresented: $isEditing) {
+            GroupFormSheet(existing: appGroup)
+        }
+        .alert("Delete Group?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
                 modelContext.delete(appGroup)
-            } label: {
-                Label("Delete", systemImage: "trash")
             }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(appGroup.name) will be permanently removed.")
         }
         .keySelect(action: $authAction, allowBypass: allowBypass)
     }
 
-    private var groupIconView: some View {
-        let allTokens = allTokensFromSelection(selection: appGroup.selection)
-        return LazyVGrid(columns: [GridItem(.adaptive(minimum: 24))], spacing: 8) {
-            SelectionIconsView(tokens: allTokens)
+    @ViewBuilder
+    private var contextActions: some View {
+        Button {
+            isEditing = true
+        } label: {
+            Label("Edit", systemImage: "pencil")
+        }
+
+        Button(role: .destructive) {
+            showDeleteConfirmation = true
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+    }
+}
+
+extension BlockStatus {
+    var shortLabel: String {
+        switch self {
+        case .all:  "Blocked"
+        case .some: "Partial"
+        case .none: "Unblocked"
         }
     }
 }

@@ -1,56 +1,14 @@
-import SwiftData
 import SwiftUI
 
-struct CreateKeySheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
+struct KeyFormSheetSetupSection: View {
     @Environment(NFCService.self) private var nfcService
     @Environment(QRService.self) private var qrService
 
-    @State private var name: String = ""
-    @State private var keyType: KeyType = .nfc
-    @State private var scannedKeyId: String?
-    @State private var showQRScanner = false
+    @Binding var keyType: KeyType
+    @Binding var scannedKeyId: String?
+    @Binding var showQRScanner: Bool
 
     var body: some View {
-        NavigationStack {
-            Form {
-                nameSection
-                setupSection
-            }
-            .navigationTitle("New Key")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { saveAndDismiss() }
-                        .disabled(scannedKeyId == nil || name.isEmpty)
-                }
-            }
-            .navigationDestination(isPresented: $showQRScanner) {
-                QRScannerView(qrService: qrService)
-                    .navigationBarBackButtonHidden()
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") {
-                                qrService.cancel()
-                                showQRScanner = false
-                            }
-                        }
-                    }
-            }
-        }
-    }
-
-    private var nameSection: some View {
-        Section("Name") {
-            TextField("e.g. Office Keycard", text: $name)
-        }
-    }
-
-    private var setupSection: some View {
         Section("Setup") {
             VStack(alignment: .leading, spacing: 12) {
                 Label("Choose Type", systemImage: "1.circle.fill")
@@ -59,11 +17,8 @@ struct CreateKeySheet: View {
 
                 Picker("Type", selection: $keyType) {
                     ForEach(KeyType.allCases) { type in
-                        Label(
-                            type.rawValue,
-                            systemImage: type.icon
-                        )
-                        .tag(type)
+                        Label(type.rawValue, systemImage: type.icon)
+                            .tag(type)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -78,7 +33,7 @@ struct CreateKeySheet: View {
                     .font(.subheadline.bold())
                     .foregroundStyle(.secondary)
 
-                Button { handleScan() } label: {
+                Button(action: handleScan) {
                     scanButtonContent
                 }
                 .buttonStyle(.plain)
@@ -89,9 +44,8 @@ struct CreateKeySheet: View {
 
     private var scanButtonContent: some View {
         HStack {
-            Image(systemName: keyType.icon
-            )
-            .font(.title2)
+            Image(systemName: keyType.icon)
+                .font(.title2)
 
             Text(scannedKeyId != nil ? "Key Linked" : "Tap to Scan")
                 .font(.headline)
@@ -126,7 +80,6 @@ struct CreateKeySheet: View {
                 switch keyType {
                 case .nfc:
                     id = try await nfcService.scan()
-
                 case .qr:
                     showQRScanner = true
                     id = try await qrService.scan()
@@ -140,12 +93,5 @@ struct CreateKeySheet: View {
                 showQRScanner = false
             }
         }
-    }
-
-    private func saveAndDismiss() {
-        guard let rawValue = scannedKeyId else { return }
-        let newKey = Key(name: name, type: keyType, rawValue: rawValue)
-        modelContext.insert(newKey)
-        dismiss()
     }
 }

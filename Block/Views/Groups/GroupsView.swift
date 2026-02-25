@@ -17,7 +17,7 @@ struct GroupsView: View {
                         Label("Add Group", systemImage: "plus")
                     }
                     .sheet(isPresented: $isShowingSheet) {
-                        CreateGroupSheet()
+                        GroupFormSheet()
                     }
                 }
             }

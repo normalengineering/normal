@@ -4,6 +4,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Query private var selectedApps: [SelectedApps]
+    @Query private var keys: [Key]
     private var mainSelection: SelectedApps? { selectedApps.first }
 
     var body: some View {

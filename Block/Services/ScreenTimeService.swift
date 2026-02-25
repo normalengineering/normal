@@ -72,7 +72,6 @@ class ScreenTimeService {
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
-        store.application.denyAppRemoval = false
         notifyUpdate()
     }
 
@@ -109,6 +108,7 @@ class ScreenTimeService {
     }
 
     func activeShieldCount() -> Int {
+        _ = lastUpdate
         let applicationCount = store.shield.applications?.count ?? 0
         let webDomainCount = store.shield.webDomains?.count ?? 0
 
