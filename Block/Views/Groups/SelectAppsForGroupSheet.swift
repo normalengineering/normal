@@ -25,11 +25,21 @@ struct SelectAppsForGroupSheet: View {
         NavigationStack {
             Group {
                 if let source = mainSelection,
-                   !source.applicationTokens.isEmpty || !source.webDomainTokens.isEmpty {
+                   !source.applicationTokens.isEmpty || !source.webDomainTokens.isEmpty || !source.categoryTokens.isEmpty
+                {
                     List {
+                        if !source.categoryTokens.isEmpty {
+                            Section("Categories") {
+                                let sortedCategories = sortTokens(tokens: tokenToHashableArray(tokens: source.categoryTokens))
+                                ForEach(sortedCategories, id: \.self) { token in
+                                    row(for: token)
+                                }
+                            }
+                        }
+
                         if !source.applicationTokens.isEmpty {
                             Section("Apps") {
-                                let sortedApps = sortTokens(tokens: tokenToHashableArray(tokens: source.applicationTokens) )
+                                let sortedApps = sortTokens(tokens: tokenToHashableArray(tokens: source.applicationTokens))
                                 ForEach(sortedApps, id: \.self) { token in
                                     row(for: token)
                                 }
@@ -97,6 +107,8 @@ struct SelectAppsForGroupSheet: View {
             return workingSelection.applicationTokens.contains(app)
         } else if let web = token as? WebDomainToken {
             return workingSelection.webDomainTokens.contains(web)
+        } else if let cat = token as? ActivityCategoryToken {
+            return workingSelection.categoryTokens.contains(cat)
         }
         return false
     }
@@ -113,6 +125,12 @@ struct SelectAppsForGroupSheet: View {
                 workingSelection.webDomainTokens.remove(web)
             } else {
                 workingSelection.webDomainTokens.insert(web)
+            }
+        } else if let cat = token as? ActivityCategoryToken {
+            if workingSelection.categoryTokens.contains(cat) {
+                workingSelection.categoryTokens.remove(cat)
+            } else {
+                workingSelection.categoryTokens.insert(cat)
             }
         }
     }

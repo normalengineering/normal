@@ -7,21 +7,25 @@ func tokenToHashableArray<T: Hashable>(tokens: Set<T>) -> [AnyHashable] {
 func allTokensFromSelection(selection: FamilyActivitySelection) -> [AnyHashable] {
     let apps = tokenToHashableArray(tokens: selection.applicationTokens)
     let webDomains = tokenToHashableArray(tokens: selection.webDomainTokens)
+    let categories = tokenToHashableArray(tokens: selection.categoryTokens)
 
-    return apps + webDomains
+    return apps + webDomains + categories
 }
 
 func isSelectionEmpty(selection: FamilyActivitySelection?) -> Bool {
     guard let selection = selection else { return true }
     return selection.applicationTokens.isEmpty &&
-        selection.webDomainTokens.isEmpty
+        selection.webDomainTokens.isEmpty &&
+        selection.categoryTokens.isEmpty
 }
 
 func selectionCount(selection: FamilyActivitySelection?) -> Int {
     guard let selection = selection else { return 0 }
-    return selection.applicationTokens.count + selection.webDomainTokens.count
+    return selection.applicationTokens.count +
+        selection.webDomainTokens.count +
+        selection.categoryTokens.count
 }
 
-func sortTokens(tokens: [AnyHashable]) -> [AnyHashable]{
+func sortTokens(tokens: [AnyHashable]) -> [AnyHashable] {
     return tokens.sorted { String(describing: $0) < String(describing: $1) }
 }

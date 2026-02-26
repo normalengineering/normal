@@ -13,6 +13,8 @@ struct SelectionIconsView: View {
                     Label(appToken)
                 } else if let webDomainToken = token as? WebDomainToken {
                     Label(webDomainToken)
+                } else if let categoryToken = token as? ActivityCategoryToken {
+                    Label(categoryToken)
                 }
             }
             .labelStyle(.iconOnly)

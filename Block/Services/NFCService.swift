@@ -10,17 +10,17 @@ extension ScanError {
 
         var errorDescription: String? {
             switch self {
-            case .unavailable:      "NFC is not supported on this device."
+            case .unavailable: "NFC is not supported on this device."
             case .connectionFailed: "Could not connect to the tag. Please try again."
-            case .unsupportedTag:   "This tag type isn't compatible with this app."
+            case .unsupportedTag: "This tag type isn't compatible with this app."
             }
         }
 
         var alertMessage: String {
             switch self {
-            case .unavailable:      "NFC unavailable."
+            case .unavailable: "NFC unavailable."
             case .connectionFailed: "Connection failed."
-            case .unsupportedTag:   "Unsupported NFC type. Please contact us to add support."
+            case .unsupportedTag: "Unsupported NFC type. Please contact us to add support."
             }
         }
     }

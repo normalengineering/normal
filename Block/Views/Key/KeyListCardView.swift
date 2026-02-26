@@ -13,7 +13,7 @@ struct KeyListCardView: View {
     private var isBlocked: Bool {
         screenTimeService.activeShieldCount() > 0
     }
-    
+
     let key: Key
 
     var body: some View {
@@ -22,23 +22,23 @@ struct KeyListCardView: View {
                 Circle()
                     .fill(Color.accentColor.opacity(0.1))
                     .frame(width: 48, height: 48)
-                
+
                 Image(systemName: key.type == .nfc ? "sensor.tag.radiowaves.forward.fill" : "qrcode")
                     .font(.title3)
                     .foregroundStyle(Color.accentColor)
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(key.name)
                     .font(.headline)
-                
+
                 Text(key.type.rawValue)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .font(.caption2.bold())
                 .foregroundStyle(.tertiary)

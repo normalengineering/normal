@@ -73,13 +73,13 @@ private struct QRCameraRepresentable: UIViewControllerRepresentable {
     let onScan: (String) -> Void
     let scanResult: QRService.ScanResult
 
-    func makeUIViewController(context: Context) -> QRCameraController {
+    func makeUIViewController(context _: Context) -> QRCameraController {
         let controller = QRCameraController()
         controller.onScan = onScan
         return controller
     }
 
-    func updateUIViewController(_ controller: QRCameraController, context: Context) {
+    func updateUIViewController(_ controller: QRCameraController, context _: Context) {
         if scanResult == .none {
             controller.resetForRescan()
         }

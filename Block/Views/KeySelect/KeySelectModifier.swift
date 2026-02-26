@@ -90,7 +90,7 @@ struct KeySelectModifier: ViewModifier {
 
         let method: KeyMethod = switch choice {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: keys)
-        case .qr:  QRKeyMethod(qrService: qrService, keys: keys)
+        case .qr: QRKeyMethod(qrService: qrService, keys: keys)
         }
 
         _ = await keyManager.performWithKeyCheck(using: method) {

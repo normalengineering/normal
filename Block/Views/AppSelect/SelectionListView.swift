@@ -5,6 +5,14 @@ struct SelectionListView: View {
     var selection: FamilyActivitySelection
 
     var body: some View {
+        if !selection.categoryTokens.isEmpty {
+            Section("Selected Categories") {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 32))], spacing: 10) {
+                    SelectionIconsView(tokens: tokenToHashableArray(tokens: selection.categoryTokens))
+                }
+            }
+        }
+
         if !selection.applicationTokens.isEmpty {
             Section("Selected Apps") {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 32))], spacing: 10) {

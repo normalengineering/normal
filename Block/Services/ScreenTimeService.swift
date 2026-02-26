@@ -62,19 +62,6 @@ class ScreenTimeService {
         }
     }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection) {
-        store.shield.applications = selection.applicationTokens
-        store.shield.webDomains = selection.webDomainTokens
-        notifyUpdate()
-    }
-
-    func removeShieldOnAll() {
-        store.shield.applications = nil
-        store.shield.applicationCategories = nil
-        store.shield.webDomains = nil
-        notifyUpdate()
-    }
-
     func enableStrictMode() {
         store.application.denyAppRemoval = true
         notifyUpdate()
@@ -82,6 +69,22 @@ class ScreenTimeService {
 
     func disableStrictMode() {
         store.application.denyAppRemoval = false
+        notifyUpdate()
+    }
+
+    func applyShieldOnAll(selection: FamilyActivitySelection) {
+        store.shield.applications = selection.applicationTokens
+        store.shield.webDomains = selection.webDomainTokens
+        store.shield.applicationCategories = selection.categoryTokens.isEmpty
+            ? nil
+            : .specific(selection.categoryTokens)
+        notifyUpdate()
+    }
+
+    func removeShieldOnAll() {
+        store.shield.applications = nil
+        store.shield.applicationCategories = nil
+        store.shield.webDomains = nil
         notifyUpdate()
     }
 
@@ -93,6 +96,11 @@ class ScreenTimeService {
         var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
         currentWebDomains.formUnion(selection.webDomainTokens)
         store.shield.webDomains = currentWebDomains
+
+        var currentCategories = extractCategoryTokens(from: store.shield.applicationCategories)
+        currentCategories.formUnion(selection.categoryTokens)
+        store.shield.applicationCategories = currentCategories.isEmpty ? nil : .specific(currentCategories)
+
         notifyUpdate()
     }
 
@@ -104,6 +112,11 @@ class ScreenTimeService {
         var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
         currentWebDomains.subtract(selection.webDomainTokens)
         store.shield.webDomains = currentWebDomains
+
+        var currentCategories = extractCategoryTokens(from: store.shield.applicationCategories)
+        currentCategories.subtract(selection.categoryTokens)
+        store.shield.applicationCategories = currentCategories.isEmpty ? nil : .specific(currentCategories)
+
         notifyUpdate()
     }
 
@@ -111,8 +124,9 @@ class ScreenTimeService {
         _ = lastUpdate
         let applicationCount = store.shield.applications?.count ?? 0
         let webDomainCount = store.shield.webDomains?.count ?? 0
+        let categoryCount = extractCategoryTokens(from: store.shield.applicationCategories).count
 
-        return applicationCount + webDomainCount
+        return applicationCount + webDomainCount + categoryCount
     }
 
     func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus {
@@ -120,15 +134,31 @@ class ScreenTimeService {
         guard let selection = selection else { return .none }
         let currentApplications = store.shield.applications ?? Set<ApplicationToken>()
         let currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
+        let currentCategories = extractCategoryTokens(from: store.shield.applicationCategories)
 
-        if selection.applicationTokens.isDisjoint(with: currentApplications) && selection.webDomainTokens.isDisjoint(with: currentWebDomains) {
+        let appsDisjoint = selection.applicationTokens.isDisjoint(with: currentApplications)
+        let webDisjoint = selection.webDomainTokens.isDisjoint(with: currentWebDomains)
+        let catsDisjoint = selection.categoryTokens.isDisjoint(with: currentCategories)
+
+        if appsDisjoint && webDisjoint && catsDisjoint {
             return .none
         }
 
-        if selection.applicationTokens.isSubset(of: currentApplications) && selection.webDomainTokens.isSubset(of: currentWebDomains) {
+        let appsSubset = selection.applicationTokens.isSubset(of: currentApplications)
+        let webSubset = selection.webDomainTokens.isSubset(of: currentWebDomains)
+        let catsSubset = selection.categoryTokens.isSubset(of: currentCategories)
+
+        if appsSubset && webSubset && catsSubset {
             return .all
         }
 
         return .some
+    }
+
+    private func extractCategoryTokens(
+        from policy: ShieldSettings.ActivityCategoryPolicy<Application>?
+    ) -> Set<ActivityCategoryToken> {
+        guard case let .specific(tokens, _) = policy else { return [] }
+        return tokens
     }
 }

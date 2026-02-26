@@ -13,19 +13,18 @@ struct AppSelectView: View {
     }
 
     @State private var showSelectionChangeAlert = false
-    @State private var showCategoryForbiddenAlert = false
     @State private var isFamilyActivityPickerPresented = false
     @State private var selection = FamilyActivitySelection()
-    
+
     private var isBlocked: Bool {
         screenTimeService.activeShieldCount() > 0
     }
-    
+
     private var footerText: Text? {
         if isBlocked {
             Text("Unblock all apps to edit selection.")
         } else if isSelectionEmpty(selection: mainSelection?.selection) {
-            Text("Note: Categories are not supported, please select individual apps and websites instead.")
+            Text("Selecting individual apps is recommended over categories for more granular control.")
         } else {
             nil
         }
@@ -53,22 +52,14 @@ struct AppSelectView: View {
             } message: {
                 Text("Updating your app selection will affect the functionality of your groups. After updating selection please update your groups to ensure consistency.")
             }
-            .alert("Categories Not Supported", isPresented: $showCategoryForbiddenAlert) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("Please select individual apps and websites. Categories prevent custom group functionality.")
-            }
             .familyActivityPicker(isPresented: $isFamilyActivityPickerPresented, selection: $selection)
             .onAppear {
                 if let mainSelection {
                     selection = mainSelection.selection
                 }
             }
-            .onChange(of: selection) { oldValue, newValue in
-                if !newValue.categoryTokens.isEmpty {
-                    showCategoryForbiddenAlert = true
-                    selection = oldValue
-                } else if let existing = mainSelection {
+            .onChange(of: selection) { _, newValue in
+                if let existing = mainSelection {
                     existing.selection = newValue
                     existing.lastUpdated = .now
                 } else {

@@ -31,13 +31,11 @@ struct GroupListCardView: View {
                     .foregroundStyle(blockStatus.color)
             }
 
-            // MARK: - App Icons
             HStack(spacing: 8) {
                 let allTokens = allTokensFromSelection(selection: appGroup.selection)
                 SelectionIconsView(tokens: allTokens)
             }
 
-            // MARK: - Actions
             HStack(spacing: 10) {
                 if blockStatus != .all {
                     Button {
@@ -112,7 +110,7 @@ struct GroupListCardView: View {
 extension BlockStatus {
     var shortLabel: String {
         switch self {
-        case .all:  "Blocked"
+        case .all: "Blocked"
         case .some: "Partial"
         case .none: "Unblocked"
         }

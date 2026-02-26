@@ -10,11 +10,11 @@ enum ScanError: LocalizedError {
 
     var errorDescription: String {
         switch self {
-        case .alreadyScanning:    "A scan is already in progress."
-        case .userCanceled:       "Scanning was canceled."
-        case .invalidKey:         "This key hasn't been registered."
+        case .alreadyScanning: "A scan is already in progress."
+        case .userCanceled: "Scanning was canceled."
+        case .invalidKey: "This key hasn't been registered."
         case let .systemError(e): e.localizedDescription
-        case let .nfc(nfcError):    nfcError.errorDescription ?? "Unknown NFC error"
+        case let .nfc(nfcError): nfcError.errorDescription ?? "Unknown NFC error"
         }
     }
 }

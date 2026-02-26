@@ -4,10 +4,10 @@ import SwiftUI
 struct KeysView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScreenTimeService.self) private var screenTimeService
-    
+
     @Query private var keys: [Key]
     @State private var isShowingSheet = false
-    
+
     private var isBlocked: Bool {
         screenTimeService.activeShieldCount() > 0
     }
