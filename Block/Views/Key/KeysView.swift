@@ -9,21 +9,38 @@ struct KeysView: View {
     @State private var isShowingSheet = false
 
     private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+        screenTimeService.activeShieldCount() > 0 && !keys.isEmpty
     }
 
     var body: some View {
         NavigationStack {
-            ListView(items: keys) { key in
-                KeyListCardView(key: key)
-            }
-            .safeAreaInset(edge: .bottom) {
-                if isBlocked {
-                    Text("Unblock all apps to manage keys.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding()
+            Group {
+                if keys.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Keys", systemImage: "key.viewfinder")
+                    } description: {
+                        Text("Keys are required to block and unblock apps. Add an NFC tag or QR code to get started.")
+                    } actions: {
+                        Button {
+                            isShowingSheet = true
+                        } label: {
+                            Text("Add Key")
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else {
+                    ListView(items: keys) { key in
+                        KeyListCardView(key: key)
+                    }
+                    .safeAreaInset(edge: .bottom) {
+                        if isBlocked {
+                            Text("Unblock all apps to manage keys.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        }
+                    }
                 }
             }
             .navigationTitle("Keys")
