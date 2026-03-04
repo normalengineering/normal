@@ -6,7 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2F4718682F5569C90013F94D /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F4718672F5569C90013F94D /* DeviceActivity.framework */; };
+		2F4718702F5569C90013F94D /* BlockMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2F4718652F5569C90013F94D /* BlockMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
+		2F47186E2F5569C90013F94D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F58EFE02EC9C5DE00A38180 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2F4718642F5569C90013F94D;
+			remoteInfo = BlockMonitor;
+		};
 		2F58EFF62EC9C5DF00A38180 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2F58EFE02EC9C5DE00A38180 /* Project object */;
@@ -23,20 +35,29 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		2F4718712F5569C90013F94D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				2F4718702F5569C90013F94D /* BlockMonitor.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		2F4718652F5569C90013F94D /* BlockMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BlockMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F4718672F5569C90013F94D /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
 		2F58EFE82EC9C5DE00A38180 /* Block.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Block.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F58EFF52EC9C5DF00A38180 /* BlockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F58EFFF2EC9C5DF00A38180 /* BlockUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlockUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2F4301C92ECAFE2D001FBF91 /* Exceptions for "Block" folder in "Block" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
-		};
 		2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Block" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -60,6 +81,30 @@
 			);
 			target = 2F58EFF42EC9C5DF00A38180 /* BlockTests */;
 		};
+		2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "BlockMonitor" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DataExtension.swift,
+				SharedConstants.swift,
+				SharedDTO.swift,
+				SharedStore.swift,
+			);
+			target = 2F4718642F5569C90013F94D /* BlockMonitor */;
+		};
+		2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "BlockMonitor" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2F4718642F5569C90013F94D /* BlockMonitor */;
+		};
+		2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Block" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,10 +125,26 @@
 			path = BlockUITests;
 			sourceTree = "<group>";
 		};
+		2F4718692F5569C90013F94D /* BlockMonitor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "BlockMonitor" target */,
+			);
+			path = BlockMonitor;
+			sourceTree = "<group>";
+		};
+		2F47187A2F556B950013F94D /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "BlockMonitor" target */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		2F58EFEA2EC9C5DE00A38180 /* Block */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4301C92ECAFE2D001FBF91 /* Exceptions for "Block" folder in "Block" target */,
+				2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Block" target */,
 			);
 			path = Block;
 			sourceTree = "<group>";
@@ -91,6 +152,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2F4718622F5569C90013F94D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2F4718682F5569C90013F94D /* DeviceActivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2F58EFE52EC9C5DE00A38180 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,10 +184,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2F4718662F5569C90013F94D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2F4718672F5569C90013F94D /* DeviceActivity.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		2F58EFDF2EC9C5DE00A38180 = {
 			isa = PBXGroup;
 			children = (
+				2F47187A2F556B950013F94D /* Shared */,
 				2F58EFEA2EC9C5DE00A38180 /* Block */,
+				2F4718692F5569C90013F94D /* BlockMonitor */,
+				2F4718662F5569C90013F94D /* Frameworks */,
 				2F58EFE92EC9C5DE00A38180 /* Products */,
 				2F4301E62ECBBAA7001FBF91 /* BlockTests */,
 				2F4301E92ECBBAA7001FBF91 /* BlockUITests */,
@@ -131,6 +211,7 @@
 				2F58EFE82EC9C5DE00A38180 /* Block.app */,
 				2F58EFF52EC9C5DF00A38180 /* BlockTests.xctest */,
 				2F58EFFF2EC9C5DF00A38180 /* BlockUITests.xctest */,
+				2F4718652F5569C90013F94D /* BlockMonitor.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -138,6 +219,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2F4718642F5569C90013F94D /* BlockMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2F4718742F5569C90013F94D /* Build configuration list for PBXNativeTarget "BlockMonitor" */;
+			buildPhases = (
+				2F4718612F5569C90013F94D /* Sources */,
+				2F4718622F5569C90013F94D /* Frameworks */,
+				2F4718632F5569C90013F94D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2F4718692F5569C90013F94D /* BlockMonitor */,
+			);
+			name = BlockMonitor;
+			packageProductDependencies = (
+			);
+			productName = BlockMonitor;
+			productReference = 2F4718652F5569C90013F94D /* BlockMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		2F58EFE72EC9C5DE00A38180 /* Block */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2F58F0092EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "Block" */;
@@ -145,13 +248,16 @@
 				2F58EFE42EC9C5DE00A38180 /* Sources */,
 				2F58EFE52EC9C5DE00A38180 /* Frameworks */,
 				2F58EFE62EC9C5DE00A38180 /* Resources */,
+				2F4718712F5569C90013F94D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				2F47186F2F5569C90013F94D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				2F4301E92ECBBAA7001FBF91 /* BlockUITests */,
+				2F47187A2F556B950013F94D /* Shared */,
 				2F58EFEA2EC9C5DE00A38180 /* Block */,
 			);
 			name = Block;
@@ -208,9 +314,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					2F4718642F5569C90013F94D = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					2F58EFE72EC9C5DE00A38180 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -241,11 +350,19 @@
 				2F58EFE72EC9C5DE00A38180 /* Block */,
 				2F58EFF42EC9C5DF00A38180 /* BlockTests */,
 				2F58EFFE2EC9C5DF00A38180 /* BlockUITests */,
+				2F4718642F5569C90013F94D /* BlockMonitor */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2F4718632F5569C90013F94D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2F58EFE62EC9C5DE00A38180 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -270,6 +387,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2F4718612F5569C90013F94D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2F58EFE42EC9C5DE00A38180 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -294,6 +418,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2F47186F2F5569C90013F94D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2F4718642F5569C90013F94D /* BlockMonitor */;
+			targetProxy = 2F47186E2F5569C90013F94D /* PBXContainerItemProxy */;
+		};
 		2F58EFF72EC9C5DF00A38180 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
@@ -307,6 +436,66 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2F4718722F5569C90013F94D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = BlockMonitor/BlockMonitor.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8FNVWC4DBU;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BlockMonitor/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BlockMonitor;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.normalengineering.Block.BlockMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2F4718732F5569C90013F94D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = BlockMonitor/BlockMonitor.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8FNVWC4DBU;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BlockMonitor/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BlockMonitor;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.normalengineering.Block.BlockMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		2F58F0072EC9C5DF00A38180 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -583,6 +772,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2F4718742F5569C90013F94D /* Build configuration list for PBXNativeTarget "BlockMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F4718722F5569C90013F94D /* Debug */,
+				2F4718732F5569C90013F94D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2F58EFE32EC9C5DE00A38180 /* Build configuration list for PBXProject "Block" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

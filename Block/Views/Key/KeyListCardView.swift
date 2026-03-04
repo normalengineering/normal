@@ -1,5 +1,3 @@
-import FamilyControls
-import ManagedSettings
 import SwiftData
 import SwiftUI
 

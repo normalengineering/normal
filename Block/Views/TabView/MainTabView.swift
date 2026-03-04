@@ -9,6 +9,9 @@ struct MainTabView: View {
             Tab("Groups", systemImage: "app.shadow") {
                 GroupsView()
             }
+            Tab("Schedules", systemImage: "calendar.badge.clock") {
+                SchedulesView()
+            }
             Tab("App Select", systemImage: "app.dashed") {
                 AppSelectView()
             }

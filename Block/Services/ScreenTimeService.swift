@@ -12,6 +12,14 @@ enum BlockStatus {
     case all
     case some
     case none
+
+    var shortLabel: String {
+        switch self {
+        case .all: "Blocked"
+        case .some: "Partial"
+        case .none: "Unblocked"
+        }
+    }
 }
 
 @MainActor

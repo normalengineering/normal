@@ -1,10 +1,10 @@
 import FamilyControls
-import ManagedSettings
 import SwiftData
 import SwiftUI
 
 struct GroupListCardView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(\.modelContext) private var modelContext
 
     let appGroup: AppGroup
@@ -13,9 +13,18 @@ struct GroupListCardView: View {
     @State private var allowBypass = false
     @State private var isEditing = false
     @State private var showDeleteConfirmation = false
+    @State private var showTimedUnblockSheet = false
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: appGroup.selection)
+    }
+
+    private var isGroupTimedUnblockActive: Bool {
+        timedUnblockService.isGroupUnblockActive(groupId: appGroup.id)
+    }
+
+    private var groupUnblockEndDate: Date? {
+        timedUnblockService.groupUnblockEndDate(groupId: appGroup.id)
     }
 
     var body: some View {
@@ -26,52 +35,88 @@ struct GroupListCardView: View {
 
                 Spacer()
 
-                Label(blockStatus.shortLabel, systemImage: blockStatus.icon)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(blockStatus.color)
+                if isGroupTimedUnblockActive {
+                    Label("Timed Unblock", systemImage: "timer")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.orange)
+                } else {
+                    Label(blockStatus.shortLabel, systemImage: blockStatus.icon)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(blockStatus.color)
+                }
             }
 
             HStack(spacing: 8) {
-                let allTokens = allTokensFromSelection(selection: appGroup.selection)
-                SelectionIconsView(tokens: allTokens)
+                SelectionIconsView(tokens: allTokensFromSelection(selection: appGroup.selection))
             }
 
-            HStack(spacing: 10) {
-                if blockStatus != .all {
+            if let endDate = groupUnblockEndDate, endDate > .now {
+                HStack(spacing: 8) {
+                    Image(systemName: "timer")
+                        .foregroundStyle(.orange)
+
+                    Text(timerInterval: .now ... endDate, countsDown: true)
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
                     Button {
                         allowBypass = true
                         authAction = {
-                            screenTimeService.addToShields(selection: appGroup.selection)
+                            timedUnblockService.cancelGroup(
+                                groupId: appGroup.id,
+                                selection: appGroup.selection,
+                                screenTimeService: screenTimeService
+                            )
                         }
                     } label: {
-                        Label(
-                            blockStatus == .some ? "Block All" : "Block",
-                            systemImage: "lock.fill"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                }
-
-                if blockStatus != .none {
-                    Button {
-                        allowBypass = false
-                        authAction = {
-                            screenTimeService.removeFromShields(selection: appGroup.selection)
-                        }
-                    } label: {
-                        Label(
-                            blockStatus == .some ? "Unblock All" : "Unblock",
-                            systemImage: "lock.open.fill"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        Text("Block Now")
+                            .font(.caption.weight(.semibold))
                     }
                     .buttonStyle(.bordered)
+                    .tint(.orange)
+                }
+            }
+
+            if !isGroupTimedUnblockActive {
+                HStack(spacing: 10) {
+                    if blockStatus != .all {
+                        Button {
+                            allowBypass = true
+                            authAction = {
+                                screenTimeService.addToShields(selection: appGroup.selection)
+                            }
+                        } label: {
+                            Label(
+                                blockStatus == .some ? "Block All" : "Block",
+                                systemImage: "lock.fill"
+                            )
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                    }
+
+                    if blockStatus != .none {
+                        Button {
+                            allowBypass = false
+                            authAction = {
+                                showTimedUnblockSheet = true
+                            }
+                        } label: {
+                            Label(
+                                blockStatus == .some ? "Unblock All" : "Unblock",
+                                systemImage: "lock.open.fill"
+                            )
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
             }
         }
@@ -79,6 +124,22 @@ struct GroupListCardView: View {
         .contextMenu { contextActions }
         .sheet(isPresented: $isEditing) {
             GroupFormSheet(existing: appGroup)
+        }
+        .sheet(isPresented: $showTimedUnblockSheet) {
+            TimedUnblockSheet(
+                title: "Unblock \(appGroup.name)",
+                onTimedUnblock: { duration in
+                    try timedUnblockService.startGroup(
+                        duration: duration,
+                        groupId: appGroup.id,
+                        selection: appGroup.selection,
+                        screenTimeService: screenTimeService
+                    )
+                },
+                onPermanentUnblock: {
+                    screenTimeService.removeFromShields(selection: appGroup.selection)
+                }
+            )
         }
         .alert("Delete Group?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
@@ -103,16 +164,6 @@ struct GroupListCardView: View {
             showDeleteConfirmation = true
         } label: {
             Label("Delete", systemImage: "trash")
-        }
-    }
-}
-
-extension BlockStatus {
-    var shortLabel: String {
-        switch self {
-        case .all: "Blocked"
-        case .some: "Partial"
-        case .none: "Unblocked"
         }
     }
 }

@@ -1,5 +1,3 @@
-import FamilyControls
-import SwiftData
 import SwiftUI
 
 struct ListView<T: Identifiable, Content: View>: View {

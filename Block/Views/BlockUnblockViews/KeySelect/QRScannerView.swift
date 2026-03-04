@@ -1,10 +1,3 @@
-// QRScannerView.swift
-// Views/Shared/
-//
-// Camera view with result overlay. Works as a navigation destination —
-// no sheet management needed. The parent decides how to present it
-// (navigation push from KeySelectView, navigation push from CreateKeySheet, etc.)
-
 import AVFoundation
 import SwiftUI
 
@@ -46,8 +39,6 @@ struct QRScannerView: View {
     }
 }
 
-// MARK: - Result Badge
-
 private struct ScanResultBadge: View {
     let icon: String
     let color: Color
@@ -66,8 +57,6 @@ private struct ScanResultBadge: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
     }
 }
-
-// MARK: - Camera
 
 private struct QRCameraRepresentable: UIViewControllerRepresentable {
     let onScan: (String) -> Void
