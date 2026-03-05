@@ -10,6 +10,7 @@ final class TimedUnblockService {
     private let sharedStore: SharedStore
 
     private(set) var activeUnblocks: [String: Date] = [:]
+    private var expirationTasks: [String: Task<Void, Never>] = [:]
 
     init(
         activityCenter: any DeviceActivityProviding = DeviceActivityCenter(),
@@ -21,19 +22,19 @@ final class TimedUnblockService {
     }
 
     var isMainUnblockActive: Bool {
-        isActive(id: "main")
+        activeUnblocks["main"] != nil
     }
 
     func isGroupUnblockActive(groupId: UUID) -> Bool {
-        isActive(id: groupId.uuidString)
+        activeUnblocks[groupId.uuidString] != nil
     }
 
     var mainUnblockEndDate: Date? {
-        endDate(for: "main")
+        activeUnblocks["main"]
     }
 
     func groupUnblockEndDate(groupId: UUID) -> Date? {
-        endDate(for: groupId.uuidString)
+        activeUnblocks[groupId.uuidString]
     }
 
     func startMain(
@@ -62,6 +63,7 @@ final class TimedUnblockService {
         )
         sharedStore.upsertTimedUnblock(dto)
         activeUnblocks[id] = endDate
+        scheduleExpiration(id: id, at: endDate)
     }
 
     func startGroup(
@@ -90,17 +92,20 @@ final class TimedUnblockService {
         )
         sharedStore.upsertTimedUnblock(dto)
         activeUnblocks[id] = endDate
+        scheduleExpiration(id: id, at: endDate)
     }
 
     func cancelMain(
         selection: FamilyActivitySelection,
         screenTimeService: ScreenTimeService
     ) {
+        let id = "main"
         cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
         screenTimeService.applyShieldOnAll(selection: selection)
         cancelAllGroupUnblocks()
-        sharedStore.removeTimedUnblock(id: "main")
-        activeUnblocks.removeValue(forKey: "main")
+        sharedStore.removeTimedUnblock(id: id)
+        cancelExpiration(id: id)
+        activeUnblocks.removeValue(forKey: id)
     }
 
     func cancelGroup(
@@ -108,21 +113,33 @@ final class TimedUnblockService {
         selection: FamilyActivitySelection,
         screenTimeService: ScreenTimeService
     ) {
+        let id = groupId.uuidString
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
         cancelMonitoring(activityName: activityName)
         screenTimeService.addToShields(selection: selection)
-        sharedStore.removeTimedUnblock(id: groupId.uuidString)
-        activeUnblocks.removeValue(forKey: groupId.uuidString)
+        sharedStore.removeTimedUnblock(id: id)
+        cancelExpiration(id: id)
+        activeUnblocks.removeValue(forKey: id)
     }
 
-    private func isActive(id: String) -> Bool {
-        guard let date = activeUnblocks[id] else { return false }
-        return date > .now
+    private func scheduleExpiration(id: String, at date: Date) {
+        cancelExpiration(id: id)
+        let interval = date.timeIntervalSinceNow
+        guard interval > 0 else {
+            activeUnblocks.removeValue(forKey: id)
+            return
+        }
+        expirationTasks[id] = Task {
+            try? await Task.sleep(for: .seconds(interval))
+            guard !Task.isCancelled else { return }
+            activeUnblocks.removeValue(forKey: id)
+            expirationTasks.removeValue(forKey: id)
+        }
     }
 
-    private func endDate(for id: String) -> Date? {
-        guard let date = activeUnblocks[id], date > .now else { return nil }
-        return date
+    private func cancelExpiration(id: String) {
+        expirationTasks[id]?.cancel()
+        expirationTasks.removeValue(forKey: id)
     }
 
     private func cancelMonitoring(activityName: String) {
@@ -137,6 +154,7 @@ final class TimedUnblockService {
                 cancelMonitoring(activityName: activityName)
             }
             sharedStore.removeTimedUnblock(id: key)
+            cancelExpiration(id: key)
             activeUnblocks.removeValue(forKey: key)
         }
     }
@@ -170,6 +188,7 @@ final class TimedUnblockService {
         for unblock in unblocks {
             if unblock.endDate > .now {
                 activeUnblocks[unblock.id] = unblock.endDate
+                scheduleExpiration(id: unblock.id, at: unblock.endDate)
             } else {
                 sharedStore.removeTimedUnblock(id: unblock.id)
             }
