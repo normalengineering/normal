@@ -4,13 +4,8 @@ struct SharedStore: Sendable {
     private let defaults: UserDefaults
 
     init() {
-        guard let defaults = UserDefaults(suiteName: SharedConstants.appGroupID) else {
-            fatalError(
-                "App Group '\(SharedConstants.appGroupID)' not configured. "
-                    + "Add the App Groups capability to both targets in Xcode."
-            )
-        }
-        self.defaults = defaults
+        self.defaults = UserDefaults(suiteName: SharedConstants.appGroupID)
+            ?? UserDefaults.standard
     }
 
     func loadTimedUnblocks() -> [TimedUnblockDTO] {
