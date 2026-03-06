@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2F4718682F5569C90013F94D /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F4718672F5569C90013F94D /* DeviceActivity.framework */; };
-		2F4718702F5569C90013F94D /* BlockMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2F4718652F5569C90013F94D /* BlockMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2F4718702F5569C90013F94D /* NormalMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2F4718652F5569C90013F94D /* NormalMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,7 +42,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				2F4718702F5569C90013F94D /* BlockMonitor.appex in Embed Foundation Extensions */,
+				2F4718702F5569C90013F94D /* NormalMonitor.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -50,38 +50,38 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		2F4718652F5569C90013F94D /* BlockMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BlockMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F4718652F5569C90013F94D /* NormalMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NormalMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F4718672F5569C90013F94D /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
-		2F58EFE82EC9C5DE00A38180 /* Block.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Block.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2F58EFF52EC9C5DF00A38180 /* BlockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2F58EFFF2EC9C5DF00A38180 /* BlockUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlockUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F58EFE82EC9C5DE00A38180 /* Normal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Normal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F58EFF52EC9C5DF00A38180 /* NormalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NormalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F58EFFF2EC9C5DF00A38180 /* NormalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NormalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Block" target */ = {
+		2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Normal" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockUITests.swift,
 				BlockUITestsLaunchTests.swift,
 			);
-			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
+			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 		};
-		2F4301EE2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "BlockUITests" target */ = {
+		2F4301EE2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "NormalUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockUITests.swift,
 				BlockUITestsLaunchTests.swift,
 			);
-			target = 2F58EFFE2EC9C5DF00A38180 /* BlockUITests */;
+			target = 2F58EFFE2EC9C5DF00A38180 /* NormalUITests */;
 		};
-		2F4301EF2ECBBAA7001FBF91 /* Exceptions for "BlockTests" folder in "BlockTests" target */ = {
+		2F4301EF2ECBBAA7001FBF91 /* Exceptions for "BlockTests" folder in "NormalTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockTests.swift,
 			);
-			target = 2F58EFF42EC9C5DF00A38180 /* BlockTests */;
+			target = 2F58EFF42EC9C5DF00A38180 /* NormalTests */;
 		};
-		2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "BlockMonitor" target */ = {
+		2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "NormalMonitor" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				DataExtension.swift,
@@ -89,21 +89,21 @@
 				SharedDTO.swift,
 				SharedStore.swift,
 			);
-			target = 2F4718642F5569C90013F94D /* BlockMonitor */;
+			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};
-		2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "BlockMonitor" target */ = {
+		2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "NormalMonitor" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 2F4718642F5569C90013F94D /* BlockMonitor */;
+			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};
-		2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Block" target */ = {
+		2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Normal" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
+			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -111,7 +111,7 @@
 		2F4301E62ECBBAA7001FBF91 /* BlockTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4301EF2ECBBAA7001FBF91 /* Exceptions for "BlockTests" folder in "BlockTests" target */,
+				2F4301EF2ECBBAA7001FBF91 /* Exceptions for "BlockTests" folder in "NormalTests" target */,
 			);
 			path = BlockTests;
 			sourceTree = "<group>";
@@ -119,8 +119,8 @@
 		2F4301E92ECBBAA7001FBF91 /* BlockUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Block" target */,
-				2F4301EE2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "BlockUITests" target */,
+				2F4301ED2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "Normal" target */,
+				2F4301EE2ECBBAA7001FBF91 /* Exceptions for "BlockUITests" folder in "NormalUITests" target */,
 			);
 			path = BlockUITests;
 			sourceTree = "<group>";
@@ -128,7 +128,7 @@
 		2F4718692F5569C90013F94D /* BlockMonitor */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "BlockMonitor" target */,
+				2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "NormalMonitor" target */,
 			);
 			path = BlockMonitor;
 			sourceTree = "<group>";
@@ -136,7 +136,7 @@
 		2F47187A2F556B950013F94D /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "BlockMonitor" target */,
+				2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "NormalMonitor" target */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -144,7 +144,7 @@
 		2F58EFEA2EC9C5DE00A38180 /* Block */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Block" target */,
+				2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Normal" target */,
 			);
 			path = Block;
 			sourceTree = "<group>";
@@ -208,10 +208,10 @@
 		2F58EFE92EC9C5DE00A38180 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2F58EFE82EC9C5DE00A38180 /* Block.app */,
-				2F58EFF52EC9C5DF00A38180 /* BlockTests.xctest */,
-				2F58EFFF2EC9C5DF00A38180 /* BlockUITests.xctest */,
-				2F4718652F5569C90013F94D /* BlockMonitor.appex */,
+				2F58EFE82EC9C5DE00A38180 /* Normal.app */,
+				2F58EFF52EC9C5DF00A38180 /* NormalTests.xctest */,
+				2F58EFFF2EC9C5DF00A38180 /* NormalUITests.xctest */,
+				2F4718652F5569C90013F94D /* NormalMonitor.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -219,9 +219,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2F4718642F5569C90013F94D /* BlockMonitor */ = {
+		2F4718642F5569C90013F94D /* NormalMonitor */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F4718742F5569C90013F94D /* Build configuration list for PBXNativeTarget "BlockMonitor" */;
+			buildConfigurationList = 2F4718742F5569C90013F94D /* Build configuration list for PBXNativeTarget "NormalMonitor" */;
 			buildPhases = (
 				2F4718612F5569C90013F94D /* Sources */,
 				2F4718622F5569C90013F94D /* Frameworks */,
@@ -234,16 +234,16 @@
 			fileSystemSynchronizedGroups = (
 				2F4718692F5569C90013F94D /* BlockMonitor */,
 			);
-			name = BlockMonitor;
+			name = NormalMonitor;
 			packageProductDependencies = (
 			);
 			productName = BlockMonitor;
-			productReference = 2F4718652F5569C90013F94D /* BlockMonitor.appex */;
+			productReference = 2F4718652F5569C90013F94D /* NormalMonitor.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		2F58EFE72EC9C5DE00A38180 /* Block */ = {
+		2F58EFE72EC9C5DE00A38180 /* Normal */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F58F0092EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "Block" */;
+			buildConfigurationList = 2F58F0092EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "Normal" */;
 			buildPhases = (
 				2F58EFE42EC9C5DE00A38180 /* Sources */,
 				2F58EFE52EC9C5DE00A38180 /* Frameworks */,
@@ -260,16 +260,16 @@
 				2F47187A2F556B950013F94D /* Shared */,
 				2F58EFEA2EC9C5DE00A38180 /* Block */,
 			);
-			name = Block;
+			name = Normal;
 			packageProductDependencies = (
 			);
 			productName = Block;
-			productReference = 2F58EFE82EC9C5DE00A38180 /* Block.app */;
+			productReference = 2F58EFE82EC9C5DE00A38180 /* Normal.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2F58EFF42EC9C5DF00A38180 /* BlockTests */ = {
+		2F58EFF42EC9C5DF00A38180 /* NormalTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F58F00C2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "BlockTests" */;
+			buildConfigurationList = 2F58F00C2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "NormalTests" */;
 			buildPhases = (
 				2F58EFF12EC9C5DF00A38180 /* Sources */,
 				2F58EFF22EC9C5DF00A38180 /* Frameworks */,
@@ -280,16 +280,16 @@
 			dependencies = (
 				2F58EFF72EC9C5DF00A38180 /* PBXTargetDependency */,
 			);
-			name = BlockTests;
+			name = NormalTests;
 			packageProductDependencies = (
 			);
 			productName = BlockTests;
-			productReference = 2F58EFF52EC9C5DF00A38180 /* BlockTests.xctest */;
+			productReference = 2F58EFF52EC9C5DF00A38180 /* NormalTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		2F58EFFE2EC9C5DF00A38180 /* BlockUITests */ = {
+		2F58EFFE2EC9C5DF00A38180 /* NormalUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F58F00F2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "BlockUITests" */;
+			buildConfigurationList = 2F58F00F2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "NormalUITests" */;
 			buildPhases = (
 				2F58EFFB2EC9C5DF00A38180 /* Sources */,
 				2F58EFFC2EC9C5DF00A38180 /* Frameworks */,
@@ -300,11 +300,11 @@
 			dependencies = (
 				2F58F0012EC9C5DF00A38180 /* PBXTargetDependency */,
 			);
-			name = BlockUITests;
+			name = NormalUITests;
 			packageProductDependencies = (
 			);
 			productName = BlockUITests;
-			productReference = 2F58EFFF2EC9C5DF00A38180 /* BlockUITests.xctest */;
+			productReference = 2F58EFFF2EC9C5DF00A38180 /* NormalUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -333,7 +333,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2F58EFE32EC9C5DE00A38180 /* Build configuration list for PBXProject "Block" */;
+			buildConfigurationList = 2F58EFE32EC9C5DE00A38180 /* Build configuration list for PBXProject "Normal" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -347,10 +347,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2F58EFE72EC9C5DE00A38180 /* Block */,
-				2F58EFF42EC9C5DF00A38180 /* BlockTests */,
-				2F58EFFE2EC9C5DF00A38180 /* BlockUITests */,
-				2F4718642F5569C90013F94D /* BlockMonitor */,
+				2F58EFE72EC9C5DE00A38180 /* Normal */,
+				2F58EFF42EC9C5DF00A38180 /* NormalTests */,
+				2F58EFFE2EC9C5DF00A38180 /* NormalUITests */,
+				2F4718642F5569C90013F94D /* NormalMonitor */,
 			);
 		};
 /* End PBXProject section */
@@ -420,17 +420,17 @@
 /* Begin PBXTargetDependency section */
 		2F47186F2F5569C90013F94D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2F4718642F5569C90013F94D /* BlockMonitor */;
+			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 			targetProxy = 2F47186E2F5569C90013F94D /* PBXContainerItemProxy */;
 		};
 		2F58EFF72EC9C5DF00A38180 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
+			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 			targetProxy = 2F58EFF62EC9C5DF00A38180 /* PBXContainerItemProxy */;
 		};
 		2F58F0012EC9C5DF00A38180 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2F58EFE72EC9C5DE00A38180 /* Block */;
+			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 			targetProxy = 2F58F0002EC9C5DF00A38180 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -706,7 +706,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Block.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Block";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Normal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Normal";
 			};
 			name = Debug;
 		};
@@ -727,7 +727,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Block.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Block";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Normal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Normal";
 			};
 			name = Release;
 		};
@@ -772,7 +772,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2F4718742F5569C90013F94D /* Build configuration list for PBXNativeTarget "BlockMonitor" */ = {
+		2F4718742F5569C90013F94D /* Build configuration list for PBXNativeTarget "NormalMonitor" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F4718722F5569C90013F94D /* Debug */,
@@ -781,7 +781,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F58EFE32EC9C5DE00A38180 /* Build configuration list for PBXProject "Block" */ = {
+		2F58EFE32EC9C5DE00A38180 /* Build configuration list for PBXProject "Normal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F58F0072EC9C5DF00A38180 /* Debug */,
@@ -790,7 +790,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F58F0092EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "Block" */ = {
+		2F58F0092EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "Normal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F58F00A2EC9C5DF00A38180 /* Debug */,
@@ -799,7 +799,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F58F00C2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "BlockTests" */ = {
+		2F58F00C2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "NormalTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F58F00D2EC9C5DF00A38180 /* Debug */,
@@ -808,7 +808,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F58F00F2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "BlockUITests" */ = {
+		2F58F00F2EC9C5DF00A38180 /* Build configuration list for PBXNativeTarget "NormalUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2F58F0102EC9C5DF00A38180 /* Debug */,
