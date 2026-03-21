@@ -134,6 +134,7 @@ final class TimedUnblockService {
             guard !Task.isCancelled else { return }
             activeUnblocks.removeValue(forKey: id)
             expirationTasks.removeValue(forKey: id)
+            ScreenTimeService.shared.notifyUpdate()
         }
     }
 

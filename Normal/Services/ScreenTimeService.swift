@@ -46,7 +46,7 @@ class ScreenTimeService {
         return store.application.denyAppRemoval ?? false
     }
 
-    private func notifyUpdate() {
+    func notifyUpdate() {
         lastUpdate = .now
     }
 

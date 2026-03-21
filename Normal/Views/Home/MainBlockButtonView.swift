@@ -40,7 +40,7 @@ struct MainBlockButtonView: View {
                     }
                 } label: {
                     HStack {
-                        Label("Unblock", systemImage: "lock.open.fill")
+                        Label("Unblock All", systemImage: "lock.open.fill")
                             .foregroundStyle(.red)
                         Spacer()
                     }
