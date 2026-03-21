@@ -91,14 +91,14 @@
 			);
 			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};
-		2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "NormalMonitor" target */ = {
+		2F4719232F57A53A0013F94D /* Exceptions for "NormalMonitor" folder in "NormalMonitor" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};
-		2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Normal" target */ = {
+		2F4719242F57A53F0013F94D /* Exceptions for "Normal" folder in "Normal" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -125,12 +125,12 @@
 			path = BlockUITests;
 			sourceTree = "<group>";
 		};
-		2F4718692F5569C90013F94D /* BlockMonitor */ = {
+		2F4718692F5569C90013F94D /* NormalMonitor */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4719232F57A53A0013F94D /* Exceptions for "BlockMonitor" folder in "NormalMonitor" target */,
+				2F4719232F57A53A0013F94D /* Exceptions for "NormalMonitor" folder in "NormalMonitor" target */,
 			);
-			path = BlockMonitor;
+			path = NormalMonitor;
 			sourceTree = "<group>";
 		};
 		2F47187A2F556B950013F94D /* Shared */ = {
@@ -141,12 +141,12 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		2F58EFEA2EC9C5DE00A38180 /* Block */ = {
+		2F58EFEA2EC9C5DE00A38180 /* Normal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2F4719242F57A53F0013F94D /* Exceptions for "Block" folder in "Normal" target */,
+				2F4719242F57A53F0013F94D /* Exceptions for "Normal" folder in "Normal" target */,
 			);
-			path = Block;
+			path = Normal;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -196,8 +196,8 @@
 			isa = PBXGroup;
 			children = (
 				2F47187A2F556B950013F94D /* Shared */,
-				2F58EFEA2EC9C5DE00A38180 /* Block */,
-				2F4718692F5569C90013F94D /* BlockMonitor */,
+				2F58EFEA2EC9C5DE00A38180 /* Normal */,
+				2F4718692F5569C90013F94D /* NormalMonitor */,
 				2F4718662F5569C90013F94D /* Frameworks */,
 				2F58EFE92EC9C5DE00A38180 /* Products */,
 				2F4301E62ECBBAA7001FBF91 /* BlockTests */,
@@ -232,7 +232,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				2F4718692F5569C90013F94D /* BlockMonitor */,
+				2F4718692F5569C90013F94D /* NormalMonitor */,
 			);
 			name = NormalMonitor;
 			packageProductDependencies = (
@@ -258,7 +258,7 @@
 			fileSystemSynchronizedGroups = (
 				2F4301E92ECBBAA7001FBF91 /* BlockUITests */,
 				2F47187A2F556B950013F94D /* Shared */,
-				2F58EFEA2EC9C5DE00A38180 /* Block */,
+				2F58EFEA2EC9C5DE00A38180 /* Normal */,
 			);
 			name = Normal;
 			packageProductDependencies = (

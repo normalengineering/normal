@@ -7,7 +7,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.deviceactivity.monitor-extension</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).BlockMonitor</string>
+		<string>$(PRODUCT_MODULE_NAME).NormalMonitor</string>
 	</dict>
 </dict>
 </plist>

@@ -3,7 +3,7 @@ import Foundation
 import FamilyControls
 import ManagedSettings
 
-final class BlockMonitor: DeviceActivityMonitor {
+final class NormalMonitor: DeviceActivityMonitor {
     private let sharedStore = SharedStore()
     private let mainStore = ManagedSettingsStore()
 

@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 @main
-struct BlockApp: App {
+struct NormalApp: App {
     var body: some Scene {
         WindowGroup {
             AppContainer()
