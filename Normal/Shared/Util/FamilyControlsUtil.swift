@@ -29,3 +29,12 @@ func selectionCount(selection: FamilyActivitySelection?) -> Int {
 func sortTokens(tokens: [AnyHashable]) -> [AnyHashable] {
     return tokens.sorted { String(describing: $0) < String(describing: $1) }
 }
+
+func isSelectionSynced(
+    selection: FamilyActivitySelection,
+    with mainSelection: FamilyActivitySelection
+) -> Bool {
+    selection.applicationTokens.isSubset(of: mainSelection.applicationTokens) &&
+        selection.webDomainTokens.isSubset(of: mainSelection.webDomainTokens) &&
+        selection.categoryTokens.isSubset(of: mainSelection.categoryTokens)
+}

@@ -8,6 +8,7 @@ struct ScheduleCardView: View {
 
     @Query private var allSchedules: [BlockSchedule]
     @Query private var keys: [Key]
+    @Query private var selectedApps: [SelectedApps]
 
     let schedule: BlockSchedule
 
@@ -23,8 +24,13 @@ struct ScheduleCardView: View {
         !keys.isEmpty
     }
 
+    private var needsSync: Bool {
+        guard let mainSelection = selectedApps.first?.selection else { return false }
+        return !isSelectionSynced(selection: schedule.selection, with: mainSelection)
+    }
+
     private var isLocked: Bool {
-        isBlocked || !hasKeys
+        isBlocked || !hasKeys || needsSync
     }
 
     var body: some View {
@@ -101,9 +107,15 @@ struct ScheduleCardView: View {
                     )
                 }
             }
+
+            if needsSync {
+                Text("App selection changed. Please re-select apps in this schedule.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         .opacity(schedule.isEnabled && !isLocked ? 1.0 : 0.6)
-        .onTapGesture { if !isLocked { isEditing = true } }
+        .onTapGesture { if !isLocked || needsSync { isEditing = true } }
         .contextMenu { contextActions }
         .sheet(isPresented: $isEditing) {
             ScheduleFormSheet(existing: schedule)
@@ -149,13 +161,13 @@ struct ScheduleCardView: View {
         } label: {
             Label("Edit", systemImage: "pencil")
         }
-        .disabled(isLocked)
+        .disabled(isLocked && !needsSync)
 
         Button(role: .destructive) {
             showDeleteConfirmation = true
         } label: {
             Label("Delete", systemImage: "trash")
         }
-        .disabled(isLocked)
+        .disabled(isLocked && !needsSync)
     }
 }

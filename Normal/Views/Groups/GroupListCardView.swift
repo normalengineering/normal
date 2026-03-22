@@ -7,6 +7,8 @@ struct GroupListCardView: View {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(\.modelContext) private var modelContext
 
+    @Query private var selectedApps: [SelectedApps]
+
     let appGroup: AppGroup
 
     @State private var authAction: (@MainActor () -> Void)?
@@ -27,6 +29,11 @@ struct GroupListCardView: View {
         timedUnblockService.groupUnblockEndDate(groupId: appGroup.id)
     }
 
+    private var needsSync: Bool {
+        guard let mainSelection = selectedApps.first?.selection else { return false }
+        return !isSelectionSynced(selection: appGroup.selection, with: mainSelection)
+    }
+
     var body: some View {
         CardView {
             HStack(alignment: .center) {
@@ -35,7 +42,11 @@ struct GroupListCardView: View {
 
                 Spacer()
 
-                if isGroupTimedUnblockActive {
+                if needsSync {
+                    Label("Needs Update", systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.yellow)
+                } else if isGroupTimedUnblockActive {
                     Label("Timed Unblock", systemImage: "timer")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.orange)
@@ -50,7 +61,13 @@ struct GroupListCardView: View {
                 SelectionIconsView(tokens: allTokensFromSelection(selection: appGroup.selection))
             }
 
-            if let endDate = groupUnblockEndDate, endDate > .now {
+            if needsSync {
+                Text("App selection changed. Please re-select apps in this group.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            if !needsSync, let endDate = groupUnblockEndDate, endDate > .now {
                 HStack(spacing: 8) {
                     Image(systemName: "timer")
                         .foregroundStyle(.orange)
@@ -79,7 +96,7 @@ struct GroupListCardView: View {
                 }
             }
 
-            if !isGroupTimedUnblockActive {
+            if !needsSync && !isGroupTimedUnblockActive {
                 HStack(spacing: 10) {
                     if blockStatus != .all {
                         Button {
@@ -120,6 +137,7 @@ struct GroupListCardView: View {
                 }
             }
         }
+        .opacity(needsSync ? 0.6 : 1.0)
         .onTapGesture { isEditing = true }
         .contextMenu { contextActions }
         .sheet(isPresented: $isEditing) {

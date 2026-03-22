@@ -81,7 +81,11 @@ struct SelectAppsForGroupSheet: View {
             }
         }
         .onAppear {
-            workingSelection = selection
+            if let mainSelection, isSelectionSynced(selection: selection, with: mainSelection) {
+                workingSelection = selection
+            } else {
+                workingSelection = FamilyActivitySelection()
+            }
         }
     }
 
