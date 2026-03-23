@@ -1,14 +1,18 @@
+import SwiftData
 import SwiftUI
 
 struct MainBlockButtonView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Query private var allSettings: [Settings]
 
     let mainSelection: SelectedApps
 
     @State private var authAction: (@MainActor () -> Void)?
     @State private var allowBypass: Bool = false
     @State private var showTimedUnblockSheet = false
+
+    private var settings: Settings { allSettings.first! }
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: mainSelection.selection)
@@ -36,7 +40,15 @@ struct MainBlockButtonView: View {
                 Button {
                     allowBypass = false
                     authAction = {
-                        showTimedUnblockSheet = true
+                        if let duration = settings.defaultUnblockDuration {
+                            try? timedUnblockService.startMain(
+                                duration: duration,
+                                selection: mainSelection.selection,
+                                screenTimeService: screenTimeService
+                            )
+                        } else {
+                            showTimedUnblockSheet = true
+                        }
                     }
                 } label: {
                     HStack {
@@ -48,7 +60,7 @@ struct MainBlockButtonView: View {
                 .padding(.vertical, 8)
             }
         }
-        .keySelect(action: $authAction, allowBypass: allowBypass)
+        .keySelect(action: $authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
         .sheet(isPresented: $showTimedUnblockSheet) {
             TimedUnblockSheet(
                 title: "Unblock All",

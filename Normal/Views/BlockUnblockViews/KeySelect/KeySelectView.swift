@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct KeySelectView: View {
+    let availableKeyTypes: [KeyType]
     let allowBypass: Bool
     let onSelect: (KeyType) -> Void
     let onBypass: () -> Void
@@ -10,7 +11,7 @@ struct KeySelectView: View {
     var body: some View {
         List {
             Section {
-                ForEach(KeyType.allCases) { type in
+                ForEach(availableKeyTypes) { type in
                     Button {
                         onSelect(type)
                     } label: {

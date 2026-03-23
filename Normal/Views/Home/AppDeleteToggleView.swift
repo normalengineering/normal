@@ -1,20 +1,20 @@
 import SwiftUI
 
-struct StrictModeToggleView: View {
+struct AppDeleteToggleView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @State private var authAction: (@MainActor () -> Void)?
     @State private var pendingValue: Bool?
 
-    private var strictModeBinding: Binding<Bool> {
+    private var appDeleteBinding: Binding<Bool> {
         Binding(
-            get: { screenTimeService.isStrictModeEnabled },
+            get: { screenTimeService.isAppDeleteDisabled },
             set: { newValue in
                 pendingValue = newValue
                 authAction = {
                     if newValue {
-                        screenTimeService.enableStrictMode()
+                        screenTimeService.enablePreventAppDelete()
                     } else {
-                        screenTimeService.disableStrictMode()
+                        screenTimeService.disablePreventAppDelete()
                     }
                 }
             }
@@ -23,10 +23,9 @@ struct StrictModeToggleView: View {
 
     var body: some View {
         Section(
-            header: Text("Configuration"),
-            footer: Text("Strict mode prevents app deletion.")
+            footer: Text("When enabled, apps cannot be uninstalled from this device.")
         ) {
-            Toggle("Strict Mode", isOn: strictModeBinding)
+            Toggle("Prevent App Deletion", isOn: appDeleteBinding)
                 .tint(.accentColor)
         }
         .keySelect(action: $authAction, allowBypass: pendingValue == true)

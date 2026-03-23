@@ -8,6 +8,7 @@ struct GroupListCardView: View {
     @Environment(\.modelContext) private var modelContext
 
     @Query private var selectedApps: [SelectedApps]
+    @Query private var allSettings: [Settings]
 
     let appGroup: AppGroup
 
@@ -16,6 +17,8 @@ struct GroupListCardView: View {
     @State private var isEditing = false
     @State private var showDeleteConfirmation = false
     @State private var showTimedUnblockSheet = false
+
+    private var settings: Settings { allSettings.first! }
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: appGroup.selection)
@@ -121,7 +124,16 @@ struct GroupListCardView: View {
                         Button {
                             allowBypass = false
                             authAction = {
-                                showTimedUnblockSheet = true
+                                if let duration = settings.defaultUnblockDuration {
+                                    try? timedUnblockService.startGroup(
+                                        duration: duration,
+                                        groupId: appGroup.id,
+                                        selection: appGroup.selection,
+                                        screenTimeService: screenTimeService
+                                    )
+                                } else {
+                                    showTimedUnblockSheet = true
+                                }
                             }
                         } label: {
                             Label(
@@ -167,7 +179,7 @@ struct GroupListCardView: View {
         } message: {
             Text("\(appGroup.name) will be permanently removed.")
         }
-        .keySelect(action: $authAction, allowBypass: allowBypass)
+        .keySelect(action: $authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
     }
 
     @ViewBuilder

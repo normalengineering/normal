@@ -9,18 +9,30 @@ struct KeySelectModifier: ViewModifier {
 
     @Binding var action: (@MainActor () -> Void)?
     var allowBypass: Bool
+    var defaultKeyType: KeyType?
 
     @State private var showKeySelect = false
     @State private var showQRScanner = false
     @State private var showNoKeysAlert = false
     @State private var actionTrigger = false
 
+    private var availableKeyTypes: [KeyType] {
+        KeyType.allCases.filter { type in
+            keys.contains { $0.type == type }
+        }
+    }
+
     func body(content: Content) -> some View {
         content
             .onChange(of: actionTrigger) { _, _ in
                 if action != nil {
-                    if keys.isEmpty {
+                    let available = availableKeyTypes
+                    if available.isEmpty {
                         showNoKeysAlert = true
+                    } else if !allowBypass, let keyType = defaultKeyType, available.contains(keyType) {
+                        handleSelection(keyType)
+                    } else if !allowBypass, available.count == 1 {
+                        handleSelection(available[0])
                     } else {
                         showQRScanner = false
                         showKeySelect = true
@@ -42,6 +54,7 @@ struct KeySelectModifier: ViewModifier {
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
                 NavigationStack {
                     KeySelectView(
+                        availableKeyTypes: availableKeyTypes,
                         allowBypass: allowBypass,
                         onSelect: { choice in handleSelection(choice) },
                         onBypass: {
@@ -112,8 +125,9 @@ struct KeySelectModifier: ViewModifier {
 extension View {
     func keySelect(
         action: Binding<(@MainActor () -> Void)?>,
-        allowBypass: Bool = false
+        allowBypass: Bool = false,
+        defaultKeyType: KeyType? = nil
     ) -> some View {
-        modifier(KeySelectModifier(action: action, allowBypass: allowBypass))
+        modifier(KeySelectModifier(action: action, allowBypass: allowBypass, defaultKeyType: defaultKeyType))
     }
 }

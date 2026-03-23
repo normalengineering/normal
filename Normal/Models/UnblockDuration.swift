@@ -1,6 +1,6 @@
 import Foundation
 
-enum UnblockDuration: Int, CaseIterable, Identifiable, Sendable {
+enum UnblockDuration: Int, CaseIterable, Codable, Identifiable, Sendable {
     case fifteenMinutes = 900
     case thirtyMinutes = 1800
     case oneHour = 3600

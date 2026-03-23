@@ -41,7 +41,7 @@ class ScreenTimeService {
         }
     }
 
-    var isStrictModeEnabled: Bool {
+    var isAppDeleteDisabled: Bool {
         _ = lastUpdate
         return store.application.denyAppRemoval ?? false
     }
@@ -70,12 +70,12 @@ class ScreenTimeService {
         }
     }
 
-    func enableStrictMode() {
+    func enablePreventAppDelete() {
         store.application.denyAppRemoval = true
         notifyUpdate()
     }
 
-    func disableStrictMode() {
+    func disablePreventAppDelete() {
         store.application.denyAppRemoval = false
         notifyUpdate()
     }
