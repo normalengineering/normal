@@ -179,6 +179,7 @@ struct GroupListCardView: View {
         } message: {
             Text("\(appGroup.name) will be permanently removed.")
         }
+        .screenTimeGuard(action: $authAction)
         .keySelect(action: $authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
     }
 

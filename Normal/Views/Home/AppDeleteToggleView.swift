@@ -28,6 +28,7 @@ struct AppDeleteToggleView: View {
             Toggle("Prevent App Deletion", isOn: appDeleteBinding)
                 .tint(.accentColor)
         }
+        .screenTimeGuard(action: $authAction)
         .keySelect(action: $authAction, allowBypass: pendingValue == true)
     }
 }

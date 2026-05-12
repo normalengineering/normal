@@ -60,6 +60,7 @@ struct MainBlockButtonView: View {
                 .padding(.vertical, 8)
             }
         }
+        .screenTimeGuard(action: $authAction)
         .keySelect(action: $authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
         .sheet(isPresented: $showTimedUnblockSheet) {
             TimedUnblockSheet(

@@ -7,6 +7,7 @@ struct AppContainer: View {
     @State private var keyManager = KeyManager()
     @State private var timedUnblockService = TimedUnblockService()
     @State private var scheduleService = ScheduleService()
+    @State private var onboardingService = OnboardingService()
 
     var body: some View {
         ContentView()
@@ -16,5 +17,6 @@ struct AppContainer: View {
             .environment(keyManager)
             .environment(timedUnblockService)
             .environment(scheduleService)
+            .environment(onboardingService)
     }
 }
