@@ -114,7 +114,7 @@ extension NFCService: NFCTagReaderSessionDelegate {
                 }
 
                 guard let validator = self.validator else {
-                    session.alertMessage = "Card Detected"
+                    session.alertMessage = "Key Detected"
                     session.invalidate()
                     self.finish(with: .success(hexId))
                     return

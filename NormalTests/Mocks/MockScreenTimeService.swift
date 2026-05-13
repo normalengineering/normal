@@ -39,6 +39,12 @@ final class MockScreenTimeService: ScreenTimeProviding {
         authorizationState = .authorized
     }
 
+    func ensureAuthorized() async -> Bool {
+        if authorizationState == .authorized { return true }
+        await requestAuthorization()
+        return authorizationState == .authorized
+    }
+
     func enablePreventAppDelete() {
         enablePreventAppDeleteCalled = true
     }

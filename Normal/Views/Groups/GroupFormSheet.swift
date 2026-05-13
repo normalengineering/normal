@@ -5,6 +5,7 @@ import SwiftUI
 struct GroupFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
 
     let existing: AppGroup?
@@ -38,7 +39,10 @@ struct GroupFormSheet: View {
 
                 Section("Apps to Block") {
                     Button {
-                        isShowingAppSelectSheet = true
+                        Task {
+                            guard await screenTimeService.ensureAuthorized() else { return }
+                            isShowingAppSelectSheet = true
+                        }
                     } label: {
                         HStack {
                             Text("Select Apps")

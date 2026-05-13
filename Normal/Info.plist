@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Privacy - Family Controls Usage Description</key>
-	<string>We need Screen Time access to block apps.</string>
+	<string>Normal uses Screen Time to block and unblock apps on your device so you can be more intentional with your phone usage.</string>
 	<key>com.apple.developer.nfc.readersession.felica.systemcodes</key>
 	<array>
 		<string>12FC</string>

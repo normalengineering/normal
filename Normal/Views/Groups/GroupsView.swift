@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct GroupsView: View {
+    @Environment(ScreenTimeService.self) private var screenTimeService
     @State private var isShowingSheet = false
     @Query private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
@@ -22,7 +23,7 @@ struct GroupsView: View {
                             Text("Groups give you more granular control over which apps to block and unblock.")
                         } actions: {
                             Button {
-                                isShowingSheet = true
+                                openSheet()
                             } label: {
                                 Text("Create Group")
                             }
@@ -44,7 +45,7 @@ struct GroupsView: View {
             .navigationTitle("App Groups")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { isShowingSheet.toggle() }) {
+                    Button(action: { openSheet() }) {
                         Label("Add Group", systemImage: "plus")
                     }
                     .disabled(!hasSelection)
@@ -53,6 +54,13 @@ struct GroupsView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func openSheet() {
+        Task {
+            guard await screenTimeService.ensureAuthorized() else { return }
+            isShowingSheet = true
         }
     }
 }

@@ -90,17 +90,16 @@ struct SettingsView: View {
                     Button("Close") { dismiss() }
                 }
             }
-            .confirmationDialog(
+            .alert(
                 "Emergency Unblock",
-                isPresented: $showConfirmation,
-                titleVisibility: .visible
+                isPresented: $showConfirmation
             ) {
                 Button("Unblock All Apps", role: .destructive) {
                     performEmergencyUnblock()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This will immediately remove all app blocks. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining.")
+                Text("This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining.")
             }
         }
     }

@@ -41,7 +41,12 @@ struct ContentView: View {
                 onboardingService.currentStep = .complete
                 selectedTab = settings?.defaultTab ?? .home
             }
-            Task { await screenTimeService.checkAuthorizationStatus() }
+            Task {
+                await screenTimeService.checkAuthorizationStatus()
+                if settings?.hasCompletedOnboarding == true {
+                    await screenTimeService.ensureAuthorized()
+                }
+            }
         }
     }
 }

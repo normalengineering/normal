@@ -21,8 +21,14 @@ struct AppSelectView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
+    private var isAuthorized: Bool {
+        screenTimeService.authorizationState == .authorized
+    }
+
     private var footerText: Text? {
-        if isBlocked {
+        if !isAuthorized {
+            Text("Screen Time permission is required to select apps.")
+        } else if isBlocked {
             Text("Unblock all apps to edit selection.")
         } else if isSelectionEmpty(selection: mainSelection?.selection) {
             Text("Selecting individual apps is recommended over categories for more granular control.")
@@ -72,10 +78,13 @@ struct AppSelectView: View {
     }
 
     func onUpdateSelectionButton() {
-        if appGroups.isEmpty {
-            isFamilyActivityPickerPresented = true
-        } else {
-            showSelectionChangeAlert = true
+        Task {
+            guard await screenTimeService.ensureAuthorized() else { return }
+            if appGroups.isEmpty {
+                isFamilyActivityPickerPresented = true
+            } else {
+                showSelectionChangeAlert = true
+            }
         }
     }
 }

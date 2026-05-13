@@ -49,7 +49,7 @@ struct SchedulesView: View {
             .navigationTitle("Schedules")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button { isShowingSheet = true } label: {
+                    Button { openSheet() } label: {
                         Label("Add Schedule", systemImage: "plus")
                     }
                     .disabled(!canAdd)
@@ -58,6 +58,13 @@ struct SchedulesView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func openSheet() {
+        Task {
+            guard await screenTimeService.ensureAuthorized() else { return }
+            isShowingSheet = true
         }
     }
 

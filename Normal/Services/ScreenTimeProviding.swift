@@ -10,6 +10,7 @@ protocol ScreenTimeProviding: AnyObject {
     func notifyUpdate()
     func checkAuthorizationStatus() async
     func requestAuthorization() async
+    func ensureAuthorized() async -> Bool
     func enablePreventAppDelete()
     func disablePreventAppDelete()
     func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool)

@@ -106,7 +106,10 @@ struct ScheduleFormSheet: View {
     private var appSection: some View {
         Section("Apps") {
             Button {
-                isShowingAppSelect = true
+                Task {
+                    guard await screenTimeService.ensureAuthorized() else { return }
+                    isShowingAppSelect = true
+                }
             } label: {
                 HStack {
                     Text("Select Apps")
