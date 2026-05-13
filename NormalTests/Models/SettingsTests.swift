@@ -87,14 +87,14 @@ struct SettingsTests {
         #expect(settings.blockAllPreventsAppDelete == true)
     }
 
-    @Test @MainActor func defaultTabDefaultsToHome() throws {
+    @Test @MainActor func defaultTabDefaultsToNil() throws {
         let container = try makeTestModelContainer()
         let context = container.mainContext
 
         let settings = Settings()
         context.insert(settings)
 
-        #expect(settings.defaultTab == .home)
+        #expect(settings.defaultTab == nil)
     }
 
     @Test @MainActor func defaultTabCanBeChanged() throws {

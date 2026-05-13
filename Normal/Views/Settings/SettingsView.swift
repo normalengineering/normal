@@ -22,7 +22,10 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section {
-                    Picker("Default Page", selection: Bindable(settings).defaultTab) {
+                    Picker("Default Page", selection: Binding(
+                        get: { settings.defaultTab ?? .home },
+                        set: { settings.defaultTab = $0 }
+                    )) {
                         Text(AppTab.home.label).tag(AppTab.home)
                         Text(AppTab.groups.label).tag(AppTab.groups)
                         Text(AppTab.schedules.label).tag(AppTab.schedules)

@@ -25,7 +25,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: onboardingService.isOnboardingActive) { _, isActive in
-            if !isActive {
+            if !isActive && settings?.hasCompletedOnboarding != true {
                 settings?.hasCompletedOnboarding = true
                 selectedTab = .appSelect
             }
