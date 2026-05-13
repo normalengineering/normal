@@ -1,4 +1,4 @@
-import CoreNFC
+@preconcurrency import CoreNFC
 import Foundation
 import Observation
 

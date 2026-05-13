@@ -1,7 +1,7 @@
 import Foundation
 
 struct SharedStore: SharedStoreProviding, Sendable {
-    private let defaults: UserDefaults
+    private nonisolated(unsafe) let defaults: UserDefaults
 
     init(defaults: UserDefaults? = nil) {
         self.defaults = defaults
