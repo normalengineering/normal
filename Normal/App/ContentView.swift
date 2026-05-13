@@ -27,6 +27,7 @@ struct ContentView: View {
         .onChange(of: onboardingService.isOnboardingActive) { _, isActive in
             if !isActive {
                 settings?.hasCompletedOnboarding = true
+                selectedTab = .appSelect
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
