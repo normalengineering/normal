@@ -5,6 +5,7 @@ import SwiftUI
 struct GroupFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(TimedUnblockService.self) private var timedUnblockService
 
     let existing: AppGroup?
 
@@ -81,6 +82,7 @@ struct GroupFormSheet: View {
             existing.name = trimmed
             existing.selection = selection
             existing.lastUpdated = .now
+            timedUnblockService.updateGroupSelection(groupId: existing.id, selection: selection)
         } else {
             modelContext.insert(AppGroup(name: trimmed, selection: selection))
         }

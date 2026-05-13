@@ -5,6 +5,7 @@ import SwiftUI
 
 struct AppSelectView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(\.modelContext) private var modelContext
     @Query private var selectedApps: [SelectedApps]
     @Query private var appGroups: [AppGroup]
@@ -65,6 +66,7 @@ struct AppSelectView: View {
                 } else {
                     modelContext.insert(SelectedApps(selection: newValue))
                 }
+                timedUnblockService.updateMainSelection(newValue)
             }
         }
     }

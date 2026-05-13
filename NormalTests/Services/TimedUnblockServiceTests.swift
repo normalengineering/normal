@@ -275,4 +275,62 @@ struct TimedUnblockServiceTests {
         #expect(screenTimeService.applyShieldOnAllPreventAppDelete == false)
         #expect(!screenTimeService.enablePreventAppDeleteCalled)
     }
+
+    // MARK: - Selection Sync Tests
+
+    @Test @MainActor func updateMainSelectionUpdatesSharedStore() throws {
+        let (service, _, sharedStore, screenTimeService) = makeSUT()
+        let originalSelection = FamilyActivitySelection()
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: originalSelection,
+            screenTimeService: screenTimeService
+        )
+
+        let originalData = sharedStore.timedUnblocks.first?.selectionData
+
+        let updatedSelection = FamilyActivitySelection()
+        service.updateMainSelection(updatedSelection)
+
+        #expect(sharedStore.timedUnblocks.count == 1)
+        #expect(sharedStore.timedUnblocks.first?.id == "main")
+        // The DTO was replaced (upserted) with new selection data
+        #expect(sharedStore.timedUnblocks.first?.selectionData != nil)
+    }
+
+    @Test @MainActor func updateMainSelectionNoOpWhenInactive() {
+        let (service, _, sharedStore, _) = makeSUT()
+
+        service.updateMainSelection(FamilyActivitySelection())
+
+        #expect(sharedStore.timedUnblocks.isEmpty)
+    }
+
+    @Test @MainActor func updateGroupSelectionUpdatesSharedStore() throws {
+        let (service, _, sharedStore, screenTimeService) = makeSUT()
+        let groupId = UUID()
+        let originalSelection = FamilyActivitySelection()
+
+        try service.startGroup(
+            duration: .thirtyMinutes,
+            groupId: groupId,
+            selection: originalSelection,
+            screenTimeService: screenTimeService
+        )
+
+        let updatedSelection = FamilyActivitySelection()
+        service.updateGroupSelection(groupId: groupId, selection: updatedSelection)
+
+        #expect(sharedStore.timedUnblocks.count == 1)
+        #expect(sharedStore.timedUnblocks.first?.id == groupId.uuidString)
+    }
+
+    @Test @MainActor func updateGroupSelectionNoOpWhenInactive() {
+        let (service, _, sharedStore, _) = makeSUT()
+
+        service.updateGroupSelection(groupId: UUID(), selection: FamilyActivitySelection())
+
+        #expect(sharedStore.timedUnblocks.isEmpty)
+    }
 }

@@ -113,6 +113,32 @@ final class TimedUnblockService {
         activeUnblocks.removeValue(forKey: id)
     }
 
+    func updateMainSelection(_ selection: FamilyActivitySelection) {
+        guard isMainUnblockActive, let endDate = activeUnblocks["main"] else { return }
+        guard let dto = try? TimedUnblockDTO(
+            id: "main",
+            selectionData: selection.toData(),
+            endDate: endDate,
+            activityName: SharedConstants.mainTimedUnblockActivityName,
+            isGroupUnblock: false
+        ) else { return }
+        sharedStore.upsertTimedUnblock(dto)
+    }
+
+    func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection) {
+        let id = groupId.uuidString
+        guard isGroupUnblockActive(groupId: groupId), let endDate = activeUnblocks[id] else { return }
+        let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
+        guard let dto = try? TimedUnblockDTO(
+            id: id,
+            selectionData: selection.toData(),
+            endDate: endDate,
+            activityName: activityName,
+            isGroupUnblock: true
+        ) else { return }
+        sharedStore.upsertTimedUnblock(dto)
+    }
+
     func cancelGroup(
         groupId: UUID,
         selection: FamilyActivitySelection,
