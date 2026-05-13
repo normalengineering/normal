@@ -11,4 +11,12 @@ struct AppTabTests {
         #expect(cases.contains(.appSelect))
         #expect(cases.contains(.keys))
     }
+
+    @Test func labels() {
+        #expect(AppTab.home.label == "Home")
+        #expect(AppTab.groups.label == "Groups")
+        #expect(AppTab.schedules.label == "Schedules")
+        #expect(AppTab.appSelect.label == "App Select")
+        #expect(AppTab.keys.label == "Keys")
+    }
 }

@@ -86,4 +86,28 @@ struct SettingsTests {
 
         #expect(settings.blockAllPreventsAppDelete == true)
     }
+
+    @Test @MainActor func defaultTabDefaultsToHome() throws {
+        let container = try makeTestModelContainer()
+        let context = container.mainContext
+
+        let settings = Settings()
+        context.insert(settings)
+
+        #expect(settings.defaultTab == .home)
+    }
+
+    @Test @MainActor func defaultTabCanBeChanged() throws {
+        let container = try makeTestModelContainer()
+        let context = container.mainContext
+
+        let settings = Settings()
+        context.insert(settings)
+
+        settings.defaultTab = .groups
+        #expect(settings.defaultTab == .groups)
+
+        settings.defaultTab = .schedules
+        #expect(settings.defaultTab == .schedules)
+    }
 }

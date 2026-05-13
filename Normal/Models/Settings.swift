@@ -10,6 +10,7 @@ final class Settings {
     var defaultUnblockDuration: UnblockDuration?
     var hasCompletedOnboarding: Bool = false
     var blockAllPreventsAppDelete: Bool = true
+    var defaultTab: AppTab = AppTab.home
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180

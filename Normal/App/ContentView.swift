@@ -38,6 +38,7 @@ struct ContentView: View {
             if settings?.hasCompletedOnboarding == true {
                 onboardingService.isOnboardingActive = false
                 onboardingService.currentStep = .complete
+                selectedTab = settings?.defaultTab ?? .home
             }
             Task { await screenTimeService.checkAuthorizationStatus() }
         }

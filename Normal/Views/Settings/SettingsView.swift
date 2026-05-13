@@ -22,6 +22,18 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section {
+                    Picker("Default Page", selection: Bindable(settings).defaultTab) {
+                        Text(AppTab.home.label).tag(AppTab.home)
+                        Text(AppTab.groups.label).tag(AppTab.groups)
+                        Text(AppTab.schedules.label).tag(AppTab.schedules)
+                    }
+                } header: {
+                    Text("General")
+                } footer: {
+                    Text("The page shown when the app opens.")
+                }
+
+                Section {
                     Toggle("Block All Prevents App Deletion", isOn: Bindable(settings).blockAllPreventsAppDelete)
                 } header: {
                     Text("Blocking")
