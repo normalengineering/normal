@@ -1,13 +1,17 @@
 import FamilyControls
+import SwiftData
 import SwiftUI
 
 struct TimedUnblockBannerView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Query private var allSettings: [Settings]
 
     let selection: FamilyActivitySelection
 
     @State private var authAction: (@MainActor () -> Void)?
+
+    private var settings: Settings { allSettings.first! }
 
     var body: some View {
         if let endDate = timedUnblockService.mainUnblockEndDate, endDate > .now {
@@ -32,7 +36,8 @@ struct TimedUnblockBannerView: View {
                         authAction = {
                             timedUnblockService.cancelMain(
                                 selection: selection,
-                                screenTimeService: screenTimeService
+                                screenTimeService: screenTimeService,
+                                preventAppDelete: settings.blockAllPreventsAppDelete
                             )
                         }
                     } label: {

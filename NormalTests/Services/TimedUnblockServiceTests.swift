@@ -199,4 +199,80 @@ struct TimedUnblockServiceTests {
             )
         }
     }
+
+    // MARK: - App Delete Prevention Tests
+
+    @Test @MainActor func startMainWithAllowAppDeleteDisablesAppDeletion() throws {
+        let (service, _, _, screenTimeService) = makeSUT()
+        let selection = FamilyActivitySelection()
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: selection,
+            screenTimeService: screenTimeService,
+            allowAppDelete: true
+        )
+
+        #expect(screenTimeService.removeShieldOnAllCalled)
+        #expect(screenTimeService.removeShieldOnAllAllowAppDelete == true)
+        #expect(screenTimeService.disablePreventAppDeleteCalled)
+    }
+
+    @Test @MainActor func startMainWithoutAllowAppDeleteDoesNotDisableAppDeletion() throws {
+        let (service, _, _, screenTimeService) = makeSUT()
+        let selection = FamilyActivitySelection()
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: selection,
+            screenTimeService: screenTimeService,
+            allowAppDelete: false
+        )
+
+        #expect(screenTimeService.removeShieldOnAllCalled)
+        #expect(screenTimeService.removeShieldOnAllAllowAppDelete == false)
+        #expect(!screenTimeService.disablePreventAppDeleteCalled)
+    }
+
+    @Test @MainActor func cancelMainWithPreventAppDeleteEnablesAppDeletion() throws {
+        let (service, _, _, screenTimeService) = makeSUT()
+        let selection = FamilyActivitySelection()
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: selection,
+            screenTimeService: screenTimeService
+        )
+
+        service.cancelMain(
+            selection: selection,
+            screenTimeService: screenTimeService,
+            preventAppDelete: true
+        )
+
+        #expect(screenTimeService.applyShieldOnAllCalled)
+        #expect(screenTimeService.applyShieldOnAllPreventAppDelete == true)
+        #expect(screenTimeService.enablePreventAppDeleteCalled)
+    }
+
+    @Test @MainActor func cancelMainWithoutPreventAppDeleteDoesNotEnableAppDeletion() throws {
+        let (service, _, _, screenTimeService) = makeSUT()
+        let selection = FamilyActivitySelection()
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: selection,
+            screenTimeService: screenTimeService
+        )
+
+        service.cancelMain(
+            selection: selection,
+            screenTimeService: screenTimeService,
+            preventAppDelete: false
+        )
+
+        #expect(screenTimeService.applyShieldOnAllCalled)
+        #expect(screenTimeService.applyShieldOnAllPreventAppDelete == false)
+        #expect(!screenTimeService.enablePreventAppDeleteCalled)
+    }
 }

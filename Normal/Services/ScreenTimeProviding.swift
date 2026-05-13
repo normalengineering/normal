@@ -12,8 +12,8 @@ protocol ScreenTimeProviding: AnyObject {
     func requestAuthorization() async
     func enablePreventAppDelete()
     func disablePreventAppDelete()
-    func applyShieldOnAll(selection: FamilyActivitySelection)
-    func removeShieldOnAll()
+    func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool)
+    func removeShieldOnAll(allowAppDelete: Bool)
     func addToShields(selection: FamilyActivitySelection)
     func removeFromShields(selection: FamilyActivitySelection)
     func activeShieldCount() -> Int

@@ -11,7 +11,9 @@ final class MockScreenTimeService: ScreenTimeProviding {
 
     var applyShieldOnAllCalled = false
     var applyShieldOnAllSelection: FamilyActivitySelection?
+    var applyShieldOnAllPreventAppDelete: Bool?
     var removeShieldOnAllCalled = false
+    var removeShieldOnAllAllowAppDelete: Bool?
     var addToShieldsCalled = false
     var addToShieldsSelection: FamilyActivitySelection?
     var removeFromShieldsCalled = false
@@ -45,13 +47,17 @@ final class MockScreenTimeService: ScreenTimeProviding {
         disablePreventAppDeleteCalled = true
     }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection) {
+    func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool) {
         applyShieldOnAllCalled = true
         applyShieldOnAllSelection = selection
+        applyShieldOnAllPreventAppDelete = preventAppDelete
+        if preventAppDelete { enablePreventAppDelete() }
     }
 
-    func removeShieldOnAll() {
+    func removeShieldOnAll(allowAppDelete: Bool) {
         removeShieldOnAllCalled = true
+        removeShieldOnAllAllowAppDelete = allowAppDelete
+        if allowAppDelete { disablePreventAppDelete() }
     }
 
     func addToShields(selection: FamilyActivitySelection) {
@@ -63,6 +69,7 @@ final class MockScreenTimeService: ScreenTimeProviding {
         removeFromShieldsCalled = true
         removeFromShieldsSelection = selection
     }
+
 
     func activeShieldCount() -> Int { stubActiveShieldCount }
 

@@ -76,4 +76,14 @@ struct SettingsTests {
         #expect(settings.defaultUnblockDuration == nil)
         #expect(settings.hasCompletedOnboarding == false)
     }
+
+    @Test @MainActor func blockAllPreventsAppDeleteDefaultsToTrue() throws {
+        let container = try makeTestModelContainer()
+        let context = container.mainContext
+
+        let settings = Settings()
+        context.insert(settings)
+
+        #expect(settings.blockAllPreventsAppDelete == true)
+    }
 }

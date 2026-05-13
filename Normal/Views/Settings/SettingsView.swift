@@ -22,6 +22,14 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section {
+                    Toggle("Block All Prevents App Deletion", isOn: Bindable(settings).blockAllPreventsAppDelete)
+                } header: {
+                    Text("Blocking")
+                } footer: {
+                    Text("When enabled, blocking all apps also prevents app deletion, and unblocking re-allows it.")
+                }
+
+                Section {
                     Picker("Default Key Type", selection: Binding(
                         get: {
                             guard let keyType = settings.defaultKeyType,
@@ -84,7 +92,6 @@ struct SettingsView: View {
 
     private func performEmergencyUnblock() {
         settings.recordEmergencyUnblock()
-        screenTimeService.removeShieldOnAll()
-        screenTimeService.disablePreventAppDelete()
+        screenTimeService.removeShieldOnAll(allowAppDelete: true)
     }
 }

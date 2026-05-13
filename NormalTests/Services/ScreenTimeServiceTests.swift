@@ -1,4 +1,5 @@
 @testable import Normal
+import FamilyControls
 import Testing
 
 struct ScreenTimeServiceTests {
@@ -19,5 +20,45 @@ struct ScreenTimeServiceTests {
         if case .notAuthorized = notAuthorized {} else {
             Issue.record("Expected .notAuthorized")
         }
+    }
+
+    // MARK: - applyShieldOnAll / removeShieldOnAll App Delete Tests
+
+    @Test @MainActor func applyShieldOnAllWithPreventAppDeleteEnablesIt() {
+        let mock = MockScreenTimeService()
+        let selection = FamilyActivitySelection()
+
+        mock.applyShieldOnAll(selection: selection, preventAppDelete: true)
+
+        #expect(mock.applyShieldOnAllCalled)
+        #expect(mock.enablePreventAppDeleteCalled)
+    }
+
+    @Test @MainActor func applyShieldOnAllWithoutPreventAppDeleteDoesNotEnableIt() {
+        let mock = MockScreenTimeService()
+        let selection = FamilyActivitySelection()
+
+        mock.applyShieldOnAll(selection: selection, preventAppDelete: false)
+
+        #expect(mock.applyShieldOnAllCalled)
+        #expect(!mock.enablePreventAppDeleteCalled)
+    }
+
+    @Test @MainActor func removeShieldOnAllWithAllowAppDeleteDisablesIt() {
+        let mock = MockScreenTimeService()
+
+        mock.removeShieldOnAll(allowAppDelete: true)
+
+        #expect(mock.removeShieldOnAllCalled)
+        #expect(mock.disablePreventAppDeleteCalled)
+    }
+
+    @Test @MainActor func removeShieldOnAllWithoutAllowAppDeleteDoesNotDisableIt() {
+        let mock = MockScreenTimeService()
+
+        mock.removeShieldOnAll(allowAppDelete: false)
+
+        #expect(mock.removeShieldOnAllCalled)
+        #expect(!mock.disablePreventAppDeleteCalled)
     }
 }

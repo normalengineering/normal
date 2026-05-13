@@ -43,7 +43,8 @@ final class TimedUnblockService {
     func startMain(
         duration: UnblockDuration,
         selection: FamilyActivitySelection,
-        screenTimeService: any ScreenTimeProviding
+        screenTimeService: any ScreenTimeProviding,
+        allowAppDelete: Bool = false
     ) throws {
         let id = "main"
         let activityName = SharedConstants.mainTimedUnblockActivityName
@@ -53,7 +54,7 @@ final class TimedUnblockService {
 
         let endDate = Date.now.addingTimeInterval(duration.timeInterval)
 
-        screenTimeService.removeShieldOnAll()
+        screenTimeService.removeShieldOnAll(allowAppDelete: allowAppDelete)
 
         try scheduleActivity(name: activityName, endDate: endDate)
 
@@ -100,11 +101,12 @@ final class TimedUnblockService {
 
     func cancelMain(
         selection: FamilyActivitySelection,
-        screenTimeService: any ScreenTimeProviding
+        screenTimeService: any ScreenTimeProviding,
+        preventAppDelete: Bool = false
     ) {
         let id = "main"
         cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
-        screenTimeService.applyShieldOnAll(selection: selection)
+        screenTimeService.applyShieldOnAll(selection: selection, preventAppDelete: preventAppDelete)
         cancelAllGroupUnblocks()
         sharedStore.removeTimedUnblock(id: id)
         cancelExpiration(id: id)

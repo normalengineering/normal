@@ -9,6 +9,7 @@ final class Settings {
     var defaultKeyType: KeyType?
     var defaultUnblockDuration: UnblockDuration?
     var hasCompletedOnboarding: Bool = false
+    var blockAllPreventsAppDelete: Bool = true
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180

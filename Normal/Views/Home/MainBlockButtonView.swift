@@ -24,7 +24,10 @@ struct MainBlockButtonView: View {
                 Button {
                     allowBypass = true
                     authAction = {
-                        screenTimeService.applyShieldOnAll(selection: mainSelection.selection)
+                        screenTimeService.applyShieldOnAll(
+                            selection: mainSelection.selection,
+                            preventAppDelete: settings.blockAllPreventsAppDelete
+                        )
                     }
                 } label: {
                     HStack {
@@ -44,7 +47,8 @@ struct MainBlockButtonView: View {
                             try? timedUnblockService.startMain(
                                 duration: duration,
                                 selection: mainSelection.selection,
-                                screenTimeService: screenTimeService
+                                screenTimeService: screenTimeService,
+                                allowAppDelete: settings.blockAllPreventsAppDelete
                             )
                         } else {
                             showTimedUnblockSheet = true
@@ -69,11 +73,14 @@ struct MainBlockButtonView: View {
                     try timedUnblockService.startMain(
                         duration: duration,
                         selection: mainSelection.selection,
-                        screenTimeService: screenTimeService
+                        screenTimeService: screenTimeService,
+                        allowAppDelete: settings.blockAllPreventsAppDelete
                     )
                 },
                 onPermanentUnblock: {
-                    screenTimeService.removeShieldOnAll()
+                    screenTimeService.removeShieldOnAll(
+                        allowAppDelete: settings.blockAllPreventsAppDelete
+                    )
                 }
             )
         }

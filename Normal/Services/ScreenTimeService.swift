@@ -80,19 +80,25 @@ class ScreenTimeService: ScreenTimeProviding {
         notifyUpdate()
     }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection) {
+    func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool) {
         store.shield.applications = selection.applicationTokens
         store.shield.webDomains = selection.webDomainTokens
         store.shield.applicationCategories = selection.categoryTokens.isEmpty
             ? nil
             : .specific(selection.categoryTokens)
+        if preventAppDelete {
+            store.application.denyAppRemoval = true
+        }
         notifyUpdate()
     }
 
-    func removeShieldOnAll() {
+    func removeShieldOnAll(allowAppDelete: Bool) {
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
+        if allowAppDelete {
+            store.application.denyAppRemoval = false
+        }
         notifyUpdate()
     }
 
