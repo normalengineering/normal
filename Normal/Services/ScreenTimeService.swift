@@ -24,7 +24,7 @@ enum BlockStatus {
 
 @MainActor
 @Observable
-class ScreenTimeService {
+class ScreenTimeService: ScreenTimeProviding {
     static let shared = ScreenTimeService()
 
     var authorizationState: AuthorizationState = .notAuthorized

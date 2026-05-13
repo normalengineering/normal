@@ -1,10 +1,11 @@
 import Foundation
 
-struct SharedStore: Sendable {
+struct SharedStore: SharedStoreProviding, Sendable {
     private let defaults: UserDefaults
 
-    init() {
-        self.defaults = UserDefaults(suiteName: SharedConstants.appGroupID)
+    init(defaults: UserDefaults? = nil) {
+        self.defaults = defaults
+            ?? UserDefaults(suiteName: SharedConstants.appGroupID)
             ?? UserDefaults.standard
     }
 

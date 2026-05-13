@@ -7,11 +7,11 @@ import Observation
 @Observable
 final class ScheduleService {
     private let activityCenter: any DeviceActivityProviding
-    private let sharedStore: SharedStore
+    private let sharedStore: any SharedStoreProviding
 
     init(
         activityCenter: any DeviceActivityProviding = DeviceActivityCenter(),
-        sharedStore: SharedStore = SharedStore()
+        sharedStore: any SharedStoreProviding = SharedStore()
     ) {
         self.activityCenter = activityCenter
         self.sharedStore = sharedStore
@@ -19,7 +19,7 @@ final class ScheduleService {
 
     func sync(
         _ schedule: BlockSchedule,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) throws {
         let activityName = DeviceActivityName(
             SharedConstants.scheduleActivityName(for: schedule.id)
@@ -61,7 +61,7 @@ final class ScheduleService {
 
     func remove(
         _ schedule: BlockSchedule,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) {
         let activityName = DeviceActivityName(
             SharedConstants.scheduleActivityName(for: schedule.id)
@@ -77,7 +77,7 @@ final class ScheduleService {
 
     func toggleEnabled(
         _ schedule: BlockSchedule,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) throws {
         schedule.isEnabled.toggle()
         try sync(schedule, screenTimeService: screenTimeService)
@@ -91,7 +91,7 @@ final class ScheduleService {
     func syncAndPersist(
         _ schedule: BlockSchedule,
         allSchedules: [BlockSchedule],
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) throws {
         try sync(schedule, screenTimeService: screenTimeService)
         syncAllToSharedStore(allSchedules)

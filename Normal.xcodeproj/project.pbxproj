@@ -65,6 +65,7 @@
 				SharedConstants.swift,
 				SharedDTO.swift,
 				SharedStore.swift,
+				SharedStoreProviding.swift,
 			);
 			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};
@@ -101,7 +102,6 @@
 		2FAF37892F6FDA6000B585E1 /* Exceptions for "NormalTests" folder in "NormalTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				NormalTests.swift,
 			);
 			target = 2F58EFF42EC9C5DF00A38180 /* NormalTests */;
 		};
@@ -279,6 +279,9 @@
 			);
 			dependencies = (
 				2F58EFF72EC9C5DF00A38180 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2F4301E62ECBBAA7001FBF91 /* NormalTests */,
 			);
 			name = NormalTests;
 			packageProductDependencies = (

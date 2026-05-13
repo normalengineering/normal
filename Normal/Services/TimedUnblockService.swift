@@ -7,17 +7,20 @@ import Observation
 @Observable
 final class TimedUnblockService {
     private let activityCenter: any DeviceActivityProviding
-    private let sharedStore: SharedStore
+    private let sharedStore: any SharedStoreProviding
+    private let onExpiration: @MainActor @Sendable () -> Void
 
     private(set) var activeUnblocks: [String: Date] = [:]
     private var expirationTasks: [String: Task<Void, Never>] = [:]
 
     init(
         activityCenter: any DeviceActivityProviding = DeviceActivityCenter(),
-        sharedStore: SharedStore = SharedStore()
+        sharedStore: any SharedStoreProviding = SharedStore(),
+        onExpiration: @escaping @MainActor @Sendable () -> Void = { ScreenTimeService.shared.notifyUpdate() }
     ) {
         self.activityCenter = activityCenter
         self.sharedStore = sharedStore
+        self.onExpiration = onExpiration
         restoreState()
     }
 
@@ -40,7 +43,7 @@ final class TimedUnblockService {
     func startMain(
         duration: UnblockDuration,
         selection: FamilyActivitySelection,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) throws {
         let id = "main"
         let activityName = SharedConstants.mainTimedUnblockActivityName
@@ -70,7 +73,7 @@ final class TimedUnblockService {
         duration: UnblockDuration,
         groupId: UUID,
         selection: FamilyActivitySelection,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) throws {
         let id = groupId.uuidString
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
@@ -97,7 +100,7 @@ final class TimedUnblockService {
 
     func cancelMain(
         selection: FamilyActivitySelection,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) {
         let id = "main"
         cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
@@ -111,7 +114,7 @@ final class TimedUnblockService {
     func cancelGroup(
         groupId: UUID,
         selection: FamilyActivitySelection,
-        screenTimeService: ScreenTimeService
+        screenTimeService: any ScreenTimeProviding
     ) {
         let id = groupId.uuidString
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
@@ -134,7 +137,7 @@ final class TimedUnblockService {
             guard !Task.isCancelled else { return }
             activeUnblocks.removeValue(forKey: id)
             expirationTasks.removeValue(forKey: id)
-            ScreenTimeService.shared.notifyUpdate()
+            onExpiration()
         }
     }
 
