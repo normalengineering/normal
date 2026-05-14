@@ -19,7 +19,9 @@ struct KeysView: View {
                     ContentUnavailableView {
                         Label("No Keys", systemImage: "key.viewfinder")
                     } description: {
-                        Text("Keys are required to block and unblock apps. Add an NFC tag or QR code to get started.")
+                        Text(KeyType.nfc.isAvailableOnDevice
+                            ? "Keys are required to block and unblock apps. Add an NFC tag or QR code to get started."
+                            : "Keys are required to block and unblock apps. Add a QR code to get started.")
                     } actions: {
                         Button {
                             isShowingSheet = true

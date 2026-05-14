@@ -24,7 +24,7 @@ struct KeyFormSheet: View {
     init(existing: Key? = nil) {
         self.existing = existing
         _name = State(initialValue: existing?.name ?? "")
-        _keyType = State(initialValue: existing?.type ?? .nfc)
+        _keyType = State(initialValue: existing?.type ?? KeyType.availableOnDevice.first ?? .qr)
         _scannedKeyId = State(initialValue: nil)
     }
 

@@ -1,3 +1,4 @@
+@preconcurrency import CoreNFC
 import CommonCrypto
 import Foundation
 import SwiftData
@@ -7,6 +8,17 @@ enum KeyType: String, Codable, CaseIterable, Identifiable {
     case qr = "QR"
 
     var id: String { rawValue }
+
+    var isAvailableOnDevice: Bool {
+        switch self {
+        case .nfc: NFCTagReaderSession.readingAvailable
+        case .qr: true
+        }
+    }
+
+    static var availableOnDevice: [KeyType] {
+        allCases.filter(\.isAvailableOnDevice)
+    }
 
     var icon: String {
         switch self {

@@ -10,26 +10,28 @@ struct KeyFormSheetSetupSection: View {
 
     var body: some View {
         Section("Setup") {
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Choose Type", systemImage: "1.circle.fill")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(.secondary)
+            if KeyType.availableOnDevice.count > 1 {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("Choose Type", systemImage: "1.circle.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.secondary)
 
-                Picker("Type", selection: $keyType) {
-                    ForEach(KeyType.allCases) { type in
-                        Label(type.rawValue, systemImage: type.icon)
-                            .tag(type)
+                    Picker("Type", selection: $keyType) {
+                        ForEach(KeyType.availableOnDevice) { type in
+                            Label(type.rawValue, systemImage: type.icon)
+                                .tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: keyType) { _, _ in
+                        scannedKeyId = nil
                     }
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: keyType) { _, _ in
-                    scannedKeyId = nil
-                }
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 4)
 
             VStack(alignment: .leading, spacing: 12) {
-                Label("Scan", systemImage: "2.circle.fill")
+                Label("Scan", systemImage: KeyType.availableOnDevice.count > 1 ? "2.circle.fill" : "1.circle.fill")
                     .font(.subheadline.bold())
                     .foregroundStyle(.secondary)
 

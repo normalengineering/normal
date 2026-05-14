@@ -17,7 +17,7 @@ struct KeySelectModifier: ViewModifier {
     @State private var actionTrigger = false
 
     private var availableKeyTypes: [KeyType] {
-        KeyType.allCases.filter { type in
+        KeyType.availableOnDevice.filter { type in
             keys.contains { $0.type == type }
         }
     }
@@ -26,14 +26,16 @@ struct KeySelectModifier: ViewModifier {
         content
             .onChange(of: actionTrigger) { _, _ in
                 if action != nil {
-                    let available = availableKeyTypes
-                    if available.isEmpty {
+                    switch KeySelectLogic.decide(
+                        availableKeyTypes: availableKeyTypes,
+                        allowBypass: allowBypass,
+                        defaultKeyType: defaultKeyType
+                    ) {
+                    case .showNoKeysAlert:
                         showNoKeysAlert = true
-                    } else if !allowBypass, let keyType = defaultKeyType, available.contains(keyType) {
+                    case .autoSelect(let keyType):
                         handleSelection(keyType)
-                    } else if !allowBypass, available.count == 1 {
-                        handleSelection(available[0])
-                    } else {
+                    case .showSheet:
                         showQRScanner = false
                         showKeySelect = true
                     }
@@ -44,12 +46,16 @@ struct KeySelectModifier: ViewModifier {
                     actionTrigger.toggle()
                 }
             }
-            .alert("No Keys", isPresented: $showNoKeysAlert) {
+            .alert("No Keys Available", isPresented: $showNoKeysAlert) {
                 Button("OK", role: .cancel) {
                     action = nil
                 }
             } message: {
-                Text("Add a key in the Keys tab before blocking apps.")
+                if keys.isEmpty {
+                    Text("Add a key in the Keys tab before blocking apps.")
+                } else {
+                    Text("None of your registered keys are supported on this device. Add a QR code key to use on iPad.")
+                }
             }
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
                 NavigationStack {
