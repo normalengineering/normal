@@ -73,9 +73,9 @@ struct BlockScheduleTests {
         let labels = schedule.weekdayLabels
         #expect(labels.count == 3)
         let symbols = Calendar.current.shortWeekdaySymbols
-        #expect(labels[0] == symbols[0]) // Sunday
-        #expect(labels[1] == symbols[3]) // Wednesday
-        #expect(labels[2] == symbols[6]) // Saturday
+        #expect(labels[0] == symbols[0])
+        #expect(labels[1] == symbols[3])
+        #expect(labels[2] == symbols[6])
     }
 
     @Test @MainActor func weekdayLabelsFilterOutOfRange() throws {

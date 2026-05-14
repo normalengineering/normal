@@ -13,7 +13,6 @@ struct ScreenTimeServiceTests {
         let authorized = AuthorizationState.authorized
         let notAuthorized = AuthorizationState.notAuthorized
 
-        // Verify both cases exist and are distinct
         if case .authorized = authorized {} else {
             Issue.record("Expected .authorized")
         }
@@ -21,8 +20,6 @@ struct ScreenTimeServiceTests {
             Issue.record("Expected .notAuthorized")
         }
     }
-
-    // MARK: - applyShieldOnAll / removeShieldOnAll App Delete Tests
 
     @Test @MainActor func applyShieldOnAllWithPreventAppDeleteEnablesIt() {
         let mock = MockScreenTimeService()

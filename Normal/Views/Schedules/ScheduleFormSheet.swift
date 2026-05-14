@@ -226,17 +226,22 @@ struct ScheduleFormSheet: View {
                 durationMinutes: durationMinutes,
                 weekdays: selectedWeekdays,
                 shouldBlock: shouldBlock,
-                isTimed: isTimed
+                isTimed: isTimed,
+                isEnabled: false
             )
             modelContext.insert(schedule)
         }
 
         do {
-            try scheduleService.syncAndPersist(
-                schedule,
-                allSchedules: allSchedules + (isNew ? [schedule] : []),
-                screenTimeService: screenTimeService
-            )
+            if isNew {
+                scheduleService.syncAllToSharedStore(allSchedules + [schedule])
+            } else {
+                try scheduleService.syncAndPersist(
+                    schedule,
+                    allSchedules: allSchedules,
+                    screenTimeService: screenTimeService
+                )
+            }
             dismiss()
         } catch {
             self.error = error

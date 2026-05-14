@@ -132,4 +132,73 @@ struct ScheduleServiceTests {
         #expect(activityCenter.stopMonitoringCalled)
         #expect(activityCenter.startMonitoringCalled)
     }
+
+    @Test @MainActor func newScheduleDefaultsToDisabled() throws {
+        let container = try makeTestModelContainer()
+        let schedule = makeSchedule(context: container.mainContext, isEnabled: false)
+
+        #expect(!schedule.isEnabled)
+    }
+
+    @Test @MainActor func newDisabledScheduleDoesNotStartMonitoring() throws {
+        let (service, activityCenter, _, screenTimeService) = makeSUT()
+        let container = try makeTestModelContainer()
+        let schedule = makeSchedule(context: container.mainContext, isEnabled: false)
+
+        try service.sync(schedule, screenTimeService: screenTimeService)
+
+        #expect(activityCenter.stopMonitoringCalled)
+        #expect(!activityCenter.startMonitoringCalled)
+    }
+
+    @Test @MainActor func toggleDisabledToEnabledStartsMonitoring() throws {
+        let (service, activityCenter, _, screenTimeService) = makeSUT()
+        let container = try makeTestModelContainer()
+        let schedule = makeSchedule(context: container.mainContext, isEnabled: false)
+
+        try service.toggleEnabled(schedule, screenTimeService: screenTimeService)
+
+        #expect(schedule.isEnabled)
+        #expect(activityCenter.startMonitoringCalled)
+    }
+
+    @Test @MainActor func toggleEnabledToDisabledStopsMonitoring() throws {
+        let (service, activityCenter, _, screenTimeService) = makeSUT()
+        let container = try makeTestModelContainer()
+        let schedule = makeSchedule(context: container.mainContext, isEnabled: true)
+
+        try service.toggleEnabled(schedule, screenTimeService: screenTimeService)
+
+        #expect(!schedule.isEnabled)
+        #expect(activityCenter.stopMonitoringCalled)
+        #expect(!activityCenter.startMonitoringCalled)
+    }
+
+    @Test @MainActor func syncAllToSharedStoreIncludesDisabledSchedules() throws {
+        let (service, _, sharedStore, _) = makeSUT()
+        let container = try makeTestModelContainer()
+        let context = container.mainContext
+
+        let enabled = makeSchedule(context: context, isEnabled: true)
+        let disabled = makeSchedule(context: context, isEnabled: false)
+
+        service.syncAllToSharedStore([enabled, disabled])
+
+        #expect(sharedStore.schedules.count == 2)
+    }
+
+    @Test @MainActor func syncAndPersistDisabledScheduleDoesNotStartMonitoring() throws {
+        let (service, activityCenter, sharedStore, screenTimeService) = makeSUT()
+        let container = try makeTestModelContainer()
+        let schedule = makeSchedule(context: container.mainContext, isEnabled: false)
+
+        try service.syncAndPersist(
+            schedule,
+            allSchedules: [schedule],
+            screenTimeService: screenTimeService
+        )
+
+        #expect(!activityCenter.startMonitoringCalled)
+        #expect(sharedStore.schedules.count == 1)
+    }
 }

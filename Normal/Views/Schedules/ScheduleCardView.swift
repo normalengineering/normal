@@ -14,6 +14,7 @@ struct ScheduleCardView: View {
 
     @State private var isEditing = false
     @State private var showDeleteConfirmation = false
+    @State private var showToggleConfirmation = false
     @State private var error: Error?
 
     private var isBlocked: Bool {
@@ -120,6 +121,21 @@ struct ScheduleCardView: View {
         .sheet(isPresented: $isEditing) {
             ScheduleFormSheet(existing: schedule)
         }
+        .alert(
+            schedule.isEnabled ? "Disable Schedule?" : "Enable Schedule?",
+            isPresented: $showToggleConfirmation
+        ) {
+            Button(schedule.isEnabled ? "Disable" : "Enable", role: schedule.isEnabled ? .destructive : nil) {
+                toggleEnabled()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if schedule.isEnabled {
+                Text("\(schedule.name) will stop running until you re-enable it.")
+            } else {
+                Text("\(schedule.name) will start running.")
+            }
+        }
         .alert("Delete Schedule?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) { deleteSchedule() }
             Button("Cancel", role: .cancel) {}
@@ -131,7 +147,7 @@ struct ScheduleCardView: View {
     private var enabledBinding: Binding<Bool> {
         Binding(
             get: { schedule.isEnabled },
-            set: { _ in toggleEnabled() }
+            set: { _ in showToggleConfirmation = true }
         )
     }
 

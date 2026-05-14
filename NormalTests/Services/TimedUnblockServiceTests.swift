@@ -200,8 +200,6 @@ struct TimedUnblockServiceTests {
         }
     }
 
-    // MARK: - App Delete Prevention Tests
-
     @Test @MainActor func startMainWithAllowAppDeleteDisablesAppDeletion() throws {
         let (service, _, _, screenTimeService) = makeSUT()
         let selection = FamilyActivitySelection()
@@ -276,8 +274,6 @@ struct TimedUnblockServiceTests {
         #expect(!screenTimeService.enablePreventAppDeleteCalled)
     }
 
-    // MARK: - Selection Sync Tests
-
     @Test @MainActor func updateMainSelectionUpdatesSharedStore() throws {
         let (service, _, sharedStore, screenTimeService) = makeSUT()
         let originalSelection = FamilyActivitySelection()
@@ -295,7 +291,6 @@ struct TimedUnblockServiceTests {
 
         #expect(sharedStore.timedUnblocks.count == 1)
         #expect(sharedStore.timedUnblocks.first?.id == "main")
-        // The DTO was replaced (upserted) with new selection data
         #expect(sharedStore.timedUnblocks.first?.selectionData != nil)
     }
 
