@@ -36,6 +36,9 @@ final class NormalMonitor: DeviceActivityMonitor {
             store.unionShields(with: selection)
         } else {
             store.replaceShields(with: selection)
+            if dto.blockAllPreventsAppDelete == true {
+                store.application.denyAppRemoval = true
+            }
         }
         sharedStore.removeTimedUnblock(id: dto.id)
     }

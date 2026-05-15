@@ -67,17 +67,17 @@ final class ScreenTimeService: ScreenTimeProviding {
         notifyUpdate()
     }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool) {
+    func applyShieldOnAll(selection: FamilyActivitySelection, blockAllPreventsAppDelete: Bool) {
         store.replaceShields(with: selection)
-        if preventAppDelete {
+        if blockAllPreventsAppDelete {
             store.application.denyAppRemoval = true
         }
         notifyUpdate()
     }
 
-    func removeShieldOnAll(allowAppDelete: Bool) {
+    func removeShieldOnAll(blockAllPreventsAppDelete: Bool) {
         store.clearShields()
-        if allowAppDelete {
+        if blockAllPreventsAppDelete {
             store.application.denyAppRemoval = false
         }
         notifyUpdate()

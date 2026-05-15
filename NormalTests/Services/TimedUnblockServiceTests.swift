@@ -66,7 +66,7 @@ struct TimedUnblockServiceTests {
         service.cancelMain(
             selection: FamilyActivitySelection(),
             screenTimeService: screenTime,
-            preventAppDelete: false
+            blockAllPreventsAppDelete: false
         )
 
         #expect(screenTime.applyShieldOnAllCalled)

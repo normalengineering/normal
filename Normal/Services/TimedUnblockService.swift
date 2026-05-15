@@ -46,14 +46,14 @@ final class TimedUnblockService {
         duration: UnblockDuration,
         selection: FamilyActivitySelection,
         screenTimeService: any ScreenTimeProviding,
-        allowAppDelete: Bool = false
+        blockAllPreventsAppDelete: Bool = false
     ) throws {
         let activityName = SharedConstants.mainTimedUnblockActivityName
         cancelMonitoring(activityName: activityName)
         cancelAllGroupUnblocks()
 
         let endDate = Date.now.addingTimeInterval(duration.timeInterval)
-        screenTimeService.removeShieldOnAll(allowAppDelete: allowAppDelete)
+        screenTimeService.removeShieldOnAll(blockAllPreventsAppDelete: blockAllPreventsAppDelete)
         try scheduleActivity(name: activityName, endDate: endDate)
 
         try persist(
@@ -61,7 +61,8 @@ final class TimedUnblockService {
             selection: selection,
             endDate: endDate,
             activityName: activityName,
-            isGroupUnblock: false
+            isGroupUnblock: false,
+            blockAllPreventsAppDelete: blockAllPreventsAppDelete
         )
     }
 
@@ -91,10 +92,13 @@ final class TimedUnblockService {
     func cancelMain(
         selection: FamilyActivitySelection,
         screenTimeService: any ScreenTimeProviding,
-        preventAppDelete: Bool = false
+        blockAllPreventsAppDelete: Bool = false
     ) {
         cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
-        screenTimeService.applyShieldOnAll(selection: selection, preventAppDelete: preventAppDelete)
+        screenTimeService.applyShieldOnAll(
+            selection: selection,
+            blockAllPreventsAppDelete: blockAllPreventsAppDelete
+        )
         cancelAllGroupUnblocks()
         forget(id: Self.mainID)
     }
@@ -112,13 +116,17 @@ final class TimedUnblockService {
 
     func updateMainSelection(_ selection: FamilyActivitySelection) {
         guard let endDate = activeUnblocks[Self.mainID] else { return }
+        let activityName = SharedConstants.mainTimedUnblockActivityName
+        let preventAppDelete = sharedStore
+            .findTimedUnblock(activityName: activityName)?.blockAllPreventsAppDelete
         try? persist(
             id: Self.mainID,
             selection: selection,
             endDate: endDate,
-            activityName: SharedConstants.mainTimedUnblockActivityName,
+            activityName: activityName,
             isGroupUnblock: false,
-            scheduleTask: false
+            scheduleTask: false,
+            blockAllPreventsAppDelete: preventAppDelete
         )
     }
 
@@ -141,14 +149,16 @@ final class TimedUnblockService {
         endDate: Date,
         activityName: String,
         isGroupUnblock: Bool,
-        scheduleTask: Bool = true
+        scheduleTask: Bool = true,
+        blockAllPreventsAppDelete: Bool? = nil
     ) throws {
         let dto = try TimedUnblockDTO(
             id: id,
             selectionData: selection.toData(),
             endDate: endDate,
             activityName: activityName,
-            isGroupUnblock: isGroupUnblock
+            isGroupUnblock: isGroupUnblock,
+            blockAllPreventsAppDelete: blockAllPreventsAppDelete
         )
         sharedStore.upsertTimedUnblock(dto)
 

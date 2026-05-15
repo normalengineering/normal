@@ -4,32 +4,34 @@ import Testing
 
 @MainActor
 struct ScreenTimeServiceTests {
-    @Test func applyShieldOnAllWithPreventAppDeleteEnablesIt() {
+    @Test func blockAllWithSettingOnPreventsAppDelete() {
         let s = FakeScreenTimeService()
-        s.applyShieldOnAll(selection: FamilyActivitySelection(), preventAppDelete: true)
+        s.applyShieldOnAll(selection: FamilyActivitySelection(), blockAllPreventsAppDelete: true)
         #expect(s.applyShieldOnAllCalled)
         #expect(s.enablePreventAppDeleteCalled)
     }
 
-    @Test func applyShieldOnAllWithoutPreventAppDeleteDoesNotEnable() {
+    @Test func blockAllWithSettingOffLeavesAppDeleteUntouched() {
         let s = FakeScreenTimeService()
-        s.applyShieldOnAll(selection: FamilyActivitySelection(), preventAppDelete: false)
+        s.applyShieldOnAll(selection: FamilyActivitySelection(), blockAllPreventsAppDelete: false)
         #expect(s.applyShieldOnAllCalled)
         #expect(!s.enablePreventAppDeleteCalled)
+        #expect(!s.disablePreventAppDeleteCalled)
     }
 
-    @Test func removeShieldOnAllWithAllowAppDeleteDisablesIt() {
+    @Test func unblockAllWithSettingOnAllowsAppDelete() {
         let s = FakeScreenTimeService()
-        s.removeShieldOnAll(allowAppDelete: true)
+        s.removeShieldOnAll(blockAllPreventsAppDelete: true)
         #expect(s.removeShieldOnAllCalled)
         #expect(s.disablePreventAppDeleteCalled)
     }
 
-    @Test func removeShieldOnAllWithoutAllowAppDeleteDoesNotDisable() {
+    @Test func unblockAllWithSettingOffLeavesAppDeleteUntouched() {
         let s = FakeScreenTimeService()
-        s.removeShieldOnAll(allowAppDelete: false)
+        s.removeShieldOnAll(blockAllPreventsAppDelete: false)
         #expect(s.removeShieldOnAllCalled)
         #expect(!s.disablePreventAppDeleteCalled)
+        #expect(!s.enablePreventAppDeleteCalled)
     }
 
     @Test func notifyUpdateIncrementsCount() {

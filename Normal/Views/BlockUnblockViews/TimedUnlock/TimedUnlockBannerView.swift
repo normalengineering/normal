@@ -34,7 +34,7 @@ struct TimedUnblockBannerView: View {
                             timedUnblockService.cancelMain(
                                 selection: selection,
                                 screenTimeService: screenTimeService,
-                                preventAppDelete: settings.blockAllPreventsAppDelete
+                                blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                             )
                         }
                     } label: {

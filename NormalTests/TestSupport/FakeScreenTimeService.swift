@@ -11,9 +11,9 @@ final class FakeScreenTimeService: ScreenTimeProviding {
 
     var applyShieldOnAllCalled = false
     var applyShieldOnAllSelection: FamilyActivitySelection?
-    var applyShieldOnAllPreventAppDelete: Bool?
+    var applyShieldOnAllBlockAllPreventsAppDelete: Bool?
     var removeShieldOnAllCalled = false
-    var removeShieldOnAllAllowAppDelete: Bool?
+    var removeShieldOnAllBlockAllPreventsAppDelete: Bool?
     var addToShieldsCalled = false
     var addToShieldsSelection: FamilyActivitySelection?
     var removeFromShieldsCalled = false
@@ -48,17 +48,17 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     func enablePreventAppDelete() { enablePreventAppDeleteCalled = true }
     func disablePreventAppDelete() { disablePreventAppDeleteCalled = true }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool) {
+    func applyShieldOnAll(selection: FamilyActivitySelection, blockAllPreventsAppDelete: Bool) {
         applyShieldOnAllCalled = true
         applyShieldOnAllSelection = selection
-        applyShieldOnAllPreventAppDelete = preventAppDelete
-        if preventAppDelete { enablePreventAppDelete() }
+        applyShieldOnAllBlockAllPreventsAppDelete = blockAllPreventsAppDelete
+        if blockAllPreventsAppDelete { enablePreventAppDelete() }
     }
 
-    func removeShieldOnAll(allowAppDelete: Bool) {
+    func removeShieldOnAll(blockAllPreventsAppDelete: Bool) {
         removeShieldOnAllCalled = true
-        removeShieldOnAllAllowAppDelete = allowAppDelete
-        if allowAppDelete { disablePreventAppDelete() }
+        removeShieldOnAllBlockAllPreventsAppDelete = blockAllPreventsAppDelete
+        if blockAllPreventsAppDelete { disablePreventAppDelete() }
     }
 
     func addToShields(selection: FamilyActivitySelection) {

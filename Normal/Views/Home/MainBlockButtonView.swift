@@ -41,7 +41,7 @@ struct MainBlockButtonView: View {
             authAction = {
                 screenTimeService.applyShieldOnAll(
                     selection: mainSelection.selection,
-                    preventAppDelete: settings.blockAllPreventsAppDelete
+                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
             }
         } label: {
@@ -63,7 +63,7 @@ struct MainBlockButtonView: View {
                         duration: duration,
                         selection: mainSelection.selection,
                         screenTimeService: screenTimeService,
-                        allowAppDelete: settings.blockAllPreventsAppDelete
+                        blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                     )
                 } else {
                     showTimedUnblockSheet = true
@@ -87,12 +87,12 @@ struct MainBlockButtonView: View {
                     duration: duration,
                     selection: mainSelection.selection,
                     screenTimeService: screenTimeService,
-                    allowAppDelete: settings.blockAllPreventsAppDelete
+                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
             },
             onPermanentUnblock: {
                 screenTimeService.removeShieldOnAll(
-                    allowAppDelete: settings.blockAllPreventsAppDelete
+                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
             }
         )

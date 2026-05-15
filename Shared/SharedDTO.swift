@@ -7,6 +7,23 @@ struct TimedUnblockDTO: Codable, Sendable, Identifiable {
     let endDate: Date
     let activityName: String
     let isGroupUnblock: Bool
+    let blockAllPreventsAppDelete: Bool?
+
+    init(
+        id: String,
+        selectionData: Data,
+        endDate: Date,
+        activityName: String,
+        isGroupUnblock: Bool,
+        blockAllPreventsAppDelete: Bool? = nil
+    ) {
+        self.id = id
+        self.selectionData = selectionData
+        self.endDate = endDate
+        self.activityName = activityName
+        self.isGroupUnblock = isGroupUnblock
+        self.blockAllPreventsAppDelete = blockAllPreventsAppDelete
+    }
 }
 
 struct ScheduleDTO: Codable, Sendable, Identifiable {
