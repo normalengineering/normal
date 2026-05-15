@@ -6,9 +6,9 @@ struct OnboardingWelcomeView: View {
 
     private static let features: [(systemImage: String, text: LocalizedStringKey)] = [
         ("app.dashed", "Select apps you want to block"),
-        ("key.viewfinder", "Register physical keys to lock and unlock"),
+        ("key.viewfinder", "Register NFC Tags and QR Codes to lock and unlock"),
         ("app.shadow", "Organize apps into groups"),
-        ("calendar.badge.clock", "Create schedules for automatic blocking")
+        ("calendar.badge.clock", "Create schedules")
     ]
 
     var body: some View {
