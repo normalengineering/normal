@@ -43,6 +43,7 @@ struct GroupsView: View {
                 }
             }
             .navigationTitle("App Groups")
+            .settingsToolbar()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { openSheet() }) {

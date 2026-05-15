@@ -4,7 +4,6 @@ import SwiftUI
 struct HomeView: View {
     @Query private var selectedApps: [SelectedApps]
     @Query private var keys: [Key]
-    @State private var showSettings = false
 
     private var mainSelection: SelectedApps? { selectedApps.first }
 
@@ -30,18 +29,7 @@ struct HomeView: View {
                 }
             }
             .navigationTitle("Home")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                }
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
+            .settingsToolbar()
         }
     }
 }

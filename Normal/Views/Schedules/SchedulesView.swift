@@ -47,6 +47,7 @@ struct SchedulesView: View {
                 }
             }
             .navigationTitle("Schedules")
+            .settingsToolbar()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { openSheet() } label: {

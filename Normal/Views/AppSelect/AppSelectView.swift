@@ -51,6 +51,7 @@ struct AppSelectView: View {
                 SelectionListView(selection: selection)
             }
             .navigationTitle("App Select")
+            .settingsToolbar()
             .alert("Selection will affect your groups", isPresented: $showSelectionChangeAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Continue", role: .destructive) {

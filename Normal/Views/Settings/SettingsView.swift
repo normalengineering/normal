@@ -1,12 +1,41 @@
 import SwiftData
 import SwiftUI
 
+enum SettingsTab: CaseIterable {
+    case general
+    case emergencyUnblock
+    case faq
+
+    var title: String {
+        switch self {
+        case .general:
+            return "General"
+        case .emergencyUnblock:
+            return "Emergency"
+        case .faq:
+            return "FAQ"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .general:
+            return "gear"
+        case .emergencyUnblock:
+            return "exclamationmark.triangle"
+        case .faq:
+            return "questionmark.circle"
+        }
+    }
+}
+
 struct SettingsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
 
     @State private var showConfirmation = false
+    @State private var selectedTab: SettingsTab = .general
 
     private var settings: Settings { allSettings.first! }
 
@@ -20,71 +49,29 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Picker("Default Page", selection: Binding(
-                        get: { settings.defaultTab ?? .home },
-                        set: { settings.defaultTab = $0 }
-                    )) {
-                        Text(AppTab.home.label).tag(AppTab.home)
-                        Text(AppTab.groups.label).tag(AppTab.groups)
-                        Text(AppTab.schedules.label).tag(AppTab.schedules)
-                    }
-                } header: {
-                    Text("General")
-                } footer: {
-                    Text("The page shown when the app opens.")
+            TabView(selection: $selectedTab) {
+                Tab("General", systemImage: "gear", value: SettingsTab.general) {
+                    GeneralSettingsView(
+                        settings: settings,
+                        availableKeyTypes: availableKeyTypes
+                    )
+                    .navigationTitle("General")
                 }
 
-                Section {
-                    Toggle("Block All Prevents App Deletion", isOn: Bindable(settings).blockAllPreventsAppDelete)
-                } header: {
-                    Text("Blocking")
-                } footer: {
-                    Text("When enabled, blocking all apps also prevents app deletion, and unblocking re-allows it.")
+                Tab("Emergency", systemImage: "exclamationmark.triangle", value: SettingsTab.emergencyUnblock) {
+                    EmergencyUnblockView(
+                        settings: settings,
+                        showConfirmation: $showConfirmation,
+                        performEmergencyUnblock: performEmergencyUnblock
+                    )
+                    .navigationTitle("Emergency Unblock")
                 }
 
-                Section {
-                    Picker("Default Key Type", selection: Binding(
-                        get: {
-                            guard let keyType = settings.defaultKeyType,
-                                  availableKeyTypes.contains(keyType) else { return KeyType?.none }
-                            return keyType
-                        },
-                        set: { settings.defaultKeyType = $0 }
-                    )) {
-                        Text("None").tag(KeyType?.none)
-                        ForEach(availableKeyTypes) { type in
-                            Label(type.label, systemImage: type.icon).tag(KeyType?.some(type))
-                        }
-                    }
-
-                    Picker("Default Unblock Duration", selection: Bindable(settings).defaultUnblockDuration) {
-                        Text("None").tag(UnblockDuration?.none)
-                        ForEach(UnblockDuration.allCases) { duration in
-                            Text(duration.label).tag(UnblockDuration?.some(duration))
-                        }
-                    }
-                } header: {
-                    Text("Unblock Defaults")
-                } footer: {
-                    Text("When set, unblocking skips the key type and duration selection steps.")
-                }
-
-                Section {
-                    Text("\(settings.emergencyUnblocksAvailable) of \(Settings.maxEmergencyUnblocks) remaining")
-
-                    Button("Emergency Unblock") {
-                        showConfirmation = true
-                    }
-                    .disabled(settings.emergencyUnblocksAvailable == 0)
-                } header: {
-                    Text("Emergency Unblock")
-                } footer: {
-                    Text("Immediately remove all blocks. Each use regenerates after 6 months.")
+                Tab("FAQ", systemImage: "questionmark.circle", value: SettingsTab.faq) {
+                    FAQView()
+                        .navigationTitle("FAQ")
                 }
             }
-            .navigationTitle("Settings")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Close") { dismiss() }

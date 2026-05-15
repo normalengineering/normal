@@ -46,6 +46,7 @@ struct KeysView: View {
                 }
             }
             .navigationTitle("Keys")
+            .settingsToolbar()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { isShowingSheet.toggle() }) {

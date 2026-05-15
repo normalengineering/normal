@@ -8,6 +8,7 @@ struct ContentView: View {
     @Query private var allSettings: [Settings]
 
     @State private var selectedTab: AppTab = .home
+    @State private var navigationCoordinator = NavigationCoordinator()
 
     private var settings: Settings? { allSettings.first }
 
@@ -18,6 +19,10 @@ struct ContentView: View {
             if onboardingService.isOnboardingActive {
                 OnboardingOverlayView()
             }
+        }
+        .environment(\.navigationCoordinator, navigationCoordinator)
+        .sheet(isPresented: $navigationCoordinator.isSettingsPresented) {
+            SettingsView()
         }
         .onChange(of: onboardingService.requiredTab) { _, newTab in
             if let newTab {
@@ -44,7 +49,7 @@ struct ContentView: View {
             Task {
                 await screenTimeService.checkAuthorizationStatus()
                 if settings?.hasCompletedOnboarding == true {
-                    await screenTimeService.ensureAuthorized()
+                    _ = await screenTimeService.ensureAuthorized()
                 }
             }
         }
