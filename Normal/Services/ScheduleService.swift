@@ -66,9 +66,6 @@ final class ScheduleService {
         DeviceActivityName(SharedConstants.scheduleActivityName(for: schedule.id))
     }
 
-    // Disabling or removing a schedule must never block apps. A block
-    // schedule that was actively shielding has its shields lifted; an
-    // unblock schedule going away leaves blocking to other active sources.
     private func liftBlockIfNeeded(
         _ schedule: BlockSchedule,
         screenTimeService: any ScreenTimeProviding

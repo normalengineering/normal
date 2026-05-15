@@ -1,6 +1,6 @@
-@testable import Normal
 import FamilyControls
 import Foundation
+@testable import Normal
 import Testing
 
 struct SharedStoreTests {
@@ -74,10 +74,10 @@ struct SharedStoreTests {
 
     @Test func savesAndLoadsSchedules() throws {
         let (store, _) = makeStore()
-        let dto = ScheduleDTO(
+        let dto = try ScheduleDTO(
             id: UUID(),
             name: "Test",
-            selectionData: try FamilyActivitySelection().toData(),
+            selectionData: FamilyActivitySelection().toData(),
             startHour: 8,
             startMinute: 0,
             durationMinutes: 60,

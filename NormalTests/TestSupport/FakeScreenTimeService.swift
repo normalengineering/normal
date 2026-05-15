@@ -1,6 +1,6 @@
-@testable import Normal
 import FamilyControls
 import Foundation
+@testable import Normal
 import Observation
 
 @MainActor
@@ -72,5 +72,5 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     }
 
     func activeShieldCount() -> Int { stubActiveShieldCount }
-    func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus { stubBlockStatus }
+    func blockStatus(selection _: FamilyActivitySelection?) -> BlockStatus { stubBlockStatus }
 }

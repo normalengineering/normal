@@ -1,5 +1,5 @@
-@testable import Normal
 import DeviceActivity
+@testable import Normal
 
 final class FakeDeviceActivityCenter: DeviceActivityProviding {
     struct StartCall {
@@ -14,7 +14,7 @@ final class FakeDeviceActivityCenter: DeviceActivityProviding {
     func startMonitoring(
         _ activityName: DeviceActivityName,
         during schedule: DeviceActivitySchedule,
-        events: [DeviceActivityEvent.Name: DeviceActivityEvent]
+        events _: [DeviceActivityEvent.Name: DeviceActivityEvent]
     ) throws {
         if let startError { throw startError }
         startCalls.append(StartCall(name: activityName, schedule: schedule))

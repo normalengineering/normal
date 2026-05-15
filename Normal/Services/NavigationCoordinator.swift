@@ -10,5 +10,5 @@ final class NavigationCoordinator {
 }
 
 extension EnvironmentValues {
-    @Entry var navigationCoordinator: NavigationCoordinator = NavigationCoordinator()
+    @Entry var navigationCoordinator: NavigationCoordinator = .init()
 }

@@ -1,4 +1,5 @@
 import XCTest
+
 final class NormalUITestsLaunchTests: XCTestCase {
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

@@ -1,5 +1,5 @@
-@testable import Normal
 import FamilyControls
+@testable import Normal
 import Testing
 
 struct AppGroupTests {

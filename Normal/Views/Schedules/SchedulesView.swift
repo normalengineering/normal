@@ -47,11 +47,11 @@ struct SchedulesView: View {
             ReorderableListView(items: schedules, rowContent: { schedule in
                 ScheduleCardView(schedule: schedule)
             }, onMove: move)
-            .safeAreaInset(edge: .bottom) {
-                if let message = bottomMessage {
-                    FooterMessage(text: message)
+                .safeAreaInset(edge: .bottom) {
+                    if let message = bottomMessage {
+                        FooterMessage(text: message)
+                    }
                 }
-            }
         }
     }
 

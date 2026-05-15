@@ -1,5 +1,5 @@
-@testable import Normal
 import Foundation
+@testable import Normal
 import Testing
 
 struct ScanErrorTests {

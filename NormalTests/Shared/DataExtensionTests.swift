@@ -1,5 +1,5 @@
-@testable import Normal
 import Foundation
+@testable import Normal
 import Testing
 
 struct DataExtensionTests {
@@ -8,12 +8,12 @@ struct DataExtensionTests {
     }
 
     @Test func singleByteHex() {
-        #expect(Data([0x0a]).hexString == "0a")
-        #expect(Data([0xff]).hexString == "ff")
+        #expect(Data([0x0A]).hexString == "0a")
+        #expect(Data([0xFF]).hexString == "ff")
     }
 
     @Test func multiByteHex() {
-        #expect(Data([0xde, 0xad, 0xbe, 0xef]).hexString == "deadbeef")
+        #expect(Data([0xDE, 0xAD, 0xBE, 0xEF]).hexString == "deadbeef")
     }
 
     @Test func zeroPaddedSingleDigits() {

@@ -225,7 +225,9 @@ final class TimedUnblockService {
     }
 
     func refresh() {
-        for (_, task) in expirationTasks { task.cancel() }
+        for (_, task) in expirationTasks {
+            task.cancel()
+        }
         expirationTasks.removeAll()
         activeUnblocks.removeAll()
         restoreState()

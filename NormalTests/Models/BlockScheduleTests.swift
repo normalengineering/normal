@@ -1,6 +1,6 @@
-@testable import Normal
 import FamilyControls
 import Foundation
+@testable import Normal
 import Testing
 
 struct BlockScheduleTests {

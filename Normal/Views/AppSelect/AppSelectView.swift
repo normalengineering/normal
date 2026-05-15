@@ -76,7 +76,7 @@ struct AppSelectView: View {
         }
     }
 
-    private func persistSelection(_ old: FamilyActivitySelection, _ new: FamilyActivitySelection) {
+    private func persistSelection(_: FamilyActivitySelection, _ new: FamilyActivitySelection) {
         if let existing = mainSelection {
             existing.selection = new
             existing.lastUpdated = .now

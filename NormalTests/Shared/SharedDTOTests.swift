@@ -1,13 +1,13 @@
-@testable import Normal
 import FamilyControls
 import Foundation
+@testable import Normal
 import Testing
 
 struct SharedDTOTests {
     @Test func timedUnblockDTORoundTrips() throws {
-        let original = TimedUnblockDTO(
+        let original = try TimedUnblockDTO(
             id: "main",
-            selectionData: try FamilyActivitySelection().toData(),
+            selectionData: FamilyActivitySelection().toData(),
             endDate: Date(timeIntervalSince1970: 1_700_000_000),
             activityName: "timedUnblock_main",
             isGroupUnblock: false
@@ -22,10 +22,10 @@ struct SharedDTOTests {
 
     @Test func scheduleDTORoundTrips() throws {
         let id = UUID()
-        let original = ScheduleDTO(
+        let original = try ScheduleDTO(
             id: id,
             name: "Work",
-            selectionData: try FamilyActivitySelection().toData(),
+            selectionData: FamilyActivitySelection().toData(),
             startHour: 8,
             startMinute: 30,
             durationMinutes: 60,

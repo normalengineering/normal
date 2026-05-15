@@ -1,13 +1,11 @@
-@testable import Normal
 import FamilyControls
 import Foundation
+@testable import Normal
 import SwiftData
 import Testing
 
 @MainActor
 struct SortIndexingPersistenceTests {
-    // MARK: - AppGroup
-
     @Test func appGroupsFetchInSortIndexOrderAfterReorder() throws {
         let container = try InMemoryModelContainer.make()
         let context = container.mainContext
@@ -18,7 +16,6 @@ struct SortIndexingPersistenceTests {
         [a, b, c].forEach(context.insert)
         try context.save()
 
-        // Move "A" from position 0 to after "C" — expect order: B, C, A.
         let initial = try context.fetch(
             FetchDescriptor<AppGroup>(sortBy: [SortDescriptor(\.sortIndex)])
         )
@@ -38,7 +35,7 @@ struct SortIndexingPersistenceTests {
 
         let existing = [
             AppGroup(name: "A", selection: FamilyActivitySelection(), sortIndex: 0),
-            AppGroup(name: "B", selection: FamilyActivitySelection(), sortIndex: 1)
+            AppGroup(name: "B", selection: FamilyActivitySelection(), sortIndex: 1),
         ]
         existing.forEach(context.insert)
 
@@ -53,8 +50,6 @@ struct SortIndexingPersistenceTests {
         #expect(reloaded.map(\.name) == ["A", "B", "C"])
     }
 
-    // MARK: - BlockSchedule
-
     @Test func schedulesFetchInSortIndexOrderAfterReorder() throws {
         let container = try InMemoryModelContainer.make()
         let context = container.mainContext
@@ -65,7 +60,6 @@ struct SortIndexingPersistenceTests {
         [morning, afternoon, evening].forEach(context.insert)
         try context.save()
 
-        // Move "Evening" (index 2) to the top.
         let initial = try context.fetch(
             FetchDescriptor<BlockSchedule>(sortBy: [SortDescriptor(\.sortIndex)])
         )
@@ -89,7 +83,6 @@ struct SortIndexingPersistenceTests {
         items.forEach(context.insert)
         try context.save()
 
-        // Swap S1 with S2.
         let initial = try context.fetch(
             FetchDescriptor<BlockSchedule>(sortBy: [SortDescriptor(\.sortIndex)])
         )
@@ -101,8 +94,6 @@ struct SortIndexingPersistenceTests {
         )
         #expect(reloaded.map(\.name) == ["S0", "S2", "S1", "S3", "S4"])
     }
-
-    // MARK: - Helpers
 
     private func makeSchedule(name: String, sortIndex: Int) -> BlockSchedule {
         BlockSchedule(

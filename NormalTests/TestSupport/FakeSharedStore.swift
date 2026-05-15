@@ -1,5 +1,5 @@
-@testable import Normal
 import Foundation
+@testable import Normal
 
 final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var timedUnblocks: [TimedUnblockDTO] = []

@@ -15,12 +15,12 @@ final class Key: Identifiable {
     private static let hashLength = 32
 
     init(name: String, type: KeyType, rawValue: String) {
-        self.id = UUID()
+        id = UUID()
         self.name = name
         self.type = type
         let salt = Self.generateSalt()
         self.salt = salt
-        self.hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
+        hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
     }
 
     static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {

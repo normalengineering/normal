@@ -16,9 +16,9 @@ final class Settings {
     private static let emergencyWindowDays = 180
 
     init() {
-        self.emergencyUnblockDates = []
-        self.defaultKeyType = nil
-        self.defaultUnblockDuration = nil
+        emergencyUnblockDates = []
+        defaultKeyType = nil
+        defaultUnblockDuration = nil
     }
 
     var emergencyUnblocksAvailable: Int {

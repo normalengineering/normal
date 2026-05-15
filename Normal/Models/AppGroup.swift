@@ -14,7 +14,7 @@ final class AppGroup: Identifiable {
         id = UUID()
         self.name = name
         self.selection = selection
-        self.lastUpdated = .now
+        lastUpdated = .now
         self.sortIndex = sortIndex
     }
 }

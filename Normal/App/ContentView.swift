@@ -52,8 +52,8 @@ struct ContentView: View {
         }
     }
 
-    private func onOnboardingCompleted(_ wasActive: Bool, _ isActive: Bool) {
-        if !isActive && settings?.hasCompletedOnboarding != true {
+    private func onOnboardingCompleted(_: Bool, _ isActive: Bool) {
+        if !isActive, settings?.hasCompletedOnboarding != true {
             settings?.hasCompletedOnboarding = true
             selectedTab = .appSelect
         }

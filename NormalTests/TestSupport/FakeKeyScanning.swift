@@ -1,5 +1,5 @@
-@testable import Normal
 import Foundation
+@testable import Normal
 
 final class FakeKeyScanning: KeyScanning, @unchecked Sendable {
     enum Outcome {

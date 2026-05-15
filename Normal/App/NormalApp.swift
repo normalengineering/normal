@@ -8,10 +8,10 @@ struct NormalApp: App {
     init() {
         let container = try! ModelContainer(
             for: AppGroup.self,
-                 SelectedApps.self,
-                 Key.self,
-                 BlockSchedule.self,
-                 Settings.self
+            SelectedApps.self,
+            Key.self,
+            BlockSchedule.self,
+            Settings.self
         )
 
         let context = container.mainContext
@@ -20,7 +20,7 @@ struct NormalApp: App {
             context.insert(Settings())
         }
 
-        self.modelContainer = container
+        modelContainer = container
     }
 
     var body: some Scene {

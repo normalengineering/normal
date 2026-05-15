@@ -8,7 +8,7 @@ struct MainTabView: View {
         (.groups, "app.shadow"),
         (.schedules, "calendar.badge.clock"),
         (.appSelect, "app.dashed"),
-        (.keys, "key.viewfinder")
+        (.keys, "key.viewfinder"),
     ]
 
     var body: some View {
