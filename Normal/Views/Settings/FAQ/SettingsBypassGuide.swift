@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsBypassGuide: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+            disclaimer
             Text("Yes! Fixing the Settings bypass is straightforward using Apple's Shortcuts app.")
             stepOne
             stepTwo
@@ -12,6 +13,25 @@ struct SettingsBypassGuide: View {
         }
         .font(.body)
         .foregroundStyle(.secondary)
+    }
+
+    private var disclaimer: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+            Label("Proceed at your own risk", systemImage: "exclamationmark.triangle.fill")
+                .font(.headline)
+                .foregroundStyle(.orange)
+            Text("Preventing the Settings bypass is possible, but with it in place the only ways to turn off blocks are through Normal or resetting your phone. If you lock yourself out of your apps, we are not responsible, even if Normal stops working as expected. We are also not responsible for any data loss if you have to reset your device to regain access.")
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(DS.Opacity.muted))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.Radius.md)
+                .stroke(Color.orange.opacity(0.4), lineWidth: 1)
+        )
     }
 
     private var stepOne: some View {
