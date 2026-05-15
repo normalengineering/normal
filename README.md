@@ -6,6 +6,9 @@ A powerful screen time blocker that actually works to reduce your screen time. O
   <img src="https://user-images.githubusercontent.com/7586345/125668092-55af2a45-aa7d-4795-93ed-de0a9a2828c5.png" alt="Donate Button via Ko-fi" width="200">
 </a>
 
+## FAQ
+[FAQ Available Here](https://www.normalengineering.org/#faq)
+
 ## Features
 
 ### NFC Tag & QR Code Support
