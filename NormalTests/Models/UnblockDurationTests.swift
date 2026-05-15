@@ -10,8 +10,8 @@ struct UnblockDurationTests {
         #expect(UnblockDuration.oneHour.timeInterval == 3600)
     }
 
-    @Test func twoHoursEquals7200Seconds() {
-        #expect(UnblockDuration.twoHours.timeInterval == 7200)
+    @Test func fourHoursEquals14400Seconds() {
+        #expect(UnblockDuration.fourHours.timeInterval == 14400)
     }
 
     @Test func idEqualsRawValue() {

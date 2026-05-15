@@ -4,7 +4,7 @@ enum UnblockDuration: Int, CaseIterable, Codable, Identifiable, Sendable {
     case fifteenMinutes = 900
     case thirtyMinutes = 1800
     case oneHour = 3600
-    case twoHours = 7200
+    case fourHours = 14400
 
     var id: Int { rawValue }
 
@@ -13,7 +13,7 @@ enum UnblockDuration: Int, CaseIterable, Codable, Identifiable, Sendable {
         case .fifteenMinutes: "15 Minutes"
         case .thirtyMinutes: "30 Minutes"
         case .oneHour: "1 Hour"
-        case .twoHours: "2 Hours"
+        case .fourHours: "4 Hours"
         }
     }
 
