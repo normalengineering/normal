@@ -5,14 +5,19 @@ struct KeyListCardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScreenTimeService.self) private var screenTimeService
 
+    @Query private var keys: [Key]
+
     @State private var isEditing = false
     @State private var showDeleteConfirmation = false
+    @State private var showLastKeyAlert = false
 
     let key: Key
 
     private var isBlocked: Bool {
         screenTimeService.activeShieldCount() > 0
     }
+
+    private var isLastKey: Bool { keys.count <= 1 }
 
     private var iconName: String {
         key.type == .nfc ? "sensor.tag.radiowaves.forward.fill" : "qrcode"
@@ -44,7 +49,7 @@ struct KeyListCardView: View {
         .editDeleteContextMenu(
             isDisabled: isBlocked,
             onEdit: { isEditing = true },
-            onDelete: { showDeleteConfirmation = true }
+            onDelete: attemptDelete
         )
         .deleteConfirmation(
             title: "Delete Key?",
@@ -52,5 +57,18 @@ struct KeyListCardView: View {
             isPresented: $showDeleteConfirmation,
             onDelete: { modelContext.delete(key) }
         )
+        .alert("Can't Delete Key", isPresented: $showLastKeyAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("At least one key must exist. Add another key before deleting this one.")
+        }
+    }
+
+    private func attemptDelete() {
+        if isLastKey {
+            showLastKeyAlert = true
+        } else {
+            showDeleteConfirmation = true
+        }
     }
 }
