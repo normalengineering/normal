@@ -36,7 +36,11 @@ struct ScheduleCardView: View {
             timingRow
             weekdayChips
             tokenStrip
-            if needsSync { syncWarningText }
+            if needsSync {
+                syncWarningText
+            } else if !schedule.isEnabled && !isLocked {
+                offHintText
+            }
         }
         .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
         .onTapGesture { if !isLocked || needsSync { isEditing = true } }
@@ -78,6 +82,12 @@ struct ScheduleCardView: View {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text(schedule.name).font(.headline)
                 HStack(spacing: DS.Spacing.sm - 2) {
+                    InlineIconText(
+                        systemImage: schedule.isEnabled ? "checkmark.circle.fill" : "pause.circle.fill",
+                        text: schedule.isEnabled ? "On" : "Off",
+                        tint: schedule.isEnabled ? .green : .secondary
+                    )
+                    Text("\u{00B7}").foregroundStyle(.secondary)
                     InlineIconText(
                         systemImage: schedule.shouldBlock ? "lock.fill" : "lock.open.fill",
                         text: schedule.shouldBlock ? "Block" : "Unblock",
@@ -140,6 +150,12 @@ struct ScheduleCardView: View {
 
     private var syncWarningText: some View {
         Text("App selection changed. Please re-select apps in this schedule.")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+    }
+
+    private var offHintText: some View {
+        Text("Toggle on to start running this schedule.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }
