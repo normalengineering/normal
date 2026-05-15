@@ -6,7 +6,7 @@ struct SelectionIconsView: View {
     let tokens: [AnyHashable]
 
     var body: some View {
-        let sorted = sortTokens(tokens: tokens)
+        let sorted = tokens.sortedStably
         ForEach(sorted, id: \.self) { token in
             Group {
                 if let appToken = token as? ApplicationToken {

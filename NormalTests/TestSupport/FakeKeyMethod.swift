@@ -1,7 +1,6 @@
 @testable import Normal
 
-struct MockKeyMethod: KeyMethod {
+struct FakeKeyMethod: KeyMethod {
     let result: KeyResult
-
     func checkKey() async -> KeyResult { result }
 }

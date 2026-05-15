@@ -2,34 +2,39 @@ import FamilyControls
 import SwiftUI
 
 struct SelectionListView: View {
-    var selection: FamilyActivitySelection
+    let selection: FamilyActivitySelection
 
     var body: some View {
         if !selection.categoryTokens.isEmpty {
-            Section("Selected Categories") {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 32))], spacing: 10) {
-                    SelectionIconsView(tokens: tokenToHashableArray(tokens: selection.categoryTokens))
-                }
-            }
+            tokenGridSection(
+                title: "Selected Categories",
+                tokens: selection.categoryTokens.asHashableArray
+            )
         }
 
         if !selection.applicationTokens.isEmpty {
-            Section("Selected Apps") {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 32))], spacing: 10) {
-                    SelectionIconsView(tokens: tokenToHashableArray(tokens: selection.applicationTokens))
-                }
-            }
+            tokenGridSection(
+                title: "Selected Apps",
+                tokens: selection.applicationTokens.asHashableArray
+            )
         }
 
         if !selection.webDomainTokens.isEmpty {
             Section("Selected Domains") {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(Array(selection.webDomainTokens), id: \.self) { token in
-                        Label(token)
-                            .scaleEffect(0.85, anchor: .leading)
+                VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                    ForEach(selection.webDomainTokens.sortedStably, id: \.self) { token in
+                        Label(token).scaleEffect(0.85, anchor: .leading)
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, DS.Spacing.xs)
+            }
+        }
+    }
+
+    private func tokenGridSection(title: LocalizedStringKey, tokens: [AnyHashable]) -> some View {
+        Section(title) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 32))], spacing: DS.Spacing.md - 2) {
+                SelectionIconsView(tokens: tokens)
             }
         }
     }

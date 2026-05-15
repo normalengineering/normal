@@ -7,30 +7,21 @@ struct OnboardingStepCard: View {
     let onSkip: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.headline)
-
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            Text(title).font(.headline)
             Text(description)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
             HStack {
-                Button("Skip") {
-                    onSkip()
-                }
-                .foregroundStyle(.secondary)
-
+                SecondaryTextButton(title: "Skip", action: onSkip)
                 Spacer()
-
-                Button("Next") {
-                    onNext()
-                }
-                .buttonStyle(.borderedProminent)
+                Button("Next", action: onNext)
+                    .buttonStyle(.borderedProminent)
             }
         }
         .padding()
-        .glassEffect(in: .rect(cornerRadius: 16))
+        .glassEffect(in: .rect(cornerRadius: DS.Radius.lg))
         .padding(.horizontal)
     }
 }

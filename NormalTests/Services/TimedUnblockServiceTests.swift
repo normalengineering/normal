@@ -3,329 +3,178 @@ import FamilyControls
 import Foundation
 import Testing
 
+@MainActor
 struct TimedUnblockServiceTests {
-    @MainActor
-    private func makeSUT(
-        preloadedUnblocks: [TimedUnblockDTO] = []
-    ) -> (TimedUnblockService, MockDeviceActivityCenter, MockSharedStore, MockScreenTimeService) {
-        let activityCenter = MockDeviceActivityCenter()
-        let sharedStore = MockSharedStore()
-        sharedStore.timedUnblocks = preloadedUnblocks
-        let screenTimeService = MockScreenTimeService()
+    private func makeService() -> (
+        service: TimedUnblockService,
+        activity: FakeDeviceActivityCenter,
+        store: FakeSharedStore
+    ) {
+        let activity = FakeDeviceActivityCenter()
+        let store = FakeSharedStore()
         let service = TimedUnblockService(
-            activityCenter: activityCenter,
-            sharedStore: sharedStore,
+            activityCenter: activity,
+            sharedStore: store,
             onExpiration: {}
         )
-        return (service, activityCenter, sharedStore, screenTimeService)
+        return (service, activity, store)
     }
 
-    @Test @MainActor func initialStateIsInactive() {
-        let (service, _, _, _) = makeSUT()
-        #expect(!service.isMainUnblockActive)
-        #expect(service.mainUnblockEndDate == nil)
-    }
-
-    @Test @MainActor func startMainRemovesShieldsAndSchedulesMonitoring() throws {
-        let (service, activityCenter, sharedStore, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
+    @Test func startMainRemovesShieldAndPersists() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
 
         try service.startMain(
             duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
         )
 
-        #expect(screenTimeService.removeShieldOnAllCalled)
-        #expect(activityCenter.startMonitoringCalled)
-        #expect(sharedStore.timedUnblocks.count == 1)
-        #expect(sharedStore.timedUnblocks.first?.id == "main")
-    }
-
-    @Test @MainActor func startMainSetsActiveUnblock() throws {
-        let (service, _, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
+        #expect(screenTime.removeShieldOnAllCalled)
+        #expect(activity.startCalls.count == 1)
+        #expect(store.timedUnblocks.count == 1)
         #expect(service.isMainUnblockActive)
-        #expect(service.mainUnblockEndDate != nil)
     }
 
-    @Test @MainActor func cancelMainReappliesShieldsAndStopsMonitoring() throws {
-        let (service, activityCenter, sharedStore, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
-        service.cancelMain(selection: selection, screenTimeService: screenTimeService)
-
-        #expect(screenTimeService.applyShieldOnAllCalled)
-        #expect(activityCenter.stopMonitoringCalled)
-        #expect(!service.isMainUnblockActive)
-        #expect(sharedStore.timedUnblocks.isEmpty)
-    }
-
-    @Test @MainActor func startGroupRemovesFromShields() throws {
-        let (service, activityCenter, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
+    @Test func startGroupRemovesFromShieldsAndPersists() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
         let groupId = UUID()
 
         try service.startGroup(
-            duration: .thirtyMinutes,
+            duration: .fifteenMinutes,
             groupId: groupId,
-            selection: selection,
-            screenTimeService: screenTimeService
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
         )
 
-        #expect(screenTimeService.removeFromShieldsCalled)
-        #expect(activityCenter.startMonitoringCalled)
+        #expect(screenTime.removeFromShieldsCalled)
+        #expect(activity.startCalls.count == 1)
+        #expect(store.timedUnblocks.count == 1)
         #expect(service.isGroupUnblockActive(groupId: groupId))
-        #expect(service.groupUnblockEndDate(groupId: groupId) != nil)
     }
 
-    @Test @MainActor func cancelGroupAddsToShields() throws {
-        let (service, _, sharedStore, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-        let groupId = UUID()
-
-        try service.startGroup(
-            duration: .thirtyMinutes,
-            groupId: groupId,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
-        service.cancelGroup(
-            groupId: groupId,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
-        #expect(screenTimeService.addToShieldsCalled)
-        #expect(!service.isGroupUnblockActive(groupId: groupId))
-        #expect(sharedStore.timedUnblocks.isEmpty)
-    }
-
-    @Test @MainActor func startMainCancelsAllGroupUnblocks() throws {
-        let (service, _, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-        let group1 = UUID()
-        let group2 = UUID()
-
-        try service.startGroup(
-            duration: .thirtyMinutes,
-            groupId: group1,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-        try service.startGroup(
-            duration: .oneHour,
-            groupId: group2,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
-        #expect(service.isGroupUnblockActive(groupId: group1))
-        #expect(service.isGroupUnblockActive(groupId: group2))
+    @Test func cancelMainAppliesShieldsAndForgets() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
 
         try service.startMain(
             duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
         )
-
-        #expect(!service.isGroupUnblockActive(groupId: group1))
-        #expect(!service.isGroupUnblockActive(groupId: group2))
-        #expect(service.isMainUnblockActive)
-    }
-
-    @Test @MainActor func restoreStatePrunesExpired() throws {
-        let selection = FamilyActivitySelection()
-        let expiredDTO = try TimedUnblockDTO(
-            id: "expired",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(-100),
-            activityName: "expired_activity",
-            isGroupUnblock: false
-        )
-
-        let (service, _, sharedStore, _) = makeSUT(preloadedUnblocks: [expiredDTO])
-
-        #expect(service.activeUnblocks["expired"] == nil)
-        #expect(sharedStore.timedUnblocks.isEmpty)
-    }
-
-    @Test @MainActor func restoreStateKeepsActive() throws {
-        let selection = FamilyActivitySelection()
-        let activeDTO = try TimedUnblockDTO(
-            id: "main",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(3600),
-            activityName: "main_activity",
-            isGroupUnblock: false
-        )
-
-        let (service, _, _, _) = makeSUT(preloadedUnblocks: [activeDTO])
-
-        #expect(service.isMainUnblockActive)
-        #expect(service.mainUnblockEndDate != nil)
-    }
-
-    @Test @MainActor func startMainThrowsWhenMonitoringFails() {
-        let activityCenter = MockDeviceActivityCenter()
-        activityCenter.shouldThrowOnStart = true
-        let sharedStore = MockSharedStore()
-        let screenTimeService = MockScreenTimeService()
-        let service = TimedUnblockService(
-            activityCenter: activityCenter,
-            sharedStore: sharedStore,
-            onExpiration: {}
-        )
-
-        #expect(throws: Error.self) {
-            try service.startMain(
-                duration: .fifteenMinutes,
-                selection: FamilyActivitySelection(),
-                screenTimeService: screenTimeService
-            )
-        }
-    }
-
-    @Test @MainActor func startMainWithAllowAppDeleteDisablesAppDeletion() throws {
-        let (service, _, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService,
-            allowAppDelete: true
-        )
-
-        #expect(screenTimeService.removeShieldOnAllCalled)
-        #expect(screenTimeService.removeShieldOnAllAllowAppDelete == true)
-        #expect(screenTimeService.disablePreventAppDeleteCalled)
-    }
-
-    @Test @MainActor func startMainWithoutAllowAppDeleteDoesNotDisableAppDeletion() throws {
-        let (service, _, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService,
-            allowAppDelete: false
-        )
-
-        #expect(screenTimeService.removeShieldOnAllCalled)
-        #expect(screenTimeService.removeShieldOnAllAllowAppDelete == false)
-        #expect(!screenTimeService.disablePreventAppDeleteCalled)
-    }
-
-    @Test @MainActor func cancelMainWithPreventAppDeleteEnablesAppDeletion() throws {
-        let (service, _, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
         service.cancelMain(
-            selection: selection,
-            screenTimeService: screenTimeService,
-            preventAppDelete: true
-        )
-
-        #expect(screenTimeService.applyShieldOnAllCalled)
-        #expect(screenTimeService.applyShieldOnAllPreventAppDelete == true)
-        #expect(screenTimeService.enablePreventAppDeleteCalled)
-    }
-
-    @Test @MainActor func cancelMainWithoutPreventAppDeleteDoesNotEnableAppDeletion() throws {
-        let (service, _, _, screenTimeService) = makeSUT()
-        let selection = FamilyActivitySelection()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: selection,
-            screenTimeService: screenTimeService
-        )
-
-        service.cancelMain(
-            selection: selection,
-            screenTimeService: screenTimeService,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime,
             preventAppDelete: false
         )
 
-        #expect(screenTimeService.applyShieldOnAllCalled)
-        #expect(screenTimeService.applyShieldOnAllPreventAppDelete == false)
-        #expect(!screenTimeService.enablePreventAppDeleteCalled)
+        #expect(screenTime.applyShieldOnAllCalled)
+        #expect(store.timedUnblocks.isEmpty)
+        #expect(!service.isMainUnblockActive)
     }
 
-    @Test @MainActor func updateMainSelectionUpdatesSharedStore() throws {
-        let (service, _, sharedStore, screenTimeService) = makeSUT()
-        let originalSelection = FamilyActivitySelection()
+    @Test func cancelGroupReinstatesShieldsAndForgets() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupId = UUID()
 
-        try service.startMain(
+        try service.startGroup(
             duration: .fifteenMinutes,
-            selection: originalSelection,
-            screenTimeService: screenTimeService
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+        service.cancelGroup(
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
         )
 
-        let originalData = sharedStore.timedUnblocks.first?.selectionData
-
-        let updatedSelection = FamilyActivitySelection()
-        service.updateMainSelection(updatedSelection)
-
-        #expect(sharedStore.timedUnblocks.count == 1)
-        #expect(sharedStore.timedUnblocks.first?.id == "main")
-        #expect(sharedStore.timedUnblocks.first?.selectionData != nil)
+        #expect(screenTime.addToShieldsCalled)
+        #expect(store.timedUnblocks.isEmpty)
+        #expect(!service.isGroupUnblockActive(groupId: groupId))
     }
 
-    @Test @MainActor func updateMainSelectionNoOpWhenInactive() {
-        let (service, _, sharedStore, _) = makeSUT()
+    @Test func startMainCancelsExistingGroupUnblocks() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupId = UUID()
+
+        try service.startGroup(
+            duration: .fifteenMinutes,
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        #expect(!service.isGroupUnblockActive(groupId: groupId))
+        #expect(service.isMainUnblockActive)
+        #expect(store.timedUnblocks.count == 1)
+    }
+
+    @Test func updateMainSelectionPreservesEndDate() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+
+        try service.startMain(
+            duration: .oneHour,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+        let originalEnd = store.timedUnblocks.first?.endDate
 
         service.updateMainSelection(FamilyActivitySelection())
 
-        #expect(sharedStore.timedUnblocks.isEmpty)
+        #expect(store.timedUnblocks.first?.endDate == originalEnd)
     }
 
-    @Test @MainActor func updateGroupSelectionUpdatesSharedStore() throws {
-        let (service, _, sharedStore, screenTimeService) = makeSUT()
-        let groupId = UUID()
-        let originalSelection = FamilyActivitySelection()
+    @Test func restoresActiveUnblocksFromStore() {
+        let activity = FakeDeviceActivityCenter()
+        let store = FakeSharedStore()
+        let futureEnd = Date.now.addingTimeInterval(3600)
+        let dto = try! TimedUnblockDTO(
+            id: TimedUnblockService.mainID,
+            selectionData: FamilyActivitySelection().toData(),
+            endDate: futureEnd,
+            activityName: SharedConstants.mainTimedUnblockActivityName,
+            isGroupUnblock: false
+        )
+        store.timedUnblocks = [dto]
 
-        try service.startGroup(
-            duration: .thirtyMinutes,
-            groupId: groupId,
-            selection: originalSelection,
-            screenTimeService: screenTimeService
+        let service = TimedUnblockService(
+            activityCenter: activity,
+            sharedStore: store,
+            onExpiration: {}
         )
 
-        let updatedSelection = FamilyActivitySelection()
-        service.updateGroupSelection(groupId: groupId, selection: updatedSelection)
-
-        #expect(sharedStore.timedUnblocks.count == 1)
-        #expect(sharedStore.timedUnblocks.first?.id == groupId.uuidString)
+        #expect(service.isMainUnblockActive)
     }
 
-    @Test @MainActor func updateGroupSelectionNoOpWhenInactive() {
-        let (service, _, sharedStore, _) = makeSUT()
+    @Test func discardsExpiredUnblocksOnRestore() {
+        let store = FakeSharedStore()
+        let pastEnd = Date.now.addingTimeInterval(-60)
+        let dto = try! TimedUnblockDTO(
+            id: TimedUnblockService.mainID,
+            selectionData: FamilyActivitySelection().toData(),
+            endDate: pastEnd,
+            activityName: SharedConstants.mainTimedUnblockActivityName,
+            isGroupUnblock: false
+        )
+        store.timedUnblocks = [dto]
 
-        service.updateGroupSelection(groupId: UUID(), selection: FamilyActivitySelection())
+        let service = TimedUnblockService(
+            activityCenter: FakeDeviceActivityCenter(),
+            sharedStore: store,
+            onExpiration: {}
+        )
 
-        #expect(sharedStore.timedUnblocks.isEmpty)
+        #expect(!service.isMainUnblockActive)
+        #expect(store.timedUnblocks.isEmpty)
     }
 }

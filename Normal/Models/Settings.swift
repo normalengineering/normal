@@ -33,3 +33,12 @@ final class Settings {
         emergencyUnblockDates.append(.now)
     }
 }
+
+extension Array where Element == Settings {
+    var unwrapped: Settings {
+        guard let settings = first else {
+            preconditionFailure("Settings row missing — NormalApp.init must insert one on launch")
+        }
+        return settings
+    }
+}

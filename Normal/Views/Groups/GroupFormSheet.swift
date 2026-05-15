@@ -16,12 +16,8 @@ struct GroupFormSheet: View {
 
     private var isNew: Bool { existing == nil }
 
-    private var totalSelected: Int {
-        selectionCount(selection: selection)
-    }
-
     private var canSave: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty && totalSelected > 0
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && selection.count > 0
     }
 
     init(existing: AppGroup? = nil) {
@@ -38,25 +34,8 @@ struct GroupFormSheet: View {
                 }
 
                 Section("Apps to Block") {
-                    Button {
-                        Task {
-                            guard await screenTimeService.ensureAuthorized() else { return }
-                            isShowingAppSelectSheet = true
-                        }
-                    } label: {
-                        HStack {
-                            Text("Select Apps")
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if totalSelected > 0 {
-                                Text("\(totalSelected)")
-                                    .monospacedDigit()
-                                    .foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                        }
+                    Button(action: presentPicker) {
+                        CountChevronRow(title: "Select Apps", count: selection.count)
                     }
                 }
             }
@@ -67,7 +46,7 @@ struct GroupFormSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Save" : "Update") { save() }
+                    Button(isNew ? "Save" : "Update", action: save)
                         .fontWeight(.semibold)
                         .disabled(!canSave)
                 }
@@ -76,6 +55,10 @@ struct GroupFormSheet: View {
                 SelectAppsForGroupSheet(selection: $selection)
             }
         }
+    }
+
+    private func presentPicker() {
+        screenTimeService.ifAuthorized { isShowingAppSelectSheet = true }
     }
 
     private func save() {
@@ -90,7 +73,6 @@ struct GroupFormSheet: View {
         } else {
             modelContext.insert(AppGroup(name: trimmed, selection: selection))
         }
-
         dismiss()
     }
 }

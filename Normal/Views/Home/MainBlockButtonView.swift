@@ -12,77 +12,89 @@ struct MainBlockButtonView: View {
     @State private var allowBypass: Bool = false
     @State private var showTimedUnblockSheet = false
 
-    private var settings: Settings { allSettings.first! }
+    private var settings: Settings { allSettings.unwrapped }
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: mainSelection.selection)
     }
 
+    private var canShowBlock: Bool {
+        blockStatus != .all && !timedUnblockService.isMainUnblockActive
+    }
+
+    private var canShowUnblock: Bool {
+        blockStatus != .none && !timedUnblockService.isMainUnblockActive
+    }
+
     var body: some View {
         Section {
-            if blockStatus != .all && !timedUnblockService.isMainUnblockActive {
-                Button {
-                    allowBypass = true
-                    authAction = {
-                        screenTimeService.applyShieldOnAll(
-                            selection: mainSelection.selection,
-                            preventAppDelete: settings.blockAllPreventsAppDelete
-                        )
-                    }
-                } label: {
-                    HStack {
-                        Label("Block All", systemImage: "lock.fill")
-                            .foregroundStyle(.blue)
-                        Spacer()
-                    }
-                }
-                .padding(.vertical, 8)
-            }
+            if canShowBlock { blockRow }
+            if canShowUnblock { unblockRow }
+        }
+        .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
+        .sheet(isPresented: $showTimedUnblockSheet) { timedUnblockSheet }
+    }
 
-            if blockStatus != .none && !timedUnblockService.isMainUnblockActive {
-                Button {
-                    allowBypass = false
-                    authAction = {
-                        if let duration = settings.defaultUnblockDuration {
-                            try? timedUnblockService.startMain(
-                                duration: duration,
-                                selection: mainSelection.selection,
-                                screenTimeService: screenTimeService,
-                                allowAppDelete: settings.blockAllPreventsAppDelete
-                            )
-                        } else {
-                            showTimedUnblockSheet = true
-                        }
-                    }
-                } label: {
-                    HStack {
-                        Label("Unblock All", systemImage: "lock.open.fill")
-                            .foregroundStyle(.red)
-                        Spacer()
-                    }
-                }
-                .padding(.vertical, 8)
+    private var blockRow: some View {
+        Button {
+            allowBypass = true
+            authAction = {
+                screenTimeService.applyShieldOnAll(
+                    selection: mainSelection.selection,
+                    preventAppDelete: settings.blockAllPreventsAppDelete
+                )
+            }
+        } label: {
+            HStack {
+                Label("Block All", systemImage: "lock.fill")
+                    .foregroundStyle(.blue)
+                Spacer()
             }
         }
-        .screenTimeGuard(action: $authAction)
-        .keySelect(action: $authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
-        .sheet(isPresented: $showTimedUnblockSheet) {
-            TimedUnblockSheet(
-                title: "Unblock All",
-                onTimedUnblock: { duration in
-                    try timedUnblockService.startMain(
+        .padding(.vertical, DS.Spacing.sm)
+    }
+
+    private var unblockRow: some View {
+        Button {
+            allowBypass = false
+            authAction = {
+                if let duration = settings.defaultUnblockDuration {
+                    try? timedUnblockService.startMain(
                         duration: duration,
                         selection: mainSelection.selection,
                         screenTimeService: screenTimeService,
                         allowAppDelete: settings.blockAllPreventsAppDelete
                     )
-                },
-                onPermanentUnblock: {
-                    screenTimeService.removeShieldOnAll(
-                        allowAppDelete: settings.blockAllPreventsAppDelete
-                    )
+                } else {
+                    showTimedUnblockSheet = true
                 }
-            )
+            }
+        } label: {
+            HStack {
+                Label("Unblock All", systemImage: "lock.open.fill")
+                    .foregroundStyle(.red)
+                Spacer()
+            }
         }
+        .padding(.vertical, DS.Spacing.sm)
+    }
+
+    private var timedUnblockSheet: some View {
+        TimedUnblockSheet(
+            title: "Unblock All",
+            onTimedUnblock: { duration in
+                try timedUnblockService.startMain(
+                    duration: duration,
+                    selection: mainSelection.selection,
+                    screenTimeService: screenTimeService,
+                    allowAppDelete: settings.blockAllPreventsAppDelete
+                )
+            },
+            onPermanentUnblock: {
+                screenTimeService.removeShieldOnAll(
+                    allowAppDelete: settings.blockAllPreventsAppDelete
+                )
+            }
+        )
     }
 }

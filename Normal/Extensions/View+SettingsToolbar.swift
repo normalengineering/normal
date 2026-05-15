@@ -16,9 +16,8 @@ private struct SettingsToolbarModifier: ViewModifier {
                     Button {
                         navigationCoordinator.presentSettings()
                     } label: {
-                        Image(systemName: "gearshape")
+                        Label("Settings", systemImage: "gearshape")
                     }
-                    .accessibilityLabel("Settings")
                 }
             }
     }

@@ -3,65 +3,65 @@ import SwiftUI
 
 struct GroupsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
-    @State private var isShowingSheet = false
     @Query private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
+    @State private var isShowingSheet = false
 
     private var hasSelection: Bool {
-        guard let selection = selectedApps.first?.selection else { return false }
-        return !isSelectionEmpty(selection: selection)
+        selectedApps.first?.selection.isEmpty == false
     }
 
     var body: some View {
         NavigationStack {
-            Group {
-                if appGroups.isEmpty {
-                    if hasSelection {
-                        ContentUnavailableView {
-                            Label("No Groups", systemImage: "app.shadow")
-                        } description: {
-                            Text("Groups give you more granular control over which apps to block and unblock.")
-                        } actions: {
-                            Button {
-                                openSheet()
-                            } label: {
-                                Text("Create Group")
-                            }
-                            .buttonStyle(.borderedProminent)
+            content
+                .navigationTitle("App Groups")
+                .settingsToolbar()
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: openSheet) {
+                            Label("Add Group", systemImage: "plus")
                         }
-                    } else {
-                        ContentUnavailableView {
-                            Label("No App Selection", systemImage: "app.dashed")
-                        } description: {
-                            Text("Choose your apps in the App Select tab first. Then you can create groups for more granular control.")
+                        .disabled(!hasSelection)
+                        .sheet(isPresented: $isShowingSheet) {
+                            GroupFormSheet()
                         }
-                    }
-                } else {
-                    ListView(items: appGroups) { appGroup in
-                        GroupListCardView(appGroup: appGroup)
                     }
                 }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if appGroups.isEmpty {
+            emptyState
+        } else {
+            ListView(items: appGroups) { group in
+                GroupListCardView(appGroup: group)
             }
-            .navigationTitle("App Groups")
-            .settingsToolbar()
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { openSheet() }) {
-                        Label("Add Group", systemImage: "plus")
-                    }
-                    .disabled(!hasSelection)
-                    .sheet(isPresented: $isShowingSheet) {
-                        GroupFormSheet()
-                    }
-                }
+        }
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        if hasSelection {
+            ContentUnavailableView {
+                Label("No Groups", systemImage: "app.shadow")
+            } description: {
+                Text("Groups give you more granular control over which apps to block and unblock.")
+            } actions: {
+                Button("Create Group", action: openSheet)
+                    .buttonStyle(.borderedProminent)
+            }
+        } else {
+            ContentUnavailableView {
+                Label("No App Selection", systemImage: "app.dashed")
+            } description: {
+                Text("Choose your apps in the App Select tab first. Then you can create groups for more granular control.")
             }
         }
     }
 
     private func openSheet() {
-        Task {
-            guard await screenTimeService.ensureAuthorized() else { return }
-            isShowingSheet = true
-        }
+        screenTimeService.ifAuthorized { isShowingSheet = true }
     }
 }

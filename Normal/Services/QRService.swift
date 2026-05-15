@@ -1,4 +1,3 @@
-
 import Foundation
 import Observation
 
@@ -6,7 +5,7 @@ import Observation
 final class QRService {
     static let shared = QRService()
 
-    enum ScanResult {
+    enum ScanResult: Sendable, Equatable {
         case none
         case valid
         case invalid
@@ -17,6 +16,8 @@ final class QRService {
 
     private var continuation: CheckedContinuation<String, Error>?
     private var validator: ((String) -> Bool)?
+
+    private static let badgeDisplayDelay: Duration = .seconds(0.8)
 
     private init() {}
 
@@ -45,14 +46,14 @@ final class QRService {
         if validator(value) {
             scanResult = .valid
             Task { @MainActor in
-                try? await Task.sleep(for: .seconds(0.8))
+                try? await Task.sleep(for: Self.badgeDisplayDelay)
                 continuation?.resume(returning: value)
                 cleanup()
             }
         } else {
             scanResult = .invalid
             Task { @MainActor in
-                try? await Task.sleep(for: .seconds(0.8))
+                try? await Task.sleep(for: Self.badgeDisplayDelay)
                 scanResult = .none
             }
         }

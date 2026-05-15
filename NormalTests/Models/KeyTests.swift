@@ -1,55 +1,46 @@
 @testable import Normal
-import Foundation
-import SwiftData
 import Testing
 
 struct KeyTests {
-    @Test @MainActor func keyInitHashesValue() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let key = Key(name: "Test", type: .nfc, rawValue: "abc123")
-        context.insert(key)
-
-        #expect(!key.hashedValue.isEmpty)
-        #expect(key.hashedValue != "abc123")
-        #expect(!key.salt.isEmpty)
+    @Test func storesNameAndType() {
+        let key = Key(name: "Front Door", type: .nfc, rawValue: "abc")
+        #expect(key.name == "Front Door")
+        #expect(key.type == .nfc)
     }
 
-    @Test @MainActor func twoKeysWithSameValueHaveDifferentHashes() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let key1 = Key(name: "Key1", type: .nfc, rawValue: "same_value")
-        let key2 = Key(name: "Key2", type: .nfc, rawValue: "same_value")
-        context.insert(key1)
-        context.insert(key2)
-
-        #expect(key1.salt != key2.salt)
-        #expect(key1.hashedValue != key2.hashedValue)
+    @Test func keyHashesRawValue() {
+        let key = Key(name: "k", type: .qr, rawValue: "secret")
+        #expect(key.hashedValue != "secret")
+        #expect(key.hashedValue.count == 64)
+        #expect(key.salt.count == 32)
     }
 
-    @Test @MainActor func matchingKeyExistsReturnsTrueForMatch() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let key = Key(name: "Test", type: .nfc, rawValue: "my_tag_id")
-        context.insert(key)
-
-        #expect(Key.matchingKeyExists(keys: [key], unhashedId: "my_tag_id"))
+    @Test func twoKeysWithSameValueProduceDifferentHashes() {
+        let a = Key(name: "a", type: .qr, rawValue: "same")
+        let b = Key(name: "b", type: .qr, rawValue: "same")
+        #expect(a.hashedValue != b.hashedValue)
     }
 
-    @Test @MainActor func matchingKeyExistsReturnsFalseForWrongValue() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let key = Key(name: "Test", type: .nfc, rawValue: "correct")
-        context.insert(key)
-
-        #expect(!Key.matchingKeyExists(keys: [key], unhashedId: "wrong"))
+    @Test func matchesCorrectId() {
+        let key = Key(name: "k", type: .qr, rawValue: "open-sesame")
+        #expect(key.matches(unhashedId: "open-sesame"))
+        #expect(!key.matches(unhashedId: "wrong"))
     }
 
-    @Test func matchingKeyExistsReturnsFalseForEmptyArray() {
+    @Test func matchingKeyExistsReturnsTrueForMatch() {
+        let keys = [
+            Key(name: "a", type: .nfc, rawValue: "id-1"),
+            Key(name: "b", type: .qr, rawValue: "id-2"),
+        ]
+        #expect(Key.matchingKeyExists(keys: keys, unhashedId: "id-2"))
+    }
+
+    @Test func matchingKeyExistsReturnsFalseForNoMatch() {
+        let keys = [Key(name: "a", type: .nfc, rawValue: "id-1")]
+        #expect(!Key.matchingKeyExists(keys: keys, unhashedId: "id-unknown"))
+    }
+
+    @Test func matchingKeyExistsReturnsFalseForEmpty() {
         #expect(!Key.matchingKeyExists(keys: [], unhashedId: "anything"))
     }
 }

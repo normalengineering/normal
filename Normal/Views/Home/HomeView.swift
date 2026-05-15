@@ -10,17 +10,11 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             List {
-                if let mainSelection,
-                   !isSelectionEmpty(selection: mainSelection.selection)
-                {
+                if let mainSelection, !mainSelection.selection.isEmpty {
                     TimedUnblockBannerView(selection: mainSelection.selection)
-
                     MainBlockButtonView(mainSelection: mainSelection)
-
                     BlockStatusView(mainSelection: mainSelection)
-
                     AppDeleteToggleView()
-
                 } else {
                     Section {
                         Text("Please select apps to block in the selection tab.")

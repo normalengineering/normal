@@ -2,21 +2,31 @@
 import Testing
 
 struct KeyTypeTests {
-    @Test func nfcProperties() {
-        #expect(KeyType.nfc.icon == "wave.3.right")
-        #expect(KeyType.nfc.label == "NFC Tag")
-        #expect(!KeyType.nfc.scanPrompt.isEmpty)
+    @Test func qrAlwaysAvailableOnDevice() {
+        #expect(KeyType.qr.isAvailableOnDevice)
     }
 
-    @Test func qrProperties() {
-        #expect(KeyType.qr.icon == "qrcode.viewfinder")
+    @Test func availableOnDeviceContainsQR() {
+        #expect(KeyType.availableOnDevice.contains(.qr))
+    }
+
+    @Test func iconsAreSet() {
+        #expect(!KeyType.nfc.icon.isEmpty)
+        #expect(!KeyType.qr.icon.isEmpty)
+    }
+
+    @Test func labelsAreReadable() {
+        #expect(KeyType.nfc.label == "NFC Tag")
         #expect(KeyType.qr.label == "QR Code")
+    }
+
+    @Test func scanPromptsAreSet() {
+        #expect(!KeyType.nfc.scanPrompt.isEmpty)
         #expect(!KeyType.qr.scanPrompt.isEmpty)
     }
 
-    @Test func allCases() {
-        #expect(KeyType.allCases.count == 2)
-        #expect(KeyType.allCases.contains(.nfc))
-        #expect(KeyType.allCases.contains(.qr))
+    @Test func idMatchesRawValue() {
+        #expect(KeyType.nfc.id == "NFC")
+        #expect(KeyType.qr.id == "QR")
     }
 }

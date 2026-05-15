@@ -10,17 +10,21 @@ struct SelectAppForGroupRowView<T: Hashable>: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                if let appToken = token as? ApplicationToken {
-                    Label(appToken)
-                } else if let webDomainToken = token as? WebDomainToken {
-                    Label(webDomainToken)
-                }
-
+                tokenLabel
                 Spacer()
-
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .foregroundStyle(isSelected ? .blue : .secondary)
             }
+            .contentShape(Rectangle())
+        }
+    }
+
+    @ViewBuilder
+    private var tokenLabel: some View {
+        if let appToken = token as? ApplicationToken {
+            Label(appToken)
+        } else if let webDomainToken = token as? WebDomainToken {
+            Label(webDomainToken)
         }
     }
 }

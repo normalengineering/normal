@@ -15,20 +15,7 @@ struct KeySelectView: View {
                     Button {
                         onSelect(type)
                     } label: {
-                        Label {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(type.label)
-                                    .font(.body)
-                                Text(type.scanPrompt)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: type.icon)
-                                .font(.title2)
-                                .frame(width: 32)
-                        }
-                        .padding(.vertical, 4)
+                        KeySelectRow(type: type)
                     }
                 }
             }
@@ -49,10 +36,30 @@ struct KeySelectView: View {
         .navigationTitle("Choose Key")
         .navigationBarTitleDisplayMode(.inline)
         .alert("Are you sure?", isPresented: $showBypassWarning) {
-            Button("Block without key", role: .destructive) { onBypass() }
+            Button("Block without key", role: .destructive, action: onBypass)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("You'll need to scan a key to unblock later. Make sure you have a valid key or you may be permanently locked out.")
         }
+    }
+}
+
+private struct KeySelectRow: View {
+    let type: KeyType
+
+    var body: some View {
+        Label {
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                Text(type.label).font(.body)
+                Text(type.scanPrompt)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } icon: {
+            Image(systemName: type.icon)
+                .font(.title2)
+                .frame(width: DS.Size.iconWell + 4)
+        }
+        .padding(.vertical, DS.Spacing.xs)
     }
 }

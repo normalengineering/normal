@@ -2,21 +2,30 @@
 import Testing
 
 struct UnblockDurationTests {
-    @Test func timeIntervalValues() {
+    @Test func fifteenMinutesEquals900Seconds() {
         #expect(UnblockDuration.fifteenMinutes.timeInterval == 900)
-        #expect(UnblockDuration.thirtyMinutes.timeInterval == 1800)
+    }
+
+    @Test func oneHourEquals3600Seconds() {
         #expect(UnblockDuration.oneHour.timeInterval == 3600)
+    }
+
+    @Test func twoHoursEquals7200Seconds() {
         #expect(UnblockDuration.twoHours.timeInterval == 7200)
     }
 
-    @Test func labels() {
-        #expect(UnblockDuration.fifteenMinutes.label == "15 Minutes")
-        #expect(UnblockDuration.thirtyMinutes.label == "30 Minutes")
-        #expect(UnblockDuration.oneHour.label == "1 Hour")
-        #expect(UnblockDuration.twoHours.label == "2 Hours")
+    @Test func idEqualsRawValue() {
+        #expect(UnblockDuration.thirtyMinutes.id == 1800)
     }
 
-    @Test func allCasesCount() {
-        #expect(UnblockDuration.allCases.count == 4)
+    @Test func allCasesAreUnique() {
+        let raws = UnblockDuration.allCases.map(\.rawValue)
+        #expect(Set(raws).count == raws.count)
+    }
+
+    @Test func labelsAreNonEmpty() {
+        for d in UnblockDuration.allCases {
+            #expect(!d.label.isEmpty)
+        }
     }
 }

@@ -13,10 +13,12 @@ final class TimedUnblockService {
     private(set) var activeUnblocks: [String: Date] = [:]
     private var expirationTasks: [String: Task<Void, Never>] = [:]
 
+    static let mainID = "main"
+
     init(
         activityCenter: any DeviceActivityProviding = DeviceActivityCenter(),
         sharedStore: any SharedStoreProviding = SharedStore(),
-        onExpiration: @escaping @MainActor @Sendable () -> Void = { ScreenTimeService.shared.notifyUpdate() }
+        onExpiration: @escaping @MainActor @Sendable () -> Void
     ) {
         self.activityCenter = activityCenter
         self.sharedStore = sharedStore
@@ -25,15 +27,15 @@ final class TimedUnblockService {
     }
 
     var isMainUnblockActive: Bool {
-        activeUnblocks["main"] != nil
+        activeUnblocks[Self.mainID] != nil
+    }
+
+    var mainUnblockEndDate: Date? {
+        activeUnblocks[Self.mainID]
     }
 
     func isGroupUnblockActive(groupId: UUID) -> Bool {
         activeUnblocks[groupId.uuidString] != nil
-    }
-
-    var mainUnblockEndDate: Date? {
-        activeUnblocks["main"]
     }
 
     func groupUnblockEndDate(groupId: UUID) -> Date? {
@@ -46,28 +48,21 @@ final class TimedUnblockService {
         screenTimeService: any ScreenTimeProviding,
         allowAppDelete: Bool = false
     ) throws {
-        let id = "main"
         let activityName = SharedConstants.mainTimedUnblockActivityName
-
         cancelMonitoring(activityName: activityName)
         cancelAllGroupUnblocks()
 
         let endDate = Date.now.addingTimeInterval(duration.timeInterval)
-
         screenTimeService.removeShieldOnAll(allowAppDelete: allowAppDelete)
-
         try scheduleActivity(name: activityName, endDate: endDate)
 
-        let dto = try TimedUnblockDTO(
-            id: id,
-            selectionData: selection.toData(),
+        try persist(
+            id: Self.mainID,
+            selection: selection,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: false
         )
-        sharedStore.upsertTimedUnblock(dto)
-        activeUnblocks[id] = endDate
-        scheduleExpiration(id: id, at: endDate)
     }
 
     func startGroup(
@@ -78,25 +73,19 @@ final class TimedUnblockService {
     ) throws {
         let id = groupId.uuidString
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
-
         cancelMonitoring(activityName: activityName)
 
         let endDate = Date.now.addingTimeInterval(duration.timeInterval)
-
         screenTimeService.removeFromShields(selection: selection)
-
         try scheduleActivity(name: activityName, endDate: endDate)
 
-        let dto = try TimedUnblockDTO(
+        try persist(
             id: id,
-            selectionData: selection.toData(),
+            selection: selection,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: true
         )
-        sharedStore.upsertTimedUnblock(dto)
-        activeUnblocks[id] = endDate
-        scheduleExpiration(id: id, at: endDate)
     }
 
     func cancelMain(
@@ -104,39 +93,10 @@ final class TimedUnblockService {
         screenTimeService: any ScreenTimeProviding,
         preventAppDelete: Bool = false
     ) {
-        let id = "main"
         cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
         screenTimeService.applyShieldOnAll(selection: selection, preventAppDelete: preventAppDelete)
         cancelAllGroupUnblocks()
-        sharedStore.removeTimedUnblock(id: id)
-        cancelExpiration(id: id)
-        activeUnblocks.removeValue(forKey: id)
-    }
-
-    func updateMainSelection(_ selection: FamilyActivitySelection) {
-        guard isMainUnblockActive, let endDate = activeUnblocks["main"] else { return }
-        guard let dto = try? TimedUnblockDTO(
-            id: "main",
-            selectionData: selection.toData(),
-            endDate: endDate,
-            activityName: SharedConstants.mainTimedUnblockActivityName,
-            isGroupUnblock: false
-        ) else { return }
-        sharedStore.upsertTimedUnblock(dto)
-    }
-
-    func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection) {
-        let id = groupId.uuidString
-        guard isGroupUnblockActive(groupId: groupId), let endDate = activeUnblocks[id] else { return }
-        let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
-        guard let dto = try? TimedUnblockDTO(
-            id: id,
-            selectionData: selection.toData(),
-            endDate: endDate,
-            activityName: activityName,
-            isGroupUnblock: true
-        ) else { return }
-        sharedStore.upsertTimedUnblock(dto)
+        forget(id: Self.mainID)
     }
 
     func cancelGroup(
@@ -145,9 +105,60 @@ final class TimedUnblockService {
         screenTimeService: any ScreenTimeProviding
     ) {
         let id = groupId.uuidString
-        let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
-        cancelMonitoring(activityName: activityName)
+        cancelMonitoring(activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId))
         screenTimeService.addToShields(selection: selection)
+        forget(id: id)
+    }
+
+    func updateMainSelection(_ selection: FamilyActivitySelection) {
+        guard let endDate = activeUnblocks[Self.mainID] else { return }
+        try? persist(
+            id: Self.mainID,
+            selection: selection,
+            endDate: endDate,
+            activityName: SharedConstants.mainTimedUnblockActivityName,
+            isGroupUnblock: false,
+            scheduleTask: false
+        )
+    }
+
+    func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection) {
+        let id = groupId.uuidString
+        guard let endDate = activeUnblocks[id] else { return }
+        try? persist(
+            id: id,
+            selection: selection,
+            endDate: endDate,
+            activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
+            isGroupUnblock: true,
+            scheduleTask: false
+        )
+    }
+
+    private func persist(
+        id: String,
+        selection: FamilyActivitySelection,
+        endDate: Date,
+        activityName: String,
+        isGroupUnblock: Bool,
+        scheduleTask: Bool = true
+    ) throws {
+        let dto = try TimedUnblockDTO(
+            id: id,
+            selectionData: selection.toData(),
+            endDate: endDate,
+            activityName: activityName,
+            isGroupUnblock: isGroupUnblock
+        )
+        sharedStore.upsertTimedUnblock(dto)
+
+        if scheduleTask {
+            activeUnblocks[id] = endDate
+            scheduleExpiration(id: id, at: endDate)
+        }
+    }
+
+    private func forget(id: String) {
         sharedStore.removeTimedUnblock(id: id)
         cancelExpiration(id: id)
         activeUnblocks.removeValue(forKey: id)
@@ -179,35 +190,23 @@ final class TimedUnblockService {
     }
 
     private func cancelAllGroupUnblocks() {
-        let groupKeys = activeUnblocks.keys.filter { $0 != "main" }
+        let groupKeys = activeUnblocks.keys.filter { $0 != Self.mainID }
         for key in groupKeys {
             if let uuid = UUID(uuidString: key) {
-                let activityName = SharedConstants.groupTimedUnblockActivityName(for: uuid)
-                cancelMonitoring(activityName: activityName)
+                cancelMonitoring(activityName: SharedConstants.groupTimedUnblockActivityName(for: uuid))
             }
-            sharedStore.removeTimedUnblock(id: key)
-            cancelExpiration(id: key)
-            activeUnblocks.removeValue(forKey: key)
+            forget(id: key)
         }
     }
 
     private func scheduleActivity(name: String, endDate: Date) throws {
         let calendar = Calendar.current
-        let startComponents = calendar.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second],
-            from: .now
-        )
-        let endComponents = calendar.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second],
-            from: endDate
-        )
-
+        let fields: Set<Calendar.Component> = [.year, .month, .day, .hour, .minute, .second]
         let schedule = DeviceActivitySchedule(
-            intervalStart: startComponents,
-            intervalEnd: endComponents,
+            intervalStart: calendar.dateComponents(fields, from: .now),
+            intervalEnd: calendar.dateComponents(fields, from: endDate),
             repeats: false
         )
-
         try activityCenter.startMonitoring(
             DeviceActivityName(name),
             during: schedule,
@@ -215,9 +214,15 @@ final class TimedUnblockService {
         )
     }
 
+    func refresh() {
+        for (_, task) in expirationTasks { task.cancel() }
+        expirationTasks.removeAll()
+        activeUnblocks.removeAll()
+        restoreState()
+    }
+
     private func restoreState() {
-        let unblocks = sharedStore.loadTimedUnblocks()
-        for unblock in unblocks {
+        for unblock in sharedStore.loadTimedUnblocks() {
             if unblock.endDate > .now {
                 activeUnblocks[unblock.id] = unblock.endDate
                 scheduleExpiration(id: unblock.id, at: unblock.endDate)

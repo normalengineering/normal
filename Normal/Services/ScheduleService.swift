@@ -21,41 +21,15 @@ final class ScheduleService {
         _ schedule: BlockSchedule,
         screenTimeService: any ScreenTimeProviding
     ) throws {
-        let activityName = DeviceActivityName(
-            SharedConstants.scheduleActivityName(for: schedule.id)
-        )
-
+        let activityName = activityName(for: schedule)
         activityCenter.stopMonitoring([activityName])
 
         guard schedule.isEnabled else {
-            if schedule.shouldBlock {
-                screenTimeService.removeFromShields(selection: schedule.selection)
-            } else {
-                screenTimeService.addToShields(selection: schedule.selection)
-            }
+            applyOppositeOfScheduleAction(schedule, screenTimeService: screenTimeService)
             return
         }
 
-        var start = DateComponents()
-        start.hour = schedule.startHour
-        start.minute = schedule.startMinute
-        start.second = 0
-
-        let endTotalMinutes = schedule.startHour * 60
-            + schedule.startMinute
-            + schedule.durationMinutes
-
-        var end = DateComponents()
-        end.hour = (endTotalMinutes / 60) % 24
-        end.minute = endTotalMinutes % 60
-        end.second = 0
-
-        let deviceSchedule = DeviceActivitySchedule(
-            intervalStart: start,
-            intervalEnd: end,
-            repeats: true
-        )
-
+        let deviceSchedule = makeDeviceSchedule(for: schedule)
         try activityCenter.startMonitoring(activityName, during: deviceSchedule, events: [:])
     }
 
@@ -63,16 +37,8 @@ final class ScheduleService {
         _ schedule: BlockSchedule,
         screenTimeService: any ScreenTimeProviding
     ) {
-        let activityName = DeviceActivityName(
-            SharedConstants.scheduleActivityName(for: schedule.id)
-        )
-        activityCenter.stopMonitoring([activityName])
-
-        if schedule.shouldBlock {
-            screenTimeService.removeFromShields(selection: schedule.selection)
-        } else {
-            screenTimeService.addToShields(selection: schedule.selection)
-        }
+        activityCenter.stopMonitoring([activityName(for: schedule)])
+        applyOppositeOfScheduleAction(schedule, screenTimeService: screenTimeService)
     }
 
     func toggleEnabled(
@@ -84,8 +50,7 @@ final class ScheduleService {
     }
 
     func syncAllToSharedStore(_ schedules: [BlockSchedule]) {
-        let dtos = schedules.compactMap { $0.toDTO() }
-        sharedStore.saveSchedules(dtos)
+        sharedStore.saveSchedules(schedules.compactMap { $0.toDTO() })
     }
 
     func syncAndPersist(
@@ -95,5 +60,35 @@ final class ScheduleService {
     ) throws {
         try sync(schedule, screenTimeService: screenTimeService)
         syncAllToSharedStore(allSchedules)
+    }
+
+    private func activityName(for schedule: BlockSchedule) -> DeviceActivityName {
+        DeviceActivityName(SharedConstants.scheduleActivityName(for: schedule.id))
+    }
+
+    private func applyOppositeOfScheduleAction(
+        _ schedule: BlockSchedule,
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        if schedule.shouldBlock {
+            screenTimeService.removeFromShields(selection: schedule.selection)
+        } else {
+            screenTimeService.addToShields(selection: schedule.selection)
+        }
+    }
+
+    private func makeDeviceSchedule(for schedule: BlockSchedule) -> DeviceActivitySchedule {
+        var start = DateComponents()
+        start.hour = schedule.startHour
+        start.minute = schedule.startMinute
+        start.second = 0
+
+        let endMinutes = schedule.startHour * 60 + schedule.startMinute + schedule.durationMinutes
+        var end = DateComponents()
+        end.hour = (endMinutes / 60) % 24
+        end.minute = endMinutes % 60
+        end.second = 0
+
+        return DeviceActivitySchedule(intervalStart: start, intervalEnd: end, repeats: true)
     }
 }

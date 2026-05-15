@@ -1,113 +1,55 @@
 @testable import Normal
 import Foundation
-import SwiftData
 import Testing
 
 struct SettingsTests {
-    @Test @MainActor func defaultSettingsHaveThreeEmergencyUnblocks() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        #expect(settings.emergencyUnblocksAvailable == 3)
+    @Test func freshSettingsStartsWithAllUnblocksAvailable() {
+        let s = Settings()
+        #expect(s.emergencyUnblocksAvailable == Settings.maxEmergencyUnblocks)
+        #expect(s.emergencyUnblockDates.isEmpty)
     }
 
-    @Test @MainActor func recordEmergencyUnblockDecrementsAvailable() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-        settings.recordEmergencyUnblock()
-
-        #expect(settings.emergencyUnblocksAvailable == 2)
+    @Test func recordingDecrementsAvailable() {
+        let s = Settings()
+        s.recordEmergencyUnblock()
+        #expect(s.emergencyUnblocksAvailable == Settings.maxEmergencyUnblocks - 1)
     }
 
-    @Test @MainActor func threeUnblocksExhaustsAvailability() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        settings.recordEmergencyUnblock()
-        settings.recordEmergencyUnblock()
-        settings.recordEmergencyUnblock()
-
-        #expect(settings.emergencyUnblocksAvailable == 0)
+    @Test func recordingPersistsTimestamp() {
+        let s = Settings()
+        s.recordEmergencyUnblock()
+        s.recordEmergencyUnblock()
+        #expect(s.emergencyUnblockDates.count == 2)
     }
 
-    @Test @MainActor func oldUnblocksExpireAfter180Days() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        let oldDate = Calendar.current.date(byAdding: .day, value: -181, to: .now)!
-        settings.emergencyUnblockDates = [oldDate, oldDate, oldDate]
-
-        #expect(settings.emergencyUnblocksAvailable == 3)
+    @Test func availableNeverNegative() {
+        let s = Settings()
+        for _ in 0 ..< (Settings.maxEmergencyUnblocks + 5) {
+            s.recordEmergencyUnblock()
+        }
+        #expect(s.emergencyUnblocksAvailable == 0)
     }
 
-    @Test @MainActor func mixOfOldAndRecentUnblocks() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        let oldDate = Calendar.current.date(byAdding: .day, value: -200, to: .now)!
-        settings.emergencyUnblockDates = [oldDate, oldDate, .now]
-
-        #expect(settings.emergencyUnblocksAvailable == 2)
+    @Test func oldEmergencyUnblocksRegenerate() {
+        let s = Settings()
+        let oldDate = Date.now.addingTimeInterval(-60 * 60 * 24 * 200)
+        s.emergencyUnblockDates = [oldDate, oldDate, oldDate]
+        #expect(s.emergencyUnblocksAvailable == Settings.maxEmergencyUnblocks)
     }
 
-    @Test @MainActor func defaultPropertiesAreNil() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        #expect(settings.defaultKeyType == nil)
-        #expect(settings.defaultUnblockDuration == nil)
-        #expect(settings.hasCompletedOnboarding == false)
+    @Test func recentEmergencyUnblocksCount() {
+        let s = Settings()
+        let recent = Date.now.addingTimeInterval(-60 * 60 * 24 * 10)
+        s.emergencyUnblockDates = [recent]
+        #expect(s.emergencyUnblocksAvailable == Settings.maxEmergencyUnblocks - 1)
     }
 
-    @Test @MainActor func blockAllPreventsAppDeleteDefaultsToTrue() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        #expect(settings.blockAllPreventsAppDelete == true)
-    }
-
-    @Test @MainActor func defaultTabDefaultsToNil() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        #expect(settings.defaultTab == nil)
-    }
-
-    @Test @MainActor func defaultTabCanBeChanged() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let settings = Settings()
-        context.insert(settings)
-
-        settings.defaultTab = .groups
-        #expect(settings.defaultTab == .groups)
-
-        settings.defaultTab = .schedules
-        #expect(settings.defaultTab == .schedules)
+    @Test func defaultsAreNil() {
+        let s = Settings()
+        #expect(s.defaultKeyType == nil)
+        #expect(s.defaultUnblockDuration == nil)
+        #expect(s.blockAllPreventsAppDelete == true)
+        #expect(s.hasCompletedOnboarding == false)
+        #expect(s.defaultTab == nil)
     }
 }

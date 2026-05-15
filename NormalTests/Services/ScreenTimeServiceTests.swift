@@ -2,60 +2,53 @@
 import FamilyControls
 import Testing
 
+@MainActor
 struct ScreenTimeServiceTests {
-    @Test func blockStatusShortLabels() {
-        #expect(BlockStatus.all.shortLabel == "Blocked")
-        #expect(BlockStatus.some.shortLabel == "Partial")
-        #expect(BlockStatus.none.shortLabel == "Unblocked")
+    @Test func applyShieldOnAllWithPreventAppDeleteEnablesIt() {
+        let s = FakeScreenTimeService()
+        s.applyShieldOnAll(selection: FamilyActivitySelection(), preventAppDelete: true)
+        #expect(s.applyShieldOnAllCalled)
+        #expect(s.enablePreventAppDeleteCalled)
     }
 
-    @Test func authorizationStateCases() {
-        let authorized = AuthorizationState.authorized
-        let notAuthorized = AuthorizationState.notAuthorized
-
-        if case .authorized = authorized {} else {
-            Issue.record("Expected .authorized")
-        }
-        if case .notAuthorized = notAuthorized {} else {
-            Issue.record("Expected .notAuthorized")
-        }
+    @Test func applyShieldOnAllWithoutPreventAppDeleteDoesNotEnable() {
+        let s = FakeScreenTimeService()
+        s.applyShieldOnAll(selection: FamilyActivitySelection(), preventAppDelete: false)
+        #expect(s.applyShieldOnAllCalled)
+        #expect(!s.enablePreventAppDeleteCalled)
     }
 
-    @Test @MainActor func applyShieldOnAllWithPreventAppDeleteEnablesIt() {
-        let mock = MockScreenTimeService()
-        let selection = FamilyActivitySelection()
-
-        mock.applyShieldOnAll(selection: selection, preventAppDelete: true)
-
-        #expect(mock.applyShieldOnAllCalled)
-        #expect(mock.enablePreventAppDeleteCalled)
+    @Test func removeShieldOnAllWithAllowAppDeleteDisablesIt() {
+        let s = FakeScreenTimeService()
+        s.removeShieldOnAll(allowAppDelete: true)
+        #expect(s.removeShieldOnAllCalled)
+        #expect(s.disablePreventAppDeleteCalled)
     }
 
-    @Test @MainActor func applyShieldOnAllWithoutPreventAppDeleteDoesNotEnableIt() {
-        let mock = MockScreenTimeService()
-        let selection = FamilyActivitySelection()
-
-        mock.applyShieldOnAll(selection: selection, preventAppDelete: false)
-
-        #expect(mock.applyShieldOnAllCalled)
-        #expect(!mock.enablePreventAppDeleteCalled)
+    @Test func removeShieldOnAllWithoutAllowAppDeleteDoesNotDisable() {
+        let s = FakeScreenTimeService()
+        s.removeShieldOnAll(allowAppDelete: false)
+        #expect(s.removeShieldOnAllCalled)
+        #expect(!s.disablePreventAppDeleteCalled)
     }
 
-    @Test @MainActor func removeShieldOnAllWithAllowAppDeleteDisablesIt() {
-        let mock = MockScreenTimeService()
-
-        mock.removeShieldOnAll(allowAppDelete: true)
-
-        #expect(mock.removeShieldOnAllCalled)
-        #expect(mock.disablePreventAppDeleteCalled)
+    @Test func notifyUpdateIncrementsCount() {
+        let s = FakeScreenTimeService()
+        s.notifyUpdate()
+        s.notifyUpdate()
+        #expect(s.notifyUpdateCallCount == 2)
     }
 
-    @Test @MainActor func removeShieldOnAllWithoutAllowAppDeleteDoesNotDisableIt() {
-        let mock = MockScreenTimeService()
+    @Test func ensureAuthorizedReturnsTrueIfAlready() async {
+        let s = FakeScreenTimeService()
+        s.authorizationState = .authorized
+        #expect(await s.ensureAuthorized())
+    }
 
-        mock.removeShieldOnAll(allowAppDelete: false)
-
-        #expect(mock.removeShieldOnAllCalled)
-        #expect(!mock.disablePreventAppDeleteCalled)
+    @Test func ensureAuthorizedRequestsAndAuthorizes() async {
+        let s = FakeScreenTimeService()
+        s.authorizationState = .notAuthorized
+        #expect(await s.ensureAuthorized())
+        #expect(s.authorizationState == .authorized)
     }
 }

@@ -2,43 +2,24 @@ import FamilyControls
 import Foundation
 import ManagedSettings
 import Observation
-
-enum AuthorizationState {
-    case authorized
-    case notAuthorized
-}
-
-enum BlockStatus {
-    case all
-    case some
-    case none
-
-    var shortLabel: String {
-        switch self {
-        case .all: "Blocked"
-        case .some: "Partial"
-        case .none: "Unblocked"
-        }
-    }
-}
+import OSLog
 
 @MainActor
 @Observable
-class ScreenTimeService: ScreenTimeProviding {
-    static let shared = ScreenTimeService()
-
+final class ScreenTimeService: ScreenTimeProviding {
     var authorizationState: AuthorizationState = .notAuthorized
+    var lastUpdate: Date = .now
 
     private let store = ManagedSettingsStore()
     private let authCenter = AuthorizationCenter.shared
-    private let authorizedKey = "hasAuthorizedFamilyControls"
+    private let defaults: UserDefaults
+    private let logger = Logger(subsystem: "com.normalengineering.normal", category: "ScreenTime")
 
-    var lastUpdate: Date = .now
+    private static let authorizedKey = "hasAuthorizedFamilyControls"
 
-    init() {
-        Task {
-            await checkAuthorizationStatus()
-        }
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        Task { await checkAuthorizationStatus() }
     }
 
     var isAppDeleteDisabled: Bool {
@@ -53,7 +34,7 @@ class ScreenTimeService: ScreenTimeProviding {
     func checkAuthorizationStatus() async {
         if authCenter.authorizationStatus == .approved {
             authorizationState = .authorized
-        } else if UserDefaults.standard.bool(forKey: authorizedKey) {
+        } else if defaults.bool(forKey: Self.authorizedKey) {
             await requestAuthorization()
         } else {
             authorizationState = .notAuthorized
@@ -64,9 +45,9 @@ class ScreenTimeService: ScreenTimeProviding {
         do {
             try await authCenter.requestAuthorization(for: .individual)
             authorizationState = .authorized
-            UserDefaults.standard.set(true, forKey: authorizedKey)
+            defaults.set(true, forKey: Self.authorizedKey)
         } catch {
-            print("Failed to authorize: \(error.localizedDescription)")
+            logger.error("Authorization failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -87,11 +68,7 @@ class ScreenTimeService: ScreenTimeProviding {
     }
 
     func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool) {
-        store.shield.applications = selection.applicationTokens
-        store.shield.webDomains = selection.webDomainTokens
-        store.shield.applicationCategories = selection.categoryTokens.isEmpty
-            ? nil
-            : .specific(selection.categoryTokens)
+        store.replaceShields(with: selection)
         if preventAppDelete {
             store.application.denyAppRemoval = true
         }
@@ -99,9 +76,7 @@ class ScreenTimeService: ScreenTimeProviding {
     }
 
     func removeShieldOnAll(allowAppDelete: Bool) {
-        store.shield.applications = nil
-        store.shield.applicationCategories = nil
-        store.shield.webDomains = nil
+        store.clearShields()
         if allowAppDelete {
             store.application.denyAppRemoval = false
         }
@@ -109,76 +84,40 @@ class ScreenTimeService: ScreenTimeProviding {
     }
 
     func addToShields(selection: FamilyActivitySelection) {
-        var currentApplications = store.shield.applications ?? Set<ApplicationToken>()
-        currentApplications.formUnion(selection.applicationTokens)
-        store.shield.applications = currentApplications
-
-        var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
-        currentWebDomains.formUnion(selection.webDomainTokens)
-        store.shield.webDomains = currentWebDomains
-
-        var currentCategories = extractCategoryTokens(from: store.shield.applicationCategories)
-        currentCategories.formUnion(selection.categoryTokens)
-        store.shield.applicationCategories = currentCategories.isEmpty ? nil : .specific(currentCategories)
-
+        store.unionShields(with: selection)
         notifyUpdate()
     }
 
     func removeFromShields(selection: FamilyActivitySelection) {
-        var currentApplications = store.shield.applications ?? Set<ApplicationToken>()
-        currentApplications.subtract(selection.applicationTokens)
-        store.shield.applications = currentApplications
-
-        var currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
-        currentWebDomains.subtract(selection.webDomainTokens)
-        store.shield.webDomains = currentWebDomains
-
-        var currentCategories = extractCategoryTokens(from: store.shield.applicationCategories)
-        currentCategories.subtract(selection.categoryTokens)
-        store.shield.applicationCategories = currentCategories.isEmpty ? nil : .specific(currentCategories)
-
+        store.subtractShields(with: selection)
         notifyUpdate()
     }
 
     func activeShieldCount() -> Int {
         _ = lastUpdate
-        let applicationCount = store.shield.applications?.count ?? 0
-        let webDomainCount = store.shield.webDomains?.count ?? 0
-        let categoryCount = extractCategoryTokens(from: store.shield.applicationCategories).count
-
-        return applicationCount + webDomainCount + categoryCount
+        return (store.shield.applications?.count ?? 0)
+            + (store.shield.webDomains?.count ?? 0)
+            + store.shield.applicationCategories.tokenSet.count
     }
 
     func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus {
         _ = lastUpdate
-        guard let selection = selection else { return .none }
-        let currentApplications = store.shield.applications ?? Set<ApplicationToken>()
-        let currentWebDomains = store.shield.webDomains ?? Set<WebDomainToken>()
-        let currentCategories = extractCategoryTokens(from: store.shield.applicationCategories)
+        guard let selection else { return .none }
 
-        let appsDisjoint = selection.applicationTokens.isDisjoint(with: currentApplications)
-        let webDisjoint = selection.webDomainTokens.isDisjoint(with: currentWebDomains)
-        let catsDisjoint = selection.categoryTokens.isDisjoint(with: currentCategories)
+        let currentApps = store.shield.applications ?? []
+        let currentWeb = store.shield.webDomains ?? []
+        let currentCats = store.shield.applicationCategories.tokenSet
 
-        if appsDisjoint && webDisjoint && catsDisjoint {
-            return .none
-        }
+        let appsDisjoint = selection.applicationTokens.isDisjoint(with: currentApps)
+        let webDisjoint = selection.webDomainTokens.isDisjoint(with: currentWeb)
+        let catsDisjoint = selection.categoryTokens.isDisjoint(with: currentCats)
+        if appsDisjoint && webDisjoint && catsDisjoint { return .none }
 
-        let appsSubset = selection.applicationTokens.isSubset(of: currentApplications)
-        let webSubset = selection.webDomainTokens.isSubset(of: currentWebDomains)
-        let catsSubset = selection.categoryTokens.isSubset(of: currentCategories)
-
-        if appsSubset && webSubset && catsSubset {
-            return .all
-        }
+        let appsSubset = selection.applicationTokens.isSubset(of: currentApps)
+        let webSubset = selection.webDomainTokens.isSubset(of: currentWeb)
+        let catsSubset = selection.categoryTokens.isSubset(of: currentCats)
+        if appsSubset && webSubset && catsSubset { return .all }
 
         return .some
-    }
-
-    private func extractCategoryTokens(
-        from policy: ShieldSettings.ActivityCategoryPolicy<Application>?
-    ) -> Set<ActivityCategoryToken> {
-        guard case let .specific(tokens, _) = policy else { return [] }
-        return tokens
     }
 }

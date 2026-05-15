@@ -21,103 +21,30 @@ struct ScheduleCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var hasKeys: Bool {
-        !keys.isEmpty
-    }
+    private var hasKeys: Bool { !keys.isEmpty }
 
     private var needsSync: Bool {
         guard let mainSelection = selectedApps.first?.selection else { return false }
-        return !isSelectionSynced(selection: schedule.selection, with: mainSelection)
+        return !schedule.selection.isSubset(of: mainSelection)
     }
 
-    private var isLocked: Bool {
-        isBlocked || !hasKeys || needsSync
-    }
+    private var isLocked: Bool { isBlocked || !hasKeys || needsSync }
 
     var body: some View {
-        CardView {
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(schedule.name)
-                        .font(.headline)
-
-                    HStack(spacing: 6) {
-                        HStack(spacing: 3) {
-                            Image(systemName: schedule.shouldBlock ? "lock.fill" : "lock.open.fill")
-                                .font(.caption2)
-                            Text(schedule.shouldBlock ? "Block" : "Unblock")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(schedule.shouldBlock ? .red : .green)
-
-                        Text("·")
-                            .foregroundStyle(.secondary)
-
-                        HStack(spacing: 3) {
-                            Image(systemName: schedule.isTimed ? "hourglass" : "infinity")
-                                .font(.caption2)
-                            Text(schedule.isTimed ? "Timed" : "Permanent")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                Toggle("", isOn: enabledBinding)
-                    .labelsHidden()
-                    .tint(.accentColor)
-                    .disabled(isLocked)
-            }
-
-            HStack(spacing: 16) {
-                if schedule.isTimed {
-                    Label(
-                        "\(schedule.formattedStartTime) – \(schedule.formattedEndTime)",
-                        systemImage: "clock"
-                    )
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                    Label(schedule.formattedDuration, systemImage: "hourglass")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Label("Starts \(schedule.formattedStartTime)", systemImage: "clock")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            HStack(spacing: 4) {
-                ForEach(schedule.weekdayLabels, id: \.self) { label in
-                    Text(label)
-                        .font(.caption2.weight(.medium))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.accentColor.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-            }
-
-            if !allTokensFromSelection(selection: schedule.selection).isEmpty {
-                HStack(spacing: 8) {
-                    SelectionIconsView(
-                        tokens: allTokensFromSelection(selection: schedule.selection)
-                    )
-                }
-            }
-
-            if needsSync {
-                Text("App selection changed. Please re-select apps in this schedule.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+        GlassCard {
+            header
+            timingRow
+            weekdayChips
+            tokenStrip
+            if needsSync { syncWarningText }
         }
-        .opacity(schedule.isEnabled && !isLocked ? 1.0 : 0.6)
+        .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
         .onTapGesture { if !isLocked || needsSync { isEditing = true } }
-        .contextMenu { contextActions }
+        .editDeleteContextMenu(
+            isDisabled: isLocked && !needsSync,
+            onEdit: { isEditing = true },
+            onDelete: { showDeleteConfirmation = true }
+        )
         .sheet(isPresented: $isEditing) {
             ScheduleFormSheet(existing: schedule)
         }
@@ -125,23 +52,96 @@ struct ScheduleCardView: View {
             schedule.isEnabled ? "Disable Schedule?" : "Enable Schedule?",
             isPresented: $showToggleConfirmation
         ) {
-            Button(schedule.isEnabled ? "Disable" : "Enable", role: schedule.isEnabled ? .destructive : nil) {
-                toggleEnabled()
-            }
+            Button(
+                schedule.isEnabled ? "Disable" : "Enable",
+                role: schedule.isEnabled ? .destructive : nil,
+                action: toggleEnabled
+            )
             Button("Cancel", role: .cancel) {}
         } message: {
-            if schedule.isEnabled {
-                Text("\(schedule.name) will stop running until you re-enable it.")
+            Text(
+                schedule.isEnabled
+                    ? "\(schedule.name) will stop running until you re-enable it."
+                    : "\(schedule.name) will start running."
+            )
+        }
+        .deleteConfirmation(
+            title: "Delete Schedule?",
+            itemName: schedule.name,
+            isPresented: $showDeleteConfirmation,
+            onDelete: deleteSchedule
+        )
+    }
+
+    private var header: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                Text(schedule.name).font(.headline)
+                HStack(spacing: DS.Spacing.sm - 2) {
+                    InlineIconText(
+                        systemImage: schedule.shouldBlock ? "lock.fill" : "lock.open.fill",
+                        text: schedule.shouldBlock ? "Block" : "Unblock",
+                        tint: schedule.shouldBlock ? .red : .green
+                    )
+                    Text("\u{00B7}").foregroundStyle(.secondary)
+                    InlineIconText(
+                        systemImage: schedule.isTimed ? "hourglass" : "infinity",
+                        text: schedule.isTimed ? "Timed" : "Permanent",
+                        tint: .secondary
+                    )
+                }
+            }
+            Spacer()
+            Toggle("", isOn: enabledBinding)
+                .labelsHidden()
+                .tint(.accentColor)
+                .disabled(isLocked)
+        }
+    }
+
+    @ViewBuilder
+    private var timingRow: some View {
+        HStack(spacing: DS.Spacing.lg) {
+            if schedule.isTimed {
+                Label(
+                    "\(schedule.formattedStartTime) \u{2013} \(schedule.formattedEndTime)",
+                    systemImage: "clock"
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+                Label(schedule.formattedDuration, systemImage: "hourglass")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             } else {
-                Text("\(schedule.name) will start running.")
+                Label("Starts \(schedule.formattedStartTime)", systemImage: "clock")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
-        .alert("Delete Schedule?", isPresented: $showDeleteConfirmation) {
-            Button("Delete", role: .destructive) { deleteSchedule() }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("\(schedule.name) will be permanently removed.")
+    }
+
+    private var weekdayChips: some View {
+        HStack(spacing: DS.Spacing.xs) {
+            ForEach(schedule.weekdayLabels, id: \.self) { label in
+                Chip(text: label)
+            }
         }
+    }
+
+    @ViewBuilder
+    private var tokenStrip: some View {
+        if !schedule.selection.allTokens.isEmpty {
+            HStack(spacing: DS.Spacing.sm) {
+                SelectionIconsView(tokens: schedule.selection.allTokens)
+            }
+        }
+    }
+
+    private var syncWarningText: some View {
+        Text("App selection changed. Please re-select apps in this schedule.")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
     }
 
     private var enabledBinding: Binding<Bool> {
@@ -153,10 +153,7 @@ struct ScheduleCardView: View {
 
     private func toggleEnabled() {
         do {
-            try scheduleService.toggleEnabled(
-                schedule,
-                screenTimeService: screenTimeService
-            )
+            try scheduleService.toggleEnabled(schedule, screenTimeService: screenTimeService)
             scheduleService.syncAllToSharedStore(allSchedules)
         } catch {
             self.error = error
@@ -168,22 +165,5 @@ struct ScheduleCardView: View {
         modelContext.delete(schedule)
         let remaining = allSchedules.filter { $0.id != schedule.id }
         scheduleService.syncAllToSharedStore(remaining)
-    }
-
-    @ViewBuilder
-    private var contextActions: some View {
-        Button {
-            isEditing = true
-        } label: {
-            Label("Edit", systemImage: "pencil")
-        }
-        .disabled(isLocked && !needsSync)
-
-        Button(role: .destructive) {
-            showDeleteConfirmation = true
-        } label: {
-            Label("Delete", systemImage: "trash")
-        }
-        .disabled(isLocked && !needsSync)
     }
 }

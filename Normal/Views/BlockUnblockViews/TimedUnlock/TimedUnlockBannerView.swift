@@ -11,21 +11,18 @@ struct TimedUnblockBannerView: View {
 
     @State private var authAction: (@MainActor () -> Void)?
 
-    private var settings: Settings { allSettings.first! }
+    private var settings: Settings { allSettings.unwrapped }
 
     var body: some View {
         if let endDate = timedUnblockService.mainUnblockEndDate, endDate > .now {
             Section {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                    HStack(spacing: DS.Spacing.md) {
                         Image(systemName: "timer")
                             .font(.title2)
                             .foregroundStyle(.orange)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Timed Unblock Active")
-                                .font(.headline)
-
+                        VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
+                            Text("Timed Unblock Active").font(.headline)
                             Text(timerInterval: .now ... endDate, countsDown: true)
                                 .font(.subheadline.monospacedDigit())
                                 .foregroundStyle(.secondary)
@@ -44,7 +41,7 @@ struct TimedUnblockBannerView: View {
                         Label("Block All Now", systemImage: "lock.fill")
                             .font(.subheadline.weight(.semibold))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, DS.Spacing.sm)
                     }
                     .buttonStyle(.bordered)
                     .tint(.orange)

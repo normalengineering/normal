@@ -5,13 +5,8 @@ import SwiftUI
 final class NavigationCoordinator {
     var isSettingsPresented = false
 
-    func presentSettings() {
-        isSettingsPresented = true
-    }
-
-    func dismissSettings() {
-        isSettingsPresented = false
-    }
+    func presentSettings() { isSettingsPresented = true }
+    func dismissSettings() { isSettingsPresented = false }
 }
 
 extension EnvironmentValues {

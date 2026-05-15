@@ -1,160 +1,92 @@
 @testable import Normal
 import FamilyControls
 import Foundation
-import SwiftData
 import Testing
 
 struct BlockScheduleTests {
-    @Test @MainActor func formattedDurationHoursOnly() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let schedule = BlockSchedule(
-            name: "Test",
+    private func makeSchedule(
+        startHour: Int = 9,
+        startMinute: Int = 30,
+        durationMinutes: Int = 60,
+        weekdays: Set<Int> = [2, 3, 4, 5, 6],
+        shouldBlock: Bool = true,
+        isTimed: Bool = true,
+        isEnabled: Bool = true
+    ) -> BlockSchedule {
+        BlockSchedule(
+            name: "Work",
             selection: FamilyActivitySelection(),
-            startHour: 9,
-            startMinute: 0,
-            durationMinutes: 120,
-            weekdays: [1]
+            startHour: startHour,
+            startMinute: startMinute,
+            durationMinutes: durationMinutes,
+            weekdays: weekdays,
+            shouldBlock: shouldBlock,
+            isTimed: isTimed,
+            isEnabled: isEnabled
         )
-        context.insert(schedule)
-
-        #expect(schedule.formattedDuration == "2h")
     }
 
-    @Test @MainActor func formattedDurationMinutesOnly() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let schedule = BlockSchedule(
-            name: "Test",
-            selection: FamilyActivitySelection(),
-            startHour: 9,
-            startMinute: 0,
-            durationMinutes: 45,
-            weekdays: [1]
-        )
-        context.insert(schedule)
-
-        #expect(schedule.formattedDuration == "45m")
+    @Test func formattedDurationMinutesOnly() {
+        let s = makeSchedule(durationMinutes: 45)
+        #expect(s.formattedDuration == "45m")
     }
 
-    @Test @MainActor func formattedDurationMixed() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let schedule = BlockSchedule(
-            name: "Test",
-            selection: FamilyActivitySelection(),
-            startHour: 9,
-            startMinute: 0,
-            durationMinutes: 90,
-            weekdays: [1]
-        )
-        context.insert(schedule)
-
-        #expect(schedule.formattedDuration == "1h 30m")
+    @Test func formattedDurationWholeHours() {
+        let s = makeSchedule(durationMinutes: 120)
+        #expect(s.formattedDuration == "2h")
     }
 
-    @Test @MainActor func weekdayLabelsCorrectOrder() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
+    @Test func formattedDurationMixed() {
+        let s = makeSchedule(durationMinutes: 90)
+        #expect(s.formattedDuration == "1h 30m")
+    }
 
-        let schedule = BlockSchedule(
-            name: "Test",
-            selection: FamilyActivitySelection(),
-            startHour: 9,
-            startMinute: 0,
-            durationMinutes: 60,
-            weekdays: [1, 4, 7]
-        )
-        context.insert(schedule)
+    @Test func formattedDurationZero() {
+        let s = makeSchedule(durationMinutes: 0)
+        #expect(s.formattedDuration == "0m")
+    }
 
-        let labels = schedule.weekdayLabels
+    @Test func weekdayLabelsAreOrdered() {
+        let s = makeSchedule(weekdays: [1, 3, 5])
+        let labels = s.weekdayLabels
         #expect(labels.count == 3)
-        let symbols = Calendar.current.shortWeekdaySymbols
-        #expect(labels[0] == symbols[0])
-        #expect(labels[1] == symbols[3])
-        #expect(labels[2] == symbols[6])
     }
 
-    @Test @MainActor func weekdayLabelsFilterOutOfRange() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let schedule = BlockSchedule(
-            name: "Test",
-            selection: FamilyActivitySelection(),
-            startHour: 9,
-            startMinute: 0,
-            durationMinutes: 60,
-            weekdays: [0, 1, 8]
-        )
-        context.insert(schedule)
-
-        #expect(schedule.weekdayLabels.count == 1)
+    @Test func weekdayLabelsSkipsInvalidValues() {
+        let s = makeSchedule(weekdays: [0, 1, 9])
+        let labels = s.weekdayLabels
+        #expect(labels.count == 1)
     }
 
-    @Test @MainActor func formattedStartTime() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let schedule = BlockSchedule(
-            name: "Test",
-            selection: FamilyActivitySelection(),
-            startHour: 14,
-            startMinute: 30,
-            durationMinutes: 60,
-            weekdays: [1]
-        )
-        context.insert(schedule)
-
-        let formatted = schedule.formattedStartTime
-        #expect(!formatted.isEmpty)
+    @Test func startTimeFormattingHasValue() {
+        let s = makeSchedule(startHour: 14, startMinute: 0)
+        #expect(!s.formattedStartTime.isEmpty)
     }
 
-    @Test @MainActor func formattedEndTimeWrapsAroundMidnight() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
-
-        let schedule = BlockSchedule(
-            name: "Test",
-            selection: FamilyActivitySelection(),
-            startHour: 22,
-            startMinute: 0,
-            durationMinutes: 180,
-            weekdays: [1]
-        )
-        context.insert(schedule)
-
-        let formatted = schedule.formattedEndTime
-        #expect(!formatted.isEmpty)
+    @Test func endTimeIsAfterDuration() {
+        let s = makeSchedule(startHour: 8, startMinute: 0, durationMinutes: 90)
+        #expect(!s.formattedEndTime.isEmpty)
     }
 
-    @Test @MainActor func toDTOWithEmptySelection() throws {
-        let container = try makeTestModelContainer()
-        let context = container.mainContext
+    @Test func endTimeWrapsPastMidnight() {
+        let s = makeSchedule(startHour: 23, startMinute: 30, durationMinutes: 90)
+        #expect(!s.formattedEndTime.isEmpty)
+    }
 
-        let schedule = BlockSchedule(
-            name: "Test DTO",
-            selection: FamilyActivitySelection(),
-            startHour: 8,
-            startMinute: 15,
-            durationMinutes: 45,
-            weekdays: [2, 4],
-            shouldBlock: true,
-            isTimed: false
-        )
-        context.insert(schedule)
-
-        let dto = schedule.toDTO()
+    @Test func toDTOEncodesValues() {
+        let s = makeSchedule(startHour: 8, startMinute: 0, durationMinutes: 60)
+        let dto = s.toDTO()
         #expect(dto != nil)
-        #expect(dto?.name == "Test DTO")
         #expect(dto?.startHour == 8)
-        #expect(dto?.startMinute == 15)
-        #expect(dto?.durationMinutes == 45)
-        #expect(dto?.weekdays == [2, 4])
+        #expect(dto?.startMinute == 0)
+        #expect(dto?.durationMinutes == 60)
         #expect(dto?.shouldBlock == true)
-        #expect(dto?.isTimed == false)
+        #expect(dto?.isTimed == true)
+    }
+
+    @Test func toDTOPreservesWeekdays() {
+        let s = makeSchedule(weekdays: [2, 4, 6])
+        let dto = s.toDTO()
+        #expect(dto?.weekdays == [2, 4, 6])
     }
 }

@@ -5,7 +5,7 @@ import Observation
 
 @MainActor
 @Observable
-final class MockScreenTimeService: ScreenTimeProviding {
+final class FakeScreenTimeService: ScreenTimeProviding {
     var authorizationState: AuthorizationState = .notAuthorized
     var lastUpdate: Date = .now
 
@@ -45,13 +45,8 @@ final class MockScreenTimeService: ScreenTimeProviding {
         return authorizationState == .authorized
     }
 
-    func enablePreventAppDelete() {
-        enablePreventAppDeleteCalled = true
-    }
-
-    func disablePreventAppDelete() {
-        disablePreventAppDeleteCalled = true
-    }
+    func enablePreventAppDelete() { enablePreventAppDeleteCalled = true }
+    func disablePreventAppDelete() { disablePreventAppDeleteCalled = true }
 
     func applyShieldOnAll(selection: FamilyActivitySelection, preventAppDelete: Bool) {
         applyShieldOnAllCalled = true
@@ -76,8 +71,6 @@ final class MockScreenTimeService: ScreenTimeProviding {
         removeFromShieldsSelection = selection
     }
 
-
     func activeShieldCount() -> Int { stubActiveShieldCount }
-
     func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus { stubBlockStatus }
 }

@@ -59,7 +59,7 @@ struct KeyFormSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Save" : "Update") { save() }
+                    Button(isNew ? "Save" : "Update", action: save)
                         .fontWeight(.semibold)
                         .disabled(!canSave)
                 }
@@ -89,7 +89,6 @@ struct KeyFormSheet: View {
             guard let rawValue = scannedKeyId else { return }
             modelContext.insert(Key(name: trimmed, type: keyType, rawValue: rawValue))
         }
-
         dismiss()
     }
 }

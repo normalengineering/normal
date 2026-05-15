@@ -15,19 +15,11 @@ struct TimedUnblockSheet: View {
             Form {
                 Section {
                     ForEach(UnblockDuration.allCases) { duration in
-                        Button {
+                        ChoiceListRow(
+                            title: LocalizedStringKey(duration.label),
+                            isSelected: selectedDuration == duration
+                        ) {
                             selectedDuration = duration
-                        } label: {
-                            HStack {
-                                Text(duration.label)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                if selectedDuration == duration {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(.tint)
-                                        .fontWeight(.semibold)
-                                }
-                            }
                         }
                     }
                 } header: {
@@ -37,19 +29,11 @@ struct TimedUnblockSheet: View {
                 }
 
                 Section {
-                    Button {
+                    ChoiceListRow(
+                        title: "Until Manually Re-Blocked",
+                        isSelected: selectedDuration == nil
+                    ) {
                         selectedDuration = nil
-                    } label: {
-                        HStack {
-                            Text("Until Manually Re-Blocked")
-                                .foregroundStyle(.primary)
-                            Spacer()
-                            if selectedDuration == nil {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.tint)
-                                    .fontWeight(.semibold)
-                            }
-                        }
                     }
                 } footer: {
                     Text("You will need to manually block apps again.")
@@ -68,8 +52,7 @@ struct TimedUnblockSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Confirm") { performUnblock() }
-                        .fontWeight(.semibold)
+                    Button("Confirm", action: performUnblock).fontWeight(.semibold)
                 }
             }
         }

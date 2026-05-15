@@ -4,160 +4,90 @@ import Foundation
 import Testing
 
 struct SharedStoreTests {
-    private func makeTestStore() -> SharedStore {
+    private func makeStore() -> (SharedStore, UserDefaults) {
         let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
-        return SharedStore(defaults: defaults)
+        let store = SharedStore(defaults: defaults)
+        return (store, defaults)
     }
 
-    @Test func emptyLoadReturnsEmptyArray() {
-        let store = makeTestStore()
+    private func makeDTO(id: String, endDate: Date = .now.addingTimeInterval(3600)) -> TimedUnblockDTO {
+        try! TimedUnblockDTO(
+            id: id,
+            selectionData: FamilyActivitySelection().toData(),
+            endDate: endDate,
+            activityName: "timedUnblock_\(id)",
+            isGroupUnblock: id != "main"
+        )
+    }
+
+    @Test func loadEmptyReturnsEmpty() {
+        let (store, _) = makeStore()
         #expect(store.loadTimedUnblocks().isEmpty)
         #expect(store.loadSchedules().isEmpty)
     }
 
-    @Test func upsertAndLoadTimedUnblock() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-        let dto = try TimedUnblockDTO(
-            id: "test1",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(3600),
-            activityName: "activity_1",
-            isGroupUnblock: false
-        )
-
-        store.upsertTimedUnblock(dto)
-        let loaded = store.loadTimedUnblocks()
-
-        #expect(loaded.count == 1)
-        #expect(loaded.first?.id == "test1")
+    @Test func saveAndLoadTimedUnblocks() {
+        let (store, _) = makeStore()
+        let dto = makeDTO(id: "main")
+        store.saveTimedUnblocks([dto])
+        #expect(store.loadTimedUnblocks().count == 1)
+        #expect(store.loadTimedUnblocks().first?.id == "main")
     }
 
-    @Test func upsertReplacesSameId() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-
-        let dto1 = try TimedUnblockDTO(
-            id: "same",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(3600),
-            activityName: "activity_1",
-            isGroupUnblock: false
-        )
-        let dto2 = try TimedUnblockDTO(
-            id: "same",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(7200),
-            activityName: "activity_2",
-            isGroupUnblock: true
-        )
-
-        store.upsertTimedUnblock(dto1)
-        store.upsertTimedUnblock(dto2)
-        let loaded = store.loadTimedUnblocks()
-
-        #expect(loaded.count == 1)
-        #expect(loaded.first?.activityName == "activity_2")
+    @Test func upsertReplacesById() {
+        let (store, _) = makeStore()
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(60)))
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(3600)))
+        #expect(store.loadTimedUnblocks().count == 1)
     }
 
-    @Test func removeTimedUnblock() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-        let dto = try TimedUnblockDTO(
-            id: "remove-me",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(3600),
-            activityName: "activity_rm",
-            isGroupUnblock: false
-        )
-
-        store.upsertTimedUnblock(dto)
-        store.removeTimedUnblock(id: "remove-me")
-
-        #expect(store.loadTimedUnblocks().isEmpty)
+    @Test func upsertAppendsDistinctIds() {
+        let (store, _) = makeStore()
+        store.upsertTimedUnblock(makeDTO(id: "main"))
+        store.upsertTimedUnblock(makeDTO(id: "group-1"))
+        #expect(store.loadTimedUnblocks().count == 2)
     }
 
-    @Test func findTimedUnblockByActivityName() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-        let dto = try TimedUnblockDTO(
-            id: "find-me",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(3600),
-            activityName: "unique_activity",
-            isGroupUnblock: false
-        )
-
-        store.upsertTimedUnblock(dto)
-        let found = store.findTimedUnblock(activityName: "unique_activity")
-
-        #expect(found?.id == "find-me")
-        #expect(store.findTimedUnblock(activityName: "nonexistent") == nil)
+    @Test func removeTimedUnblockById() {
+        let (store, _) = makeStore()
+        store.upsertTimedUnblock(makeDTO(id: "main"))
+        store.upsertTimedUnblock(makeDTO(id: "group-1"))
+        store.removeTimedUnblock(id: "main")
+        #expect(store.loadTimedUnblocks().map(\.id) == ["group-1"])
     }
 
-    @Test func isMainTimedUnblockActiveTrue() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-        let dto = try TimedUnblockDTO(
-            id: "main",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(3600),
-            activityName: "main_activity",
-            isGroupUnblock: false
-        )
+    @Test func findTimedUnblockByActivityName() {
+        let (store, _) = makeStore()
+        store.upsertTimedUnblock(makeDTO(id: "main"))
+        let found = store.findTimedUnblock(activityName: "timedUnblock_main")
+        #expect(found?.id == "main")
+    }
 
-        store.upsertTimedUnblock(dto)
+    @Test func mainActiveOnlyWhenFutureEndDate() {
+        let (store, _) = makeStore()
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(3600)))
         #expect(store.isMainTimedUnblockActive())
-    }
 
-    @Test func isMainTimedUnblockActiveFalseWhenExpired() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-        let dto = try TimedUnblockDTO(
-            id: "main",
-            selectionData: selection.toData(),
-            endDate: Date.now.addingTimeInterval(-100),
-            activityName: "main_activity",
-            isGroupUnblock: false
-        )
-
-        store.upsertTimedUnblock(dto)
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(-60)))
         #expect(!store.isMainTimedUnblockActive())
     }
 
-    @Test func saveAndLoadSchedules() throws {
-        let store = makeTestStore()
-        let selection = FamilyActivitySelection()
-        let dtos = [
-            ScheduleDTO(
-                id: UUID(),
-                name: "Morning",
-                selectionData: try selection.toData(),
-                startHour: 8,
-                startMinute: 0,
-                durationMinutes: 60,
-                weekdays: [2, 3, 4, 5, 6],
-                shouldBlock: true,
-                isTimed: true
-            ),
-            ScheduleDTO(
-                id: UUID(),
-                name: "Evening",
-                selectionData: try selection.toData(),
-                startHour: 20,
-                startMinute: 0,
-                durationMinutes: 120,
-                weekdays: [1, 7],
-                shouldBlock: false,
-                isTimed: false
-            ),
-        ]
-
-        store.saveSchedules(dtos)
+    @Test func savesAndLoadsSchedules() throws {
+        let (store, _) = makeStore()
+        let dto = ScheduleDTO(
+            id: UUID(),
+            name: "Test",
+            selectionData: try FamilyActivitySelection().toData(),
+            startHour: 8,
+            startMinute: 0,
+            durationMinutes: 60,
+            weekdays: [2, 3, 4, 5, 6],
+            shouldBlock: true,
+            isTimed: true
+        )
+        store.saveSchedules([dto])
         let loaded = store.loadSchedules()
-
-        #expect(loaded.count == 2)
-        #expect(loaded[0].name == "Morning")
-        #expect(loaded[1].name == "Evening")
+        #expect(loaded.count == 1)
+        #expect(loaded.first?.name == "Test")
     }
 }

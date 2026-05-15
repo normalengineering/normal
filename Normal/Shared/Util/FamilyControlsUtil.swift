@@ -1,40 +1,64 @@
 import FamilyControls
+import Foundation
+import ManagedSettings
 
-func tokenToHashableArray<T: Hashable>(tokens: Set<T>) -> [AnyHashable] {
-    return Array(tokens) as [AnyHashable]
+extension FamilyActivitySelection {
+    var allTokens: [AnyHashable] {
+        applicationTokens.asHashableArray
+            + webDomainTokens.asHashableArray
+            + categoryTokens.asHashableArray
+    }
+
+    var isEmpty: Bool {
+        applicationTokens.isEmpty
+            && webDomainTokens.isEmpty
+            && categoryTokens.isEmpty
+    }
+
+    var count: Int {
+        applicationTokens.count + webDomainTokens.count + categoryTokens.count
+    }
+
+    func isSubset(of other: FamilyActivitySelection) -> Bool {
+        applicationTokens.isSubset(of: other.applicationTokens)
+            && webDomainTokens.isSubset(of: other.webDomainTokens)
+            && categoryTokens.isSubset(of: other.categoryTokens)
+    }
 }
 
-func allTokensFromSelection(selection: FamilyActivitySelection) -> [AnyHashable] {
-    let apps = tokenToHashableArray(tokens: selection.applicationTokens)
-    let webDomains = tokenToHashableArray(tokens: selection.webDomainTokens)
-    let categories = tokenToHashableArray(tokens: selection.categoryTokens)
-
-    return apps + webDomains + categories
+extension Optional where Wrapped == FamilyActivitySelection {
+    var isEmpty: Bool { self?.isEmpty ?? true }
+    var count: Int { self?.count ?? 0 }
+    var allTokens: [AnyHashable] { self?.allTokens ?? [] }
 }
 
-func isSelectionEmpty(selection: FamilyActivitySelection?) -> Bool {
-    guard let selection = selection else { return true }
-    return selection.applicationTokens.isEmpty &&
-        selection.webDomainTokens.isEmpty &&
-        selection.categoryTokens.isEmpty
+extension Set where Element: Hashable {
+    var asHashableArray: [AnyHashable] {
+        Array(self) as [AnyHashable]
+    }
 }
 
-func selectionCount(selection: FamilyActivitySelection?) -> Int {
-    guard let selection = selection else { return 0 }
-    return selection.applicationTokens.count +
-        selection.webDomainTokens.count +
-        selection.categoryTokens.count
+extension Set where Element: Encodable {
+    var sortedStably: [Element] {
+        sorted { encodedKey($0) < encodedKey($1) }
+    }
 }
 
-func sortTokens(tokens: [AnyHashable]) -> [AnyHashable] {
-    return tokens.sorted { String(describing: $0) < String(describing: $1) }
+extension [AnyHashable] {
+    var sortedStably: [AnyHashable] {
+        sorted { stableSortKey(for: $0) < stableSortKey(for: $1) }
+    }
 }
 
-func isSelectionSynced(
-    selection: FamilyActivitySelection,
-    with mainSelection: FamilyActivitySelection
-) -> Bool {
-    selection.applicationTokens.isSubset(of: mainSelection.applicationTokens) &&
-        selection.webDomainTokens.isSubset(of: mainSelection.webDomainTokens) &&
-        selection.categoryTokens.isSubset(of: mainSelection.categoryTokens)
+private func stableSortKey(for hashable: AnyHashable) -> String {
+    let base = hashable.base
+    if let token = base as? ApplicationToken { return encodedKey(token) }
+    if let token = base as? WebDomainToken { return encodedKey(token) }
+    if let token = base as? ActivityCategoryToken { return encodedKey(token) }
+    return String(describing: base)
+}
+
+private func encodedKey<T: Encodable>(_ value: T) -> String {
+    (try? PropertyListEncoder().encode(value))?.base64EncodedString()
+        ?? String(describing: value)
 }

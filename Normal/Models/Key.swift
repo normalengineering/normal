@@ -1,46 +1,6 @@
-@preconcurrency import CoreNFC
 import CommonCrypto
 import Foundation
 import SwiftData
-
-enum KeyType: String, Codable, CaseIterable, Identifiable {
-    case nfc = "NFC"
-    case qr = "QR"
-
-    var id: String { rawValue }
-
-    var isAvailableOnDevice: Bool {
-        switch self {
-        case .nfc: NFCTagReaderSession.readingAvailable
-        case .qr: true
-        }
-    }
-
-    static var availableOnDevice: [KeyType] {
-        allCases.filter(\.isAvailableOnDevice)
-    }
-
-    var icon: String {
-        switch self {
-        case .nfc: "wave.3.right"
-        case .qr: "qrcode.viewfinder"
-        }
-    }
-
-    var label: String {
-        switch self {
-        case .nfc: "NFC Tag"
-        case .qr: "QR Code"
-        }
-    }
-
-    var scanPrompt: String {
-        switch self {
-        case .nfc: "Hold your device near an NFC tag"
-        case .qr: "Scan a QR code with your camera"
-        }
-    }
-}
 
 @Model
 final class Key: Identifiable {
@@ -51,20 +11,30 @@ final class Key: Identifiable {
     private(set) var salt: String
 
     private static let pbkdf2Rounds: UInt32 = 100_000
+    private static let saltLength = 16
+    private static let hashLength = 32
 
     init(name: String, type: KeyType, rawValue: String) {
-        id = UUID()
+        self.id = UUID()
         self.name = name
         self.type = type
         let salt = Self.generateSalt()
         self.salt = salt
-        hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
+        self.hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
+    }
+
+    static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {
+        keys.contains { $0.matches(unhashedId: unhashedId) }
+    }
+
+    func matches(unhashedId: String) -> Bool {
+        Self.hash(unhashedString: unhashedId, salt: salt) == hashedValue
     }
 
     private static func hash(unhashedString: String, salt: String) -> String {
         let password = Array(unhashedString.utf8)
         let saltBytes = Array(salt.utf8)
-        var result = [UInt8](repeating: 0, count: 32)
+        var result = [UInt8](repeating: 0, count: hashLength)
 
         CCKeyDerivationPBKDF(
             CCPBKDFAlgorithm(kCCPBKDF2),
@@ -79,14 +49,8 @@ final class Key: Identifiable {
     }
 
     private static func generateSalt() -> String {
-        var bytes = [UInt8](repeating: 0, count: 16)
+        var bytes = [UInt8](repeating: 0, count: saltLength)
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         return Data(bytes).hexString
-    }
-
-    static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {
-        keys.contains {
-            $0.hashedValue == Self.hash(unhashedString: unhashedId, salt: $0.salt)
-        }
     }
 }

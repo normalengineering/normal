@@ -1,43 +1,35 @@
 @testable import Normal
 import Testing
 
+@MainActor
 struct KeyManagerTests {
-    @Test @MainActor func performWithKeyCheckSuccessCallsAction() async {
+    @Test func successInvokesAction() async {
         let manager = KeyManager()
-        var actionCalled = false
-
-        let result = await manager.performWithKeyCheck(
-            using: MockKeyMethod(result: .success),
-            action: { actionCalled = true }
-        )
-
-        #expect(result == true)
-        #expect(actionCalled)
+        var didRun = false
+        let result = await manager.performWithKeyCheck(using: FakeKeyMethod(result: .success)) {
+            didRun = true
+        }
+        #expect(result)
+        #expect(didRun)
     }
 
-    @Test @MainActor func performWithKeyCheckFailureDoesNotCallAction() async {
+    @Test func failureDoesNotInvokeAction() async {
         let manager = KeyManager()
-        var actionCalled = false
-
-        let result = await manager.performWithKeyCheck(
-            using: MockKeyMethod(result: .failure),
-            action: { actionCalled = true }
-        )
-
-        #expect(result == false)
-        #expect(!actionCalled)
+        var didRun = false
+        let result = await manager.performWithKeyCheck(using: FakeKeyMethod(result: .failure)) {
+            didRun = true
+        }
+        #expect(!result)
+        #expect(!didRun)
     }
 
-    @Test @MainActor func performWithKeyCheckCancelledDoesNotCallAction() async {
+    @Test func cancellationDoesNotInvokeAction() async {
         let manager = KeyManager()
-        var actionCalled = false
-
-        let result = await manager.performWithKeyCheck(
-            using: MockKeyMethod(result: .cancelled),
-            action: { actionCalled = true }
-        )
-
-        #expect(result == false)
-        #expect(!actionCalled)
+        var didRun = false
+        let result = await manager.performWithKeyCheck(using: FakeKeyMethod(result: .cancelled)) {
+            didRun = true
+        }
+        #expect(!result)
+        #expect(!didRun)
     }
 }

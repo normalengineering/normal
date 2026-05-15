@@ -3,25 +3,30 @@ import Foundation
 import Testing
 
 struct SharedConstantsTests {
-    @Test func appGroupIDIsNotEmpty() {
-        #expect(!SharedConstants.appGroupID.isEmpty)
+    @Test func appGroupIDIsStable() {
+        #expect(SharedConstants.appGroupID == "group.com.normalengineering.block")
     }
 
-    @Test func mainTimedUnblockActivityName() {
+    @Test func defaultsKeysAreVersioned() {
+        #expect(SharedConstants.DefaultsKey.timedUnblocks.hasSuffix("_v1"))
+        #expect(SharedConstants.DefaultsKey.schedules.hasSuffix("_v1"))
+    }
+
+    @Test func mainTimedUnblockActivityNameIsStable() {
         #expect(SharedConstants.mainTimedUnblockActivityName == "timedUnblock_main")
     }
 
-    @Test func groupTimedUnblockActivityNameContainsUUID() {
-        let uuid = UUID()
-        let name = SharedConstants.groupTimedUnblockActivityName(for: uuid)
+    @Test func groupTimedUnblockActivityNameIsPrefixed() {
+        let id = UUID()
+        let name = SharedConstants.groupTimedUnblockActivityName(for: id)
         #expect(name.hasPrefix("timedUnblock_group_"))
-        #expect(name.contains(uuid.uuidString))
+        #expect(name.contains(id.uuidString))
     }
 
-    @Test func scheduleActivityNameContainsUUID() {
-        let uuid = UUID()
-        let name = SharedConstants.scheduleActivityName(for: uuid)
+    @Test func scheduleActivityNameIsPrefixed() {
+        let id = UUID()
+        let name = SharedConstants.scheduleActivityName(for: id)
         #expect(name.hasPrefix("schedule_"))
-        #expect(name.contains(uuid.uuidString))
+        #expect(name.contains(id.uuidString))
     }
 }

@@ -1,64 +1,34 @@
 import SwiftData
 import SwiftUI
 
-enum SettingsTab: CaseIterable {
-    case general
-    case emergencyUnblock
-    case faq
-
-    var title: String {
-        switch self {
-        case .general:
-            return "General"
-        case .emergencyUnblock:
-            return "Emergency"
-        case .faq:
-            return "FAQ"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .general:
-            return "gear"
-        case .emergencyUnblock:
-            return "exclamationmark.triangle"
-        case .faq:
-            return "questionmark.circle"
-        }
-    }
-}
-
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
 
     @State private var showConfirmation = false
+    @State private var showSuccessAlert = false
     @State private var selectedTab: SettingsTab = .general
 
-    private var settings: Settings { allSettings.first! }
+    private var settings: Settings { allSettings.unwrapped }
 
     private var availableKeyTypes: [KeyType] {
-        KeyType.allCases.filter { type in
-            keys.contains { $0.type == type }
-        }
+        KeyType.allCases.filter { type in keys.contains { $0.type == type } }
     }
-
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             TabView(selection: $selectedTab) {
-                Tab("General", systemImage: "gear", value: SettingsTab.general) {
+                Tab(SettingsTab.general.title, systemImage: SettingsTab.general.icon, value: SettingsTab.general) {
                     GeneralSettingsView(
                         settings: settings,
                         availableKeyTypes: availableKeyTypes
                     )
-                    .navigationTitle("General")
+                    .navigationTitle(SettingsTab.general.title)
                 }
 
-                Tab("Emergency", systemImage: "exclamationmark.triangle", value: SettingsTab.emergencyUnblock) {
+                Tab(SettingsTab.emergencyUnblock.title, systemImage: SettingsTab.emergencyUnblock.icon, value: SettingsTab.emergencyUnblock) {
                     EmergencyUnblockView(
                         settings: settings,
                         showConfirmation: $showConfirmation,
@@ -67,7 +37,7 @@ struct SettingsView: View {
                     .navigationTitle("Emergency Unblock")
                 }
 
-                Tab("FAQ", systemImage: "questionmark.circle", value: SettingsTab.faq) {
+                Tab(SettingsTab.faq.title, systemImage: SettingsTab.faq.icon, value: SettingsTab.faq) {
                     FAQView()
                         .navigationTitle("FAQ")
                 }
@@ -77,16 +47,16 @@ struct SettingsView: View {
                     Button("Close") { dismiss() }
                 }
             }
-            .alert(
-                "Emergency Unblock",
-                isPresented: $showConfirmation
-            ) {
-                Button("Unblock All Apps", role: .destructive) {
-                    performEmergencyUnblock()
-                }
+            .alert("Emergency Unblock", isPresented: $showConfirmation) {
+                Button("Unblock All Apps", role: .destructive, action: performEmergencyUnblock)
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining.")
+            }
+            .alert("All Apps Unblocked", isPresented: $showSuccessAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("All app blocks have been removed. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining.")
             }
         }
     }
@@ -94,5 +64,6 @@ struct SettingsView: View {
     private func performEmergencyUnblock() {
         settings.recordEmergencyUnblock()
         screenTimeService.removeShieldOnAll(allowAppDelete: true)
+        showSuccessAlert = true
     }
 }

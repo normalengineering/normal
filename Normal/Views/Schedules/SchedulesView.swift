@@ -4,7 +4,10 @@ import SwiftUI
 struct SchedulesView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
 
-    @Query(sort: [SortDescriptor(\BlockSchedule.startHour), SortDescriptor(\BlockSchedule.startMinute)])
+    @Query(sort: [
+        SortDescriptor(\BlockSchedule.startHour),
+        SortDescriptor(\BlockSchedule.startMinute)
+    ])
     private var schedules: [BlockSchedule]
     @Query private var selectedApps: [SelectedApps]
     @Query private var keys: [Key]
@@ -12,61 +15,52 @@ struct SchedulesView: View {
     @State private var isShowingSheet = false
 
     private var hasAppSelection: Bool {
-        guard let main = selectedApps.first else { return false }
-        return !isSelectionEmpty(selection: main.selection)
+        selectedApps.first?.selection.isEmpty == false
     }
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
-    }
-
-    private var hasKeys: Bool {
-        !keys.isEmpty
-    }
-
-    private var canAdd: Bool {
-        hasAppSelection && hasKeys && !isBlocked
-    }
+    private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
+    private var hasKeys: Bool { !keys.isEmpty }
+    private var canAdd: Bool { hasAppSelection && hasKeys && !isBlocked }
 
     var body: some View {
         NavigationStack {
-            Group {
-                if schedules.isEmpty {
-                    emptyState
-                } else {
-                    ListView(items: schedules) { schedule in
-                        ScheduleCardView(schedule: schedule)
-                    }
-                    .safeAreaInset(edge: .bottom) {
-                        if isBlocked {
-                            footerMessage("Unblock all apps to make schedule changes.")
-                        } else if !hasKeys {
-                            footerMessage("Add a key in the Keys tab to manage schedules.")
+            content
+                .navigationTitle("Schedules")
+                .settingsToolbar()
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: openSheet) {
+                            Label("Add Schedule", systemImage: "plus")
+                        }
+                        .disabled(!canAdd)
+                        .sheet(isPresented: $isShowingSheet) {
+                            ScheduleFormSheet()
                         }
                     }
                 }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if schedules.isEmpty {
+            emptyState
+        } else {
+            ListView(items: schedules) { schedule in
+                ScheduleCardView(schedule: schedule)
             }
-            .navigationTitle("Schedules")
-            .settingsToolbar()
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button { openSheet() } label: {
-                        Label("Add Schedule", systemImage: "plus")
-                    }
-                    .disabled(!canAdd)
-                    .sheet(isPresented: $isShowingSheet) {
-                        ScheduleFormSheet()
-                    }
+            .safeAreaInset(edge: .bottom) {
+                if let message = bottomMessage {
+                    FooterMessage(text: message)
                 }
             }
         }
     }
 
-    private func openSheet() {
-        Task {
-            guard await screenTimeService.ensureAuthorized() else { return }
-            isShowingSheet = true
-        }
+    private var bottomMessage: LocalizedStringKey? {
+        if isBlocked { "Unblock all apps to make schedule changes." }
+        else if !hasKeys { "Add a key in the Keys tab to manage schedules." }
+        else { nil }
     }
 
     @ViewBuilder
@@ -98,11 +92,7 @@ struct SchedulesView: View {
         }
     }
 
-    private func footerMessage(_ text: String) -> some View {
-        Text(text)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity)
-            .padding()
+    private func openSheet() {
+        screenTimeService.ifAuthorized { isShowingSheet = true }
     }
 }

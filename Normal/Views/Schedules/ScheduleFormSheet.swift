@@ -26,20 +26,16 @@ struct ScheduleFormSheet: View {
 
     private var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
-            && selectionCount(selection: selection) > 0
+            && selection.count > 0
             && !selectedWeekdays.isEmpty
     }
 
     private static let durationOptions: [(Int, String)] = [
-        (15, "15 min"),
-        (30, "30 min"),
-        (60, "1 hour"),
-        (90, "1h 30m"),
-        (120, "2 hours"),
-        (180, "3 hours"),
-        (240, "4 hours"),
-        (480, "8 hours"),
-        (720, "12 hours"),
+        (15, "15 min"), (30, "30 min"),
+        (60, "1 hour"), (90, "1h 30m"),
+        (120, "2 hours"), (180, "3 hours"),
+        (240, "4 hours"), (480, "8 hours"),
+        (720, "12 hours")
     ]
 
     init(existing: BlockSchedule? = nil) {
@@ -51,21 +47,10 @@ struct ScheduleFormSheet: View {
         _shouldBlock = State(initialValue: existing?.shouldBlock ?? true)
         _isTimed = State(initialValue: existing?.isTimed ?? true)
 
-        if let existing {
-            var components = DateComponents()
-            components.hour = existing.startHour
-            components.minute = existing.startMinute
-            _startTime = State(
-                initialValue: Calendar.current.date(from: components) ?? .now
-            )
-        } else {
-            var components = DateComponents()
-            components.hour = 9
-            components.minute = 0
-            _startTime = State(
-                initialValue: Calendar.current.date(from: components) ?? .now
-            )
-        }
+        var components = DateComponents()
+        components.hour = existing?.startHour ?? 9
+        components.minute = existing?.startMinute ?? 0
+        _startTime = State(initialValue: Calendar.current.date(from: components) ?? .now)
     }
 
     var body: some View {
@@ -86,7 +71,7 @@ struct ScheduleFormSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Save" : "Update") { save() }
+                    Button(isNew ? "Save" : "Update", action: save)
                         .fontWeight(.semibold)
                         .disabled(!canSave)
                 }
@@ -105,26 +90,8 @@ struct ScheduleFormSheet: View {
 
     private var appSection: some View {
         Section("Apps") {
-            Button {
-                Task {
-                    guard await screenTimeService.ensureAuthorized() else { return }
-                    isShowingAppSelect = true
-                }
-            } label: {
-                HStack {
-                    Text("Select Apps")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    let count = selectionCount(selection: selection)
-                    if count > 0 {
-                        Text("\(count)")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                    }
-                    Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                }
+            Button(action: presentPicker) {
+                CountChevronRow(title: "Select Apps", count: selection.count)
             }
         }
     }
@@ -167,12 +134,7 @@ struct ScheduleFormSheet: View {
 
     private var timeSection: some View {
         Section("Time") {
-            DatePicker(
-                "Starts at",
-                selection: $startTime,
-                displayedComponents: .hourAndMinute
-            )
-
+            DatePicker("Starts at", selection: $startTime, displayedComponents: .hourAndMinute)
             if isTimed {
                 Picker("Duration", selection: $durationMinutes) {
                     ForEach(Self.durationOptions, id: \.0) { value, label in
@@ -198,13 +160,14 @@ struct ScheduleFormSheet: View {
         }
     }
 
+    private func presentPicker() {
+        screenTimeService.ifAuthorized { isShowingAppSelect = true }
+    }
+
     private func save() {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-
-        let components = Calendar.current.dateComponents(
-            [.hour, .minute], from: startTime
-        )
+        let components = Calendar.current.dateComponents([.hour, .minute], from: startTime)
 
         let schedule: BlockSchedule
         if let existing {

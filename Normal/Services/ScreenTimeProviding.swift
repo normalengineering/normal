@@ -20,3 +20,13 @@ protocol ScreenTimeProviding: AnyObject {
     func activeShieldCount() -> Int
     func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus
 }
+
+extension ScreenTimeProviding {
+    func ifAuthorized(_ action: @MainActor @escaping () -> Void) {
+        Task {
+            if await ensureAuthorized() {
+                action()
+            }
+        }
+    }
+}

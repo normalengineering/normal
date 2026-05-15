@@ -5,17 +5,15 @@ struct AppDeleteToggleView: View {
     @State private var authAction: (@MainActor () -> Void)?
     @State private var pendingValue: Bool?
 
-    private var appDeleteBinding: Binding<Bool> {
+    private var binding: Binding<Bool> {
         Binding(
             get: { screenTimeService.isAppDeleteDisabled },
             set: { newValue in
                 pendingValue = newValue
                 authAction = {
-                    if newValue {
-                        screenTimeService.enablePreventAppDelete()
-                    } else {
-                        screenTimeService.disablePreventAppDelete()
-                    }
+                    newValue
+                        ? screenTimeService.enablePreventAppDelete()
+                        : screenTimeService.disablePreventAppDelete()
                 }
             }
         )
@@ -25,10 +23,9 @@ struct AppDeleteToggleView: View {
         Section(
             footer: Text("When enabled, apps cannot be uninstalled from this device.")
         ) {
-            Toggle("Prevent App Deletion", isOn: appDeleteBinding)
+            Toggle("Prevent App Deletion", isOn: binding)
                 .tint(.accentColor)
         }
-        .screenTimeGuard(action: $authAction)
-        .keySelect(action: $authAction, allowBypass: pendingValue == true)
+        .protectedAction($authAction, allowBypass: pendingValue == true)
     }
 }

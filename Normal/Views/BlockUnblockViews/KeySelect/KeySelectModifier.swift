@@ -17,79 +17,77 @@ struct KeySelectModifier: ViewModifier {
     @State private var actionTrigger = false
 
     private var availableKeyTypes: [KeyType] {
-        KeyType.availableOnDevice.filter { type in
-            keys.contains { $0.type == type }
-        }
+        KeyType.availableOnDevice.filter { type in keys.contains { $0.type == type } }
     }
 
     func body(content: Content) -> some View {
         content
             .onChange(of: actionTrigger) { _, _ in
-                if action != nil {
-                    switch KeySelectLogic.decide(
-                        availableKeyTypes: availableKeyTypes,
-                        allowBypass: allowBypass,
-                        defaultKeyType: defaultKeyType
-                    ) {
-                    case .showNoKeysAlert:
-                        showNoKeysAlert = true
-                    case .autoSelect(let keyType):
-                        handleSelection(keyType)
-                    case .showSheet:
-                        showQRScanner = false
-                        showKeySelect = true
-                    }
-                }
+                guard action != nil else { return }
+                applyDecision()
             }
             .onChange(of: action != nil) { _, hasAction in
-                if hasAction {
-                    actionTrigger.toggle()
-                }
+                if hasAction { actionTrigger.toggle() }
             }
             .alert("No Keys Available", isPresented: $showNoKeysAlert) {
-                Button("OK", role: .cancel) {
-                    action = nil
-                }
+                Button("OK", role: .cancel) { action = nil }
             } message: {
-                if keys.isEmpty {
-                    Text("Add a key in the Keys tab before blocking apps.")
-                } else {
-                    Text("None of your registered keys are supported on this device. Add a QR code key to use on iPad.")
-                }
+                Text(
+                    keys.isEmpty
+                        ? "Add a key in the Keys tab before blocking apps."
+                        : "None of your registered keys are supported on this device. Add a QR code key to use on iPad."
+                )
             }
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
-                NavigationStack {
-                    KeySelectView(
-                        availableKeyTypes: availableKeyTypes,
-                        allowBypass: allowBypass,
-                        onSelect: { choice in handleSelection(choice) },
-                        onBypass: {
-                            action?()
-                            action = nil
-                            showKeySelect = false
-                        }
-                    )
-                    .navigationDestination(isPresented: $showQRScanner) {
-                        QRScannerView(qrService: qrService)
-                            .navigationBarBackButtonHidden()
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button("Cancel") {
-                                        qrService.cancel()
-                                        showKeySelect = false
-                                    }
-                                }
-                            }
-                    }
+                keySelectSheet
+            }
+    }
+
+    private var keySelectSheet: some View {
+        NavigationStack {
+            KeySelectView(
+                availableKeyTypes: availableKeyTypes,
+                allowBypass: allowBypass,
+                onSelect: handleSelection,
+                onBypass: bypassNow
+            )
+            .navigationDestination(isPresented: $showQRScanner) {
+                QRScannerView(qrService: qrService)
+                    .navigationBarBackButtonHidden()
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") { showKeySelect = false }
+                            Button("Cancel") {
+                                qrService.cancel()
+                                showKeySelect = false
+                            }
                         }
                     }
-                }
-                .presentationDetents(showQRScanner ? [.large] : [.medium])
-                .presentationDragIndicator(.hidden)
             }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showKeySelect = false }
+                }
+            }
+        }
+        .presentationDetents(showQRScanner ? [.large] : [.medium])
+        .presentationDragIndicator(.hidden)
+    }
+
+    private func applyDecision() {
+        let decision = KeySelectLogic.decide(
+            availableKeyTypes: availableKeyTypes,
+            allowBypass: allowBypass,
+            defaultKeyType: defaultKeyType
+        )
+        switch decision {
+        case .showNoKeysAlert:
+            showNoKeysAlert = true
+        case let .autoSelect(keyType):
+            handleSelection(keyType)
+        case .showSheet:
+            showQRScanner = false
+            showKeySelect = true
+        }
     }
 
     private func handleSelection(_ choice: KeyType) {
@@ -97,33 +95,31 @@ struct KeySelectModifier: ViewModifier {
         case .nfc:
             showKeySelect = false
             Task { await authenticate(with: .nfc) }
-
         case .qr:
             showQRScanner = true
             Task { await authenticate(with: .qr) }
         }
     }
 
+    private func bypassNow() {
+        action?()
+        action = nil
+        showKeySelect = false
+    }
+
     private func authenticate(with choice: KeyType) async {
         guard let pendingAction = action else { return }
-
         let method: KeyMethod = switch choice {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: keys)
         case .qr: QRKeyMethod(qrService: qrService, keys: keys)
         }
-
-        _ = await keyManager.performWithKeyCheck(using: method) {
-            pendingAction()
-        }
-
+        _ = await keyManager.performWithKeyCheck(using: method) { pendingAction() }
         showKeySelect = false
         action = nil
     }
 
     private func onSheetDismiss() {
-        if qrService.isScanning {
-            qrService.cancel()
-        }
+        if qrService.isScanning { qrService.cancel() }
         action = nil
     }
 }
