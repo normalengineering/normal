@@ -51,14 +51,14 @@ struct ScheduleServiceTests {
         #expect(screenTime.removeFromShieldsCalled)
     }
 
-    @Test func disabledUnblockScheduleAddsToShields() throws {
+    @Test func disabledUnblockScheduleDoesNotBlock() throws {
         let (service, _, _) = makeService()
         let screenTime = FakeScreenTimeService()
         let schedule = makeSchedule(shouldBlock: false, isEnabled: false)
 
         try service.sync(schedule, screenTimeService: screenTime)
 
-        #expect(screenTime.addToShieldsCalled)
+        #expect(!screenTime.addToShieldsCalled)
     }
 
     @Test func removeBlockingScheduleRemovesFromShields() {
@@ -71,14 +71,14 @@ struct ScheduleServiceTests {
         #expect(screenTime.removeFromShieldsCalled)
     }
 
-    @Test func removeUnblockingScheduleAddsToShields() {
+    @Test func removeUnblockingScheduleDoesNotBlock() {
         let (service, _, _) = makeService()
         let screenTime = FakeScreenTimeService()
         let schedule = makeSchedule(shouldBlock: false)
 
         service.remove(schedule, screenTimeService: screenTime)
 
-        #expect(screenTime.addToShieldsCalled)
+        #expect(!screenTime.addToShieldsCalled)
     }
 
     @Test func toggleEnabledFlipsState() throws {

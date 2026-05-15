@@ -15,7 +15,7 @@ struct ScheduleFormSheet: View {
     @State private var name: String
     @State private var selection: FamilyActivitySelection
     @State private var startTime: Date
-    @State private var durationMinutes: Int
+    @State private var endTime: Date
     @State private var selectedWeekdays: Set<Int>
     @State private var shouldBlock: Bool
     @State private var isTimed: Bool
@@ -28,29 +28,35 @@ struct ScheduleFormSheet: View {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
             && selection.count > 0
             && !selectedWeekdays.isEmpty
+            && (!isTimed || computedDurationMinutes > 0)
     }
 
-    private static let durationOptions: [(Int, String)] = [
-        (15, "15 min"), (30, "30 min"),
-        (60, "1 hour"), (90, "1h 30m"),
-        (120, "2 hours"), (180, "3 hours"),
-        (240, "4 hours"), (480, "8 hours"),
-        (720, "12 hours")
-    ]
+    private var computedDurationMinutes: Int {
+        let startComps = Calendar.current.dateComponents([.hour, .minute], from: startTime)
+        let endComps = Calendar.current.dateComponents([.hour, .minute], from: endTime)
+        let startMin = (startComps.hour ?? 0) * 60 + (startComps.minute ?? 0)
+        let endMin = (endComps.hour ?? 0) * 60 + (endComps.minute ?? 0)
+        let diff = endMin - startMin
+        return diff > 0 ? diff : diff + (24 * 60)
+    }
 
     init(existing: BlockSchedule? = nil) {
         self.existing = existing
         _name = State(initialValue: existing?.name ?? "")
         _selection = State(initialValue: existing?.selection ?? FamilyActivitySelection())
-        _durationMinutes = State(initialValue: existing?.durationMinutes ?? 60)
         _selectedWeekdays = State(initialValue: existing?.weekdays ?? Set(2 ... 6))
-        _shouldBlock = State(initialValue: existing?.shouldBlock ?? true)
+        _shouldBlock = State(initialValue: existing?.shouldBlock ?? false)
         _isTimed = State(initialValue: existing?.isTimed ?? true)
 
-        var components = DateComponents()
-        components.hour = existing?.startHour ?? 9
-        components.minute = existing?.startMinute ?? 0
-        _startTime = State(initialValue: Calendar.current.date(from: components) ?? .now)
+        var startComponents = DateComponents()
+        startComponents.hour = existing?.startHour ?? 9
+        startComponents.minute = existing?.startMinute ?? 0
+        let start = Calendar.current.date(from: startComponents) ?? .now
+        _startTime = State(initialValue: start)
+
+        let initialDuration = existing?.durationMinutes ?? 60
+        let end = Calendar.current.date(byAdding: .minute, value: initialDuration, to: start) ?? start
+        _endTime = State(initialValue: end)
     }
 
     var body: some View {
@@ -99,8 +105,8 @@ struct ScheduleFormSheet: View {
     private var modeSection: some View {
         Section {
             Picker("Mode", selection: $shouldBlock) {
-                Label("Block", systemImage: "lock.fill").tag(true)
                 Label("Unblock", systemImage: "lock.open.fill").tag(false)
+                Label("Block", systemImage: "lock.fill").tag(true)
             }
             .pickerStyle(.segmented)
         } header: {
@@ -133,16 +139,27 @@ struct ScheduleFormSheet: View {
     }
 
     private var timeSection: some View {
-        Section("Time") {
+        Section {
             DatePicker("Starts at", selection: $startTime, displayedComponents: .hourAndMinute)
             if isTimed {
-                Picker("Duration", selection: $durationMinutes) {
-                    ForEach(Self.durationOptions, id: \.0) { value, label in
-                        Text(label).tag(value)
-                    }
-                }
+                DatePicker("Ends at", selection: $endTime, displayedComponents: .hourAndMinute)
+            }
+        } header: {
+            Text("Time")
+        } footer: {
+            if isTimed {
+                Text("Duration: \(formattedComputedDuration)")
             }
         }
+    }
+
+    private var formattedComputedDuration: String {
+        let total = computedDurationMinutes
+        let hours = total / 60
+        let minutes = total % 60
+        if hours == 0 { return "\(minutes)m" }
+        if minutes == 0 { return "\(hours)h" }
+        return "\(hours)h \(minutes)m"
     }
 
     private var weekdaySection: some View {
@@ -168,6 +185,7 @@ struct ScheduleFormSheet: View {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         let components = Calendar.current.dateComponents([.hour, .minute], from: startTime)
+        let durationMinutes = computedDurationMinutes
 
         let schedule: BlockSchedule
         if let existing {

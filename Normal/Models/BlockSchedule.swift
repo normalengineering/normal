@@ -61,9 +61,9 @@ final class BlockSchedule: Identifiable {
         startMinute: Int,
         durationMinutes: Int,
         weekdays: Set<Int>,
-        shouldBlock: Bool = true,
+        shouldBlock: Bool = false,
         isTimed: Bool = true,
-        isEnabled: Bool = true,
+        isEnabled: Bool = false,
         sortIndex: Int = 0
     ) {
         id = UUID()

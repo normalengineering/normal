@@ -25,7 +25,7 @@ final class ScheduleService {
         activityCenter.stopMonitoring([activityName])
 
         guard schedule.isEnabled else {
-            applyOppositeOfScheduleAction(schedule, screenTimeService: screenTimeService)
+            liftBlockIfNeeded(schedule, screenTimeService: screenTimeService)
             return
         }
 
@@ -38,7 +38,7 @@ final class ScheduleService {
         screenTimeService: any ScreenTimeProviding
     ) {
         activityCenter.stopMonitoring([activityName(for: schedule)])
-        applyOppositeOfScheduleAction(schedule, screenTimeService: screenTimeService)
+        liftBlockIfNeeded(schedule, screenTimeService: screenTimeService)
     }
 
     func toggleEnabled(
@@ -66,15 +66,15 @@ final class ScheduleService {
         DeviceActivityName(SharedConstants.scheduleActivityName(for: schedule.id))
     }
 
-    private func applyOppositeOfScheduleAction(
+    // Disabling or removing a schedule must never block apps. A block
+    // schedule that was actively shielding has its shields lifted; an
+    // unblock schedule going away leaves blocking to other active sources.
+    private func liftBlockIfNeeded(
         _ schedule: BlockSchedule,
         screenTimeService: any ScreenTimeProviding
     ) {
-        if schedule.shouldBlock {
-            screenTimeService.removeFromShields(selection: schedule.selection)
-        } else {
-            screenTimeService.addToShields(selection: schedule.selection)
-        }
+        guard schedule.shouldBlock else { return }
+        screenTimeService.removeFromShields(selection: schedule.selection)
     }
 
     private func makeDeviceSchedule(for schedule: BlockSchedule) -> DeviceActivitySchedule {
