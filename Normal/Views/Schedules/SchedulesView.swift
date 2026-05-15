@@ -3,11 +3,9 @@ import SwiftUI
 
 struct SchedulesView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(ScheduleService.self) private var scheduleService
 
-    @Query(sort: [
-        SortDescriptor(\BlockSchedule.startHour),
-        SortDescriptor(\BlockSchedule.startMinute)
-    ])
+    @Query(sort: [SortDescriptor(\BlockSchedule.sortIndex)])
     private var schedules: [BlockSchedule]
     @Query private var selectedApps: [SelectedApps]
     @Query private var keys: [Key]
@@ -46,15 +44,24 @@ struct SchedulesView: View {
         if schedules.isEmpty {
             emptyState
         } else {
-            ListView(items: schedules) { schedule in
+            ReorderableListView(items: schedules, rowContent: { schedule in
                 ScheduleCardView(schedule: schedule)
-            }
+            }, onMove: move)
             .safeAreaInset(edge: .bottom) {
                 if let message = bottomMessage {
                     FooterMessage(text: message)
                 }
             }
         }
+    }
+
+    private func move(from source: IndexSet, to destination: Int) {
+        var reordered = schedules
+        reordered.move(fromOffsets: source, toOffset: destination)
+        for (index, schedule) in reordered.enumerated() {
+            schedule.sortIndex = index
+        }
+        scheduleService.syncAllToSharedStore(reordered)
     }
 
     private var bottomMessage: LocalizedStringKey? {

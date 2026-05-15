@@ -181,6 +181,7 @@ struct ScheduleFormSheet: View {
             existing.isTimed = isTimed
             schedule = existing
         } else {
+            let nextIndex = (allSchedules.map(\.sortIndex).max() ?? -1) + 1
             schedule = BlockSchedule(
                 name: trimmed,
                 selection: selection,
@@ -190,7 +191,8 @@ struct ScheduleFormSheet: View {
                 weekdays: selectedWeekdays,
                 shouldBlock: shouldBlock,
                 isTimed: isTimed,
-                isEnabled: false
+                isEnabled: false,
+                sortIndex: nextIndex
             )
             modelContext.insert(schedule)
         }

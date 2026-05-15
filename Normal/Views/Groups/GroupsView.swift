@@ -3,7 +3,9 @@ import SwiftUI
 
 struct GroupsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
-    @Query private var appGroups: [AppGroup]
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
+    private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
     @State private var isShowingSheet = false
 
@@ -35,9 +37,17 @@ struct GroupsView: View {
         if appGroups.isEmpty {
             emptyState
         } else {
-            ListView(items: appGroups) { group in
+            ReorderableListView(items: appGroups, rowContent: { group in
                 GroupListCardView(appGroup: group)
-            }
+            }, onMove: move)
+        }
+    }
+
+    private func move(from source: IndexSet, to destination: Int) {
+        var reordered = appGroups
+        reordered.move(fromOffsets: source, toOffset: destination)
+        for (index, group) in reordered.enumerated() {
+            group.sortIndex = index
         }
     }
 

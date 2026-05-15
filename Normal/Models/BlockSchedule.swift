@@ -15,6 +15,7 @@ final class BlockSchedule: Identifiable {
     var shouldBlock: Bool
     var isTimed: Bool
     var isEnabled: Bool
+    var sortIndex: Int = 0
 
     var formattedStartTime: String {
         var components = DateComponents()
@@ -62,7 +63,8 @@ final class BlockSchedule: Identifiable {
         weekdays: Set<Int>,
         shouldBlock: Bool = true,
         isTimed: Bool = true,
-        isEnabled: Bool = true
+        isEnabled: Bool = true,
+        sortIndex: Int = 0
     ) {
         id = UUID()
         self.name = name
@@ -74,6 +76,7 @@ final class BlockSchedule: Identifiable {
         self.shouldBlock = shouldBlock
         self.isTimed = isTimed
         self.isEnabled = isEnabled
+        self.sortIndex = sortIndex
     }
 
     func toDTO() -> ScheduleDTO? {

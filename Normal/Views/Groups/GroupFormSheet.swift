@@ -8,6 +8,8 @@ struct GroupFormSheet: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
 
+    @Query private var allGroups: [AppGroup]
+
     let existing: AppGroup?
 
     @State private var name: String
@@ -71,7 +73,8 @@ struct GroupFormSheet: View {
             existing.lastUpdated = .now
             timedUnblockService.updateGroupSelection(groupId: existing.id, selection: selection)
         } else {
-            modelContext.insert(AppGroup(name: trimmed, selection: selection))
+            let nextIndex = (allGroups.map(\.sortIndex).max() ?? -1) + 1
+            modelContext.insert(AppGroup(name: trimmed, selection: selection, sortIndex: nextIndex))
         }
         dismiss()
     }
