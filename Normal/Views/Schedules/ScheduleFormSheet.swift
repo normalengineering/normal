@@ -181,7 +181,7 @@ struct ScheduleFormSheet: View {
             existing.isTimed = isTimed
             schedule = existing
         } else {
-            let nextIndex = (allSchedules.map(\.sortIndex).max() ?? -1) + 1
+            let nextIndex = SortIndexing.nextIndex(after: allSchedules, sortIndex: \.sortIndex)
             schedule = BlockSchedule(
                 name: trimmed,
                 selection: selection,

@@ -73,7 +73,7 @@ struct GroupFormSheet: View {
             existing.lastUpdated = .now
             timedUnblockService.updateGroupSelection(groupId: existing.id, selection: selection)
         } else {
-            let nextIndex = (allGroups.map(\.sortIndex).max() ?? -1) + 1
+            let nextIndex = SortIndexing.nextIndex(after: allGroups, sortIndex: \.sortIndex)
             modelContext.insert(AppGroup(name: trimmed, selection: selection, sortIndex: nextIndex))
         }
         dismiss()

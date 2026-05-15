@@ -56,11 +56,7 @@ struct SchedulesView: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
-        var reordered = schedules
-        reordered.move(fromOffsets: source, toOffset: destination)
-        for (index, schedule) in reordered.enumerated() {
-            schedule.sortIndex = index
-        }
+        let reordered = SortIndexing.reorder(schedules, from: source, to: destination, sortIndex: \.sortIndex)
         scheduleService.syncAllToSharedStore(reordered)
     }
 

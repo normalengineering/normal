@@ -44,11 +44,7 @@ struct GroupsView: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
-        var reordered = appGroups
-        reordered.move(fromOffsets: source, toOffset: destination)
-        for (index, group) in reordered.enumerated() {
-            group.sortIndex = index
-        }
+        _ = SortIndexing.reorder(appGroups, from: source, to: destination, sortIndex: \.sortIndex)
     }
 
     @ViewBuilder

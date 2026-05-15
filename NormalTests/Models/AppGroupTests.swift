@@ -19,4 +19,20 @@ struct AppGroupTests {
         let group = AppGroup(name: "G", selection: FamilyActivitySelection())
         #expect(abs(group.lastUpdated.timeIntervalSinceNow) < 1)
     }
+
+    @Test func sortIndexDefaultsToZero() {
+        let group = AppGroup(name: "G", selection: FamilyActivitySelection())
+        #expect(group.sortIndex == 0)
+    }
+
+    @Test func sortIndexHonorsExplicitValue() {
+        let group = AppGroup(name: "G", selection: FamilyActivitySelection(), sortIndex: 7)
+        #expect(group.sortIndex == 7)
+    }
+
+    @Test func sortIndexIsMutable() {
+        let group = AppGroup(name: "G", selection: FamilyActivitySelection())
+        group.sortIndex = 42
+        #expect(group.sortIndex == 42)
+    }
 }

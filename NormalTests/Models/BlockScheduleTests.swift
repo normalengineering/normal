@@ -89,4 +89,28 @@ struct BlockScheduleTests {
         let dto = s.toDTO()
         #expect(dto?.weekdays == [2, 4, 6])
     }
+
+    @Test func sortIndexDefaultsToZero() {
+        let s = makeSchedule()
+        #expect(s.sortIndex == 0)
+    }
+
+    @Test func sortIndexHonorsExplicitValue() {
+        let s = BlockSchedule(
+            name: "S",
+            selection: FamilyActivitySelection(),
+            startHour: 0,
+            startMinute: 0,
+            durationMinutes: 30,
+            weekdays: [2],
+            sortIndex: 5
+        )
+        #expect(s.sortIndex == 5)
+    }
+
+    @Test func sortIndexIsMutable() {
+        let s = makeSchedule()
+        s.sortIndex = 99
+        #expect(s.sortIndex == 99)
+    }
 }
