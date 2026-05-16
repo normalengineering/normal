@@ -21,7 +21,7 @@ struct OnboardingStepCard: View {
             }
         }
         .padding()
-        .glassEffect(in: .rect(cornerRadius: DS.Radius.lg))
+        .glassCardBackground(cornerRadius: DS.Radius.lg)
         .padding(.horizontal)
     }
 }

@@ -7,7 +7,7 @@ struct OnboardingWelcomeView: View {
     private static let features: [(systemImage: String, text: LocalizedStringKey)] = [
         ("app.dashed", "Select apps you want to block"),
         ("key.viewfinder", "Register NFC Tags and QR Codes to lock and unlock"),
-        ("app.shadow", "Organize apps into groups"),
+        (AppIcons.groups, "Organize apps into groups"),
         ("calendar.badge.clock", "Create schedules"),
     ]
 

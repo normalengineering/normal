@@ -51,7 +51,7 @@ struct GroupsView: View {
     private var emptyState: some View {
         if hasSelection {
             ContentUnavailableView {
-                Label("No Groups", systemImage: "app.shadow")
+                Label("No Groups", systemImage: AppIcons.groups)
             } description: {
                 Text("Groups give you more granular control over which apps to block and unblock.")
             } actions: {

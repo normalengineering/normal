@@ -14,6 +14,6 @@ struct GlassCard<Content: View>: View {
         .padding(padding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
-        .glassEffect(in: .rect(cornerRadius: cornerRadius))
+        .glassCardBackground(cornerRadius: cornerRadius)
     }
 }

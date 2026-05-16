@@ -13,7 +13,7 @@ struct PromptCard<Content: View, Actions: View>: View {
                 actions
             }
             .padding(DS.Spacing.xxl)
-            .glassEffect(in: .rect(cornerRadius: cornerRadius))
+            .glassCardBackground(cornerRadius: cornerRadius)
             .padding(.horizontal, DS.Spacing.xxl)
             Spacer()
         }
