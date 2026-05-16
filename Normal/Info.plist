@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>Privacy - Camera Usage Description</key>
+	<string>Normal uses the camera to scan QR codes you've set up as keys, to block and unlock apps on your device.</string>
 	<key>Privacy - Family Controls Usage Description</key>
 	<string>Normal uses Screen Time to block and unblock apps on your device so you can be more intentional with your phone usage.</string>
 	<key>com.apple.developer.nfc.readersession.felica.systemcodes</key>

@@ -136,6 +136,22 @@ enum FAQAnswer {
     )
 
     static let settingsBypass = AnyView(SettingsBypassGuide())
+
+    static let contact = AnyView(
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            Text("We'd love to hear from you, whether it's a bug, a feature idea, or a question.")
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                Text("Email us at")
+                Link("info@normalengineering.org", destination: URL(string: "mailto:info@normalengineering.org")!)
+                    .foregroundStyle(.tint)
+            }
+            Text("Or raise an issue on our GitHub repository.")
+        }
+        .font(body)
+        .foregroundStyle(.secondary)
+    )
+
+    static let keyTypes = AnyView(KeyTypesFAQView())
 }
 
 private struct FAQHeadedParagraph: View {

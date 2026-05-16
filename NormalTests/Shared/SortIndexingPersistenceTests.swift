@@ -19,7 +19,7 @@ struct SortIndexingPersistenceTests {
         let initial = try context.fetch(
             FetchDescriptor<AppGroup>(sortBy: [SortDescriptor(\.sortIndex)])
         )
-        _ = SortIndexing.reorder(initial, from: IndexSet(integer: 0), to: 3)
+        _ = SortIndexing.reorder(initial, from: IndexSet(integer: 0), to: 3, sortIndex: \.sortIndex)
         try context.save()
 
         let reloaded = try context.fetch(
@@ -39,7 +39,7 @@ struct SortIndexingPersistenceTests {
         ]
         existing.forEach(context.insert)
 
-        let next = SortIndexing.nextIndex(after: existing)
+        let next = SortIndexing.nextIndex(after: existing, sortIndex: \.sortIndex)
         let new = AppGroup(name: "C", selection: FamilyActivitySelection(), sortIndex: next)
         context.insert(new)
         try context.save()
@@ -63,7 +63,7 @@ struct SortIndexingPersistenceTests {
         let initial = try context.fetch(
             FetchDescriptor<BlockSchedule>(sortBy: [SortDescriptor(\.sortIndex)])
         )
-        _ = SortIndexing.reorder(initial, from: IndexSet(integer: 2), to: 0)
+        _ = SortIndexing.reorder(initial, from: IndexSet(integer: 2), to: 0, sortIndex: \.sortIndex)
         try context.save()
 
         let reloaded = try context.fetch(
@@ -86,7 +86,7 @@ struct SortIndexingPersistenceTests {
         let initial = try context.fetch(
             FetchDescriptor<BlockSchedule>(sortBy: [SortDescriptor(\.sortIndex)])
         )
-        _ = SortIndexing.reorder(initial, from: IndexSet(integer: 1), to: 3)
+        _ = SortIndexing.reorder(initial, from: IndexSet(integer: 1), to: 3, sortIndex: \.sortIndex)
         try context.save()
 
         let reloaded = try context.fetch(

@@ -1,10 +1,33 @@
 import AVFoundation
 import SwiftUI
+import UIKit
 
 struct QRScannerView: View {
     let qrService: QRService
 
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var permission = CameraPermissionModel()
+
     var body: some View {
+        ZStack {
+            switch permission.access {
+            case .checking:
+                ProgressView()
+            case .authorized:
+                cameraScanner
+            case .denied:
+                deniedView
+            }
+        }
+        .navigationTitle("Scan QR Code")
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await permission.resolve() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await permission.resolve() } }
+        }
+    }
+
+    private var cameraScanner: some View {
         ZStack {
             QRCameraRepresentable(
                 onScan: { qrService.handleScan($0) },
@@ -14,8 +37,20 @@ struct QRScannerView: View {
 
             resultOverlay
         }
-        .navigationTitle("Scan QR Code")
-        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var deniedView: some View {
+        ContentUnavailableView {
+            Label("Camera Access Needed", systemImage: "camera.fill")
+        } description: {
+            Text("Normal needs camera access to scan QR code keys. Enable camera access for Normal in Settings.")
+        } actions: {
+            Button("Open Settings") {
+                guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                UIApplication.shared.open(url)
+            }
+            .buttonStyle(.borderedProminent)
+        }
     }
 
     @ViewBuilder

@@ -11,6 +11,8 @@ enum FAQContent {
         FAQEntry(question: "Can I contribute to the project?", answer: FAQAnswer.contribute),
         FAQEntry(question: "Can I use Normal to make my iPhone a dumbphone or semi-dumb feature phone?", answer: FAQAnswer.dumbphone),
         FAQEntry(question: "Why do I have to reselect apps in my schedules and groups when I update my selected apps?", answer: FAQAnswer.reselectAppLimitation),
+        FAQEntry(question: "What NFC tags and QR codes can I use?", answer: FAQAnswer.keyTypes),
+        FAQEntry(question: "How can I contact you?", answer: FAQAnswer.contact),
         FAQEntry(question: "Can I prevent disabling Normal via Settings? I want to make it impossible to access blocked apps.", answer: FAQAnswer.settingsBypass),
     ]
 }

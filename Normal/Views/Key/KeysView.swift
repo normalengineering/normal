@@ -33,14 +33,7 @@ struct KeysView: View {
     @ViewBuilder
     private var content: some View {
         if keys.isEmpty {
-            ContentUnavailableView {
-                Label("No Keys", systemImage: "key.viewfinder")
-            } description: {
-                Text(noKeysDescription)
-            } actions: {
-                Button("Add Key") { isShowingSheet = true }
-                    .buttonStyle(.borderedProminent)
-            }
+            KeysEmptyStateView { isShowingSheet = true }
         } else {
             ListView(items: keys) { key in
                 KeyListCardView(key: key)
@@ -51,11 +44,5 @@ struct KeysView: View {
                 }
             }
         }
-    }
-
-    private var noKeysDescription: LocalizedStringKey {
-        KeyType.nfc.isAvailableOnDevice
-            ? "Keys are required to block and unblock apps. Add an NFC tag or QR code to get started."
-            : "Keys are required to block and unblock apps. Add a QR code to get started."
     }
 }
