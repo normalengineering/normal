@@ -22,7 +22,6 @@ struct AVCameraAuthorizer: CameraAuthorizing {
     }
 }
 
-@MainActor
 @Observable
 final class CameraPermissionModel {
     private(set) var access: CameraAccess = .checking
@@ -32,6 +31,7 @@ final class CameraPermissionModel {
         self.authorizer = authorizer
     }
 
+    @MainActor
     func resolve() async {
         switch authorizer.authorizationStatus() {
         case .authorized:
