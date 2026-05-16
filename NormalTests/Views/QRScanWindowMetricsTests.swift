@@ -52,7 +52,7 @@ struct QRScanWindowMetricsTests {
     }
 
     @Test func staysSafeAcrossManySizes() {
-        let dimensions: [CGFloat] = [0, 1, 8, 9, 50, 320, 430, 1024, 2_000]
+        let dimensions: [CGFloat] = [0, 1, 8, 9, 50, 320, 430, 1024, 2000]
         for w in dimensions {
             for h in dimensions {
                 assertSafe(QRScanWindowMetrics(container: CGSize(width: w, height: h)))
