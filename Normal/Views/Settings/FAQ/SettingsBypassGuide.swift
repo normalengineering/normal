@@ -58,7 +58,7 @@ struct SettingsBypassGuide: View {
                 BulletRow(text: "Set the automation to Run Immediately")
                 BulletRow(text: "Turn off Notify When Run")
             }
-            Text("This ensures it runs silently in the background every time.")
+            Text("This ensures it runs immediately every time.")
         }
     }
 
