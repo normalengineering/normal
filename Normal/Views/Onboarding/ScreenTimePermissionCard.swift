@@ -10,7 +10,7 @@ struct ScreenTimePermissionCard: View {
                 .font(.title3.bold())
                 .frame(maxWidth: .infinity, alignment: .center)
 
-            Text("Normal uses Screen Time to block and unblock apps. You can grant this now or later when you first block an app.")
+            Text("Normal uses Screen Time to block and unblock apps. You can grant this now or later, it's required to select and block apps.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         } actions: {
