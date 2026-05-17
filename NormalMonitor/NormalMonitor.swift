@@ -45,7 +45,7 @@ final class NormalMonitor: DeviceActivityMonitor {
 
     private func handleScheduleIntervalStart(activityName: String) {
         guard let schedule = findSchedule(activityName: activityName),
-              isActiveToday(schedule: schedule),
+              schedule.startApplies(on: .now),
               let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return }
 
@@ -59,6 +59,7 @@ final class NormalMonitor: DeviceActivityMonitor {
     private func handleScheduleIntervalEnd(activityName: String) {
         guard let schedule = findSchedule(activityName: activityName),
               schedule.isTimed,
+              schedule.endApplies(on: .now),
               let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return }
 
@@ -73,10 +74,5 @@ final class NormalMonitor: DeviceActivityMonitor {
         sharedStore.loadSchedules().first { dto in
             SharedConstants.scheduleActivityName(for: dto.id) == activityName
         }
-    }
-
-    private func isActiveToday(schedule: ScheduleDTO) -> Bool {
-        let today = Calendar.current.component(.weekday, from: .now)
-        return schedule.weekdays.contains(today)
     }
 }

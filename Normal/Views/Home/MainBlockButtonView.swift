@@ -43,6 +43,7 @@ struct MainBlockButtonView: View {
                     selection: mainSelection.selection,
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
+                timedUnblockService.clearAll()
             }
         } label: {
             HStack {

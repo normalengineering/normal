@@ -38,6 +38,22 @@ struct ScheduleDTO: Codable, Sendable, Identifiable {
     let isTimed: Bool
 }
 
+extension ScheduleDTO {
+    var wrapsPastMidnight: Bool {
+        startHour * 60 + startMinute + durationMinutes >= 24 * 60
+    }
+
+    func startApplies(on date: Date, calendar: Calendar = .current) -> Bool {
+        weekdays.contains(calendar.component(.weekday, from: date))
+    }
+
+    func endApplies(on date: Date, calendar: Calendar = .current) -> Bool {
+        let today = calendar.component(.weekday, from: date)
+        let startWeekday = wrapsPastMidnight ? (today == 1 ? 7 : today - 1) : today
+        return weekdays.contains(startWeekday)
+    }
+}
+
 extension FamilyActivitySelection {
     func toData() throws -> Data {
         try PropertyListEncoder().encode(self)

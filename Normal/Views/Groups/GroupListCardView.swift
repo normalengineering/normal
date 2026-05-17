@@ -32,6 +32,10 @@ struct GroupListCardView: View {
         timedUnblockService.groupUnblockEndDate(groupId: appGroup.id)
     }
 
+    private var showsTimedUnblock: Bool {
+        isTimedUnblockActive && blockStatus != .all
+    }
+
     private var needsSync: Bool {
         guard let mainSelection = selectedApps.first?.selection else { return false }
         return !appGroup.selection.isSubset(of: mainSelection)
@@ -42,10 +46,10 @@ struct GroupListCardView: View {
             header
             tokenStrip
             if needsSync { syncWarningText }
-            if !needsSync, let endDate = unblockEndDate, endDate > .now {
+            if !needsSync, showsTimedUnblock, let endDate = unblockEndDate, endDate > .now {
                 timedUnblockRow(endDate: endDate)
             }
-            if !needsSync && !isTimedUnblockActive { actionRow }
+            if !needsSync && !showsTimedUnblock { actionRow }
         }
         .opacity(needsSync ? DS.Opacity.dim : 1)
         .onTapGesture { isEditing = true }
@@ -79,7 +83,7 @@ struct GroupListCardView: View {
     private var statusBadge: some View {
         if needsSync {
             StatusBadge(title: "Needs Update", systemImage: "exclamationmark.triangle.fill", tint: .yellow)
-        } else if isTimedUnblockActive {
+        } else if showsTimedUnblock {
             StatusBadge(title: "Timed Unblock", systemImage: "timer", tint: .orange)
         } else {
             StatusBadge(title: LocalizedStringKey(blockStatus.shortLabel), systemImage: blockStatus.icon, tint: blockStatus.color)

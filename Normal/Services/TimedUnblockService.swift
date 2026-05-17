@@ -114,6 +114,17 @@ final class TimedUnblockService {
         forget(id: id)
     }
 
+    func clearAll() {
+        for key in Array(activeUnblocks.keys) {
+            if key == Self.mainID {
+                cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
+            } else if let uuid = UUID(uuidString: key) {
+                cancelMonitoring(activityName: SharedConstants.groupTimedUnblockActivityName(for: uuid))
+            }
+            forget(id: key)
+        }
+    }
+
     func updateMainSelection(_ selection: FamilyActivitySelection) {
         guard let endDate = activeUnblocks[Self.mainID] else { return }
         let activityName = SharedConstants.mainTimedUnblockActivityName

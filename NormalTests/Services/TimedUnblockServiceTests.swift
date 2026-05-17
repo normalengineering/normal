@@ -118,6 +118,74 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.count == 1)
     }
 
+    @Test func clearAllStopsEveryUnblockAndForgets() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupId = UUID()
+
+        try service.startGroup(
+            duration: .fifteenMinutes,
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        let stopsBefore = activity.stopCalls.count
+        service.clearAll()
+
+        #expect(!service.isMainUnblockActive)
+        #expect(!service.isGroupUnblockActive(groupId: groupId))
+        #expect(store.timedUnblocks.isEmpty)
+        #expect(activity.stopCalls.count > stopsBefore)
+    }
+
+    @Test func clearAllWithNothingActiveIsNoOp() {
+        let (service, _, store) = makeService()
+
+        service.clearAll()
+
+        #expect(!service.isMainUnblockActive)
+        #expect(store.timedUnblocks.isEmpty)
+    }
+
+    @Test func clearAllLeavesSchedulesUntouched() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let scheduleId = UUID()
+        let schedule = try ScheduleDTO(
+            id: scheduleId,
+            name: "Work",
+            selectionData: FamilyActivitySelection().toData(),
+            startHour: 9,
+            startMinute: 0,
+            durationMinutes: 60,
+            weekdays: [2, 3, 4, 5, 6],
+            shouldBlock: true,
+            isTimed: true
+        )
+        store.saveSchedules([schedule])
+
+        try service.startGroup(
+            duration: .fifteenMinutes,
+            groupId: UUID(),
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        service.clearAll()
+
+        #expect(store.loadSchedules().map(\.id) == [scheduleId])
+        let scheduleActivity = SharedConstants.scheduleActivityName(for: scheduleId)
+        let stoppedNames = activity.stopCalls.flatMap { $0 }.map(\.rawValue)
+        #expect(!stoppedNames.contains(scheduleActivity))
+        #expect(store.timedUnblocks.isEmpty)
+    }
+
     @Test func updateMainSelectionPreservesEndDate() throws {
         let (service, _, store) = makeService()
         let screenTime = FakeScreenTimeService()
