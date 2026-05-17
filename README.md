@@ -11,9 +11,9 @@ A powerful screen time blocker that actually works to reduce your screen time. O
 
 ## Features
 
-### NFC Tag & QR Code Support
+### NFC Tag, QR Code and Barcode Support
 
-Use any NFC tag (AirTags, stickers, cards) or QR codes to control app blocking.
+Use any NFC tag (AirTags, stickers, cards), QR code, or Barcode to control app blocking.
 
 ### App Groups
 
