@@ -29,7 +29,12 @@ struct TimedUnblockBannerView: View {
                         }
                     }
 
-                    Button {
+                    CardActionButton(
+                        title: "Block All Now",
+                        systemImage: "lock.fill",
+                        prominent: false,
+                        tint: .orange
+                    ) {
                         authAction = {
                             timedUnblockService.cancelMain(
                                 selection: selection,
@@ -37,14 +42,7 @@ struct TimedUnblockBannerView: View {
                                 blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                             )
                         }
-                    } label: {
-                        Label("Block All Now", systemImage: "lock.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DS.Spacing.sm)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.orange)
                 }
             }
             .keySelect(action: $authAction, allowBypass: true)

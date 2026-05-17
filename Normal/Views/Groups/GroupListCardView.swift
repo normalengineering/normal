@@ -134,26 +134,25 @@ struct GroupListCardView: View {
     }
 
     private var blockButton: some View {
-        Button {
+        CardActionButton(
+            title: blockStatus == .some ? "Block All" : "Block",
+            systemImage: "lock.fill",
+            prominent: true,
+            tint: .blue
+        ) {
             allowBypass = true
             authAction = {
                 screenTimeService.addToShields(selection: appGroup.selection)
             }
-        } label: {
-            Label(
-                blockStatus == .some ? "Block All" : "Block",
-                systemImage: "lock.fill"
-            )
-            .font(.subheadline.weight(.semibold))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, DS.Spacing.md - 2)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(.blue)
     }
 
     private var unblockButton: some View {
-        Button {
+        CardActionButton(
+            title: blockStatus == .some ? "Unblock All" : "Unblock",
+            systemImage: "lock.open.fill",
+            prominent: false
+        ) {
             allowBypass = false
             authAction = {
                 if let duration = settings.defaultUnblockDuration {
@@ -167,16 +166,7 @@ struct GroupListCardView: View {
                     showTimedUnblockSheet = true
                 }
             }
-        } label: {
-            Label(
-                blockStatus == .some ? "Unblock All" : "Unblock",
-                systemImage: "lock.open.fill"
-            )
-            .font(.subheadline.weight(.semibold))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, DS.Spacing.md - 2)
         }
-        .buttonStyle(.bordered)
     }
 
     private var timedUnblockSheet: some View {
