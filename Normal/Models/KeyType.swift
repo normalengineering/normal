@@ -28,14 +28,21 @@ enum KeyType: String, Codable, CaseIterable, Identifiable, Sendable {
     var label: String {
         switch self {
         case .nfc: "NFC Tag"
-        case .qr: "QR Code"
+        case .qr: "QR Code or Barcode"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .nfc: "NFC"
+        case .qr: "QR / Barcode"
         }
     }
 
     var scanPrompt: String {
         switch self {
         case .nfc: "Hold your device near an NFC tag"
-        case .qr: "Scan a QR code with your camera"
+        case .qr: "Scan a QR code or barcode with your camera"
         }
     }
 }

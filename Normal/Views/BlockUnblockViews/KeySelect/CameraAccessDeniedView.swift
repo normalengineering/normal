@@ -8,7 +8,7 @@ struct CameraAccessDeniedView: View {
         ContentUnavailableView {
             Label("Camera Access Needed", systemImage: "camera.fill")
         } description: {
-            Text("Normal needs camera access to scan QR code keys. Enable camera access for Normal in Settings.")
+            Text("Normal needs camera access to scan QR code and barcode keys. Enable camera access for Normal in Settings.")
         } actions: {
             Button("Open Settings") {
                 guard let url = URL(string: UIApplication.openSettingsURLString) else { return }

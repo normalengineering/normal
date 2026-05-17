@@ -87,7 +87,12 @@ final class QRCameraController: UIViewController {
         }
         session.addOutput(output)
         output.setMetadataObjectsDelegate(self, queue: metadataQueue)
-        output.metadataObjectTypes = [.qr]
+        output.metadataObjectTypes = [
+            .qr, .aztec, .pdf417, .dataMatrix,
+            .ean13, .ean8, .upce,
+            .code39, .code39Mod43, .code93, .code128,
+            .interleaved2of5, .itf14,
+        ]
 
         session.commitConfiguration()
 

@@ -17,7 +17,7 @@ struct QRScannerView: View {
                 CameraAccessDeniedView()
             }
         }
-        .navigationTitle("Scan QR Code")
+        .navigationTitle("Scan QR Code or Barcode")
         .navigationBarTitleDisplayMode(.inline)
         .task { await permission.resolve() }
         .onChange(of: scenePhase) { _, phase in

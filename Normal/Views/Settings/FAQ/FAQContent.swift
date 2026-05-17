@@ -3,7 +3,7 @@ import SwiftUI
 enum FAQContent {
     static let sections: [FAQSection] = [
         FAQSection(title: "Getting Started & Setup", entries: [
-            FAQEntry(question: "What NFC tags and QR codes can I use?", answer: FAQAnswer.keyTypes),
+            FAQEntry(question: "What NFC tags, QR codes, and barcodes can I use?", answer: FAQAnswer.keyTypes),
             FAQEntry(question: "Can I use Normal to make my iPhone a dumbphone or semi-dumb feature phone?", answer: FAQAnswer.dumbphone),
             FAQEntry(question: "Why do I have to reselect apps in my schedules and groups when I update my selected apps?", answer: FAQAnswer.reselectAppLimitation),
             FAQEntry(question: "Can I prevent disabling Normal via Settings? I want to make it impossible to access blocked apps.", answer: FAQAnswer.settingsBypass),

@@ -24,7 +24,7 @@ struct KeyFormSheetSetupSection: View {
             stepLabel(number: 1, title: "Choose Type")
             Picker("Type", selection: $keyType) {
                 ForEach(KeyType.availableOnDevice) { type in
-                    Label(type.rawValue, systemImage: type.icon).tag(type)
+                    Label(type.shortLabel, systemImage: type.icon).tag(type)
                 }
             }
             .pickerStyle(.segmented)

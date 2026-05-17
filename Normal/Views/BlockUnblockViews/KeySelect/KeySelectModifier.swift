@@ -35,7 +35,7 @@ struct KeySelectModifier: ViewModifier {
                 Text(
                     keys.isEmpty
                         ? "Add a key in the Keys tab before blocking apps."
-                        : "None of your registered keys are supported on this device. Add a QR code key to use on iPad."
+                        : "None of your registered keys are supported on this device. Add a QR code or barcode key to use on iPad."
                 )
             }
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {

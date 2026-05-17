@@ -30,7 +30,7 @@ struct QRScanOverlay: View {
                         .position(metrics.center)
 
                     if scanResult == .none {
-                        Text("Point your camera at your QR code")
+                        Text("Point your camera at your QR code or barcode")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)

@@ -90,7 +90,7 @@ struct SettingsBypassGuide: View {
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     BulletRow(text: "After this setup, the only ways to disable Normal are:")
                     VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                        BulletRow(text: "Using an NFC or QR key you've configured in Normal", indent: DS.Spacing.lg)
+                        BulletRow(text: "Using an NFC, QR, or barcode key you've configured in Normal", indent: DS.Spacing.lg)
                         BulletRow(text: "Resetting your device", indent: DS.Spacing.lg)
                     }
                 }

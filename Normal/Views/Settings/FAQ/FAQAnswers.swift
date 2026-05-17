@@ -54,7 +54,7 @@ enum FAQAnswer {
             }
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Normal").fontWeight(.medium).foregroundStyle(.primary)
-                Text("takes an opt-in approach. Apps you select are blocked by default. To use them, you have to physically scan an NFC tag or QR code you've placed somewhere intentional.")
+                Text("takes an opt-in approach. Apps you select are blocked by default. To use them, you have to physically scan an NFC tag, QR code, or barcode you've placed somewhere intentional.")
             }
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 BulletRow(text: "Stronger, harder-to-bypass blocking")
@@ -71,7 +71,7 @@ enum FAQAnswer {
             Text("Aside from being completely free and open source, Normal is built to be much stronger and better serve its purpose.")
             FAQHeadedParagraph(
                 title: "Opt-in approach",
-                text: "Most screen time apps use an opt-out approach, like Apple's Screen Time, where you're asked to confirm each time you exceed a limit. With Normal, selected apps are blocked by default. To use them, you have to physically scan an NFC tag or QR code you've placed somewhere intentional."
+                text: "Most screen time apps use an opt-out approach, like Apple's Screen Time, where you're asked to confirm each time you exceed a limit. With Normal, selected apps are blocked by default. To use them, you have to physically scan an NFC tag, QR code, or barcode you've placed somewhere intentional."
             )
             FAQHeadedParagraph(
                 title: "Physical layer",

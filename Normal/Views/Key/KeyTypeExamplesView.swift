@@ -24,11 +24,12 @@ struct KeyTypeExamplesView: View {
 
     private var qrCard: some View {
         card {
-            cardTitle("QR code examples", systemImage: "qrcode")
-            FeatureRow(systemImage: "doc.fill", text: "Any QR code works. You can print one on paper, put it on a sticker, or show it on a second device's screen.")
-            FeatureRow(systemImage: "arrow.triangle.2.circlepath", text: "Normal reads the value inside the QR code. Use something you can recreate later if you lose it, or make it random so it's hard to reproduce.")
+            cardTitle("QR code or barcode examples", systemImage: "qrcode")
+            FeatureRow(systemImage: "doc.fill", text: "Any QR code or barcode works — even a product barcode off a snack wrapper. Print one on paper, put it on a sticker, or show it on a second device's screen.")
+            FeatureRow(systemImage: "arrow.triangle.2.circlepath", text: "Normal reads the value inside the QR code or barcode. Use something you can recreate later if you lose it, or make it random so it's hard to reproduce.")
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                Text("Generating one").font(.subheadline.weight(.semibold))
+                Text("Getting one").font(.subheadline.weight(.semibold))
+                BulletRow(text: "Any product barcode, like one off a snack wrapper or book")
                 BulletRow(text: "Any free \"QR code generator\" website")
                 BulletRow(text: "The Shortcuts app's \"Generate QR Code\" action")
             }

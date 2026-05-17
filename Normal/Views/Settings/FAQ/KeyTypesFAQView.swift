@@ -15,8 +15,8 @@ struct KeyTypesFAQView: View {
 
     private var intro: LocalizedStringKey {
         isNFCAvailable
-            ? "Just about any NFC tag or QR code can be a key. Here are some examples and tips on where to keep them."
-            : "Just about any QR code can be a key. Here are some examples and tips on where to keep them."
+            ? "Just about any NFC tag, QR code, or barcode can be a key. Here are some examples and tips on where to keep them."
+            : "Just about any QR code or barcode can be a key. Here are some examples and tips on where to keep them."
     }
 
     private var iPadNote: some View {
@@ -25,7 +25,7 @@ struct KeyTypesFAQView: View {
                 .foregroundStyle(.tint)
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Using an iPad?").fontWeight(.semibold).foregroundStyle(.primary)
-                Text("This device can't scan NFC, so NFC tags won't work here. Use a QR code instead.")
+                Text("This device can't scan NFC, so NFC tags won't work here. Use a QR code or barcode instead.")
                     .foregroundStyle(.primary)
             }
         }

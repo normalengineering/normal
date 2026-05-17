@@ -5,8 +5,8 @@ struct KeysEmptyStateView: View {
 
     private var noKeysDescription: LocalizedStringKey {
         KeyType.nfc.isAvailableOnDevice
-            ? "Keys are required to block and unblock apps. Add an NFC tag or QR code to get started."
-            : "Keys are required to block and unblock apps. Add a QR code to get started."
+            ? "Keys are required to block and unblock apps. Add an NFC tag, QR code, or barcode to get started."
+            : "Keys are required to block and unblock apps. Add a QR code or barcode to get started."
     }
 
     var body: some View {

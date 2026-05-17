@@ -38,7 +38,7 @@ enum OnboardingStep: String, CaseIterable, Sendable {
         switch self {
         case .tabHome: "View your block status and quickly block or unblock all your selected apps."
         case .tabAppSelect: "Choose which apps you want Normal to manage. These are the apps that can be blocked."
-        case .tabKeys: "Register NFC tags or QR codes as physical keys to lock and unlock your apps."
+        case .tabKeys: "Register NFC tags, QR codes, or barcodes as physical keys to lock and unlock your apps."
         case .tabGroups: "Organize your apps into groups so you can block and unblock them separately."
         case .tabSchedules: "Set up automatic schedules to block apps at certain times and days."
         default: ""
