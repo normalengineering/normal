@@ -13,6 +13,15 @@ private extension NFCTag {
         }
         return bytes?.hexString
     }
+
+    var hasRandomIdentifier: Bool {
+        let id: Data? = switch self {
+        case let .miFare(t): t.identifier
+        case let .iso7816(t): t.identifier
+        default: nil
+        }
+        return id?.count == 4 && id?.first == 0x08
+    }
 }
 
 @Observable
@@ -90,6 +99,12 @@ extension NFCService: NFCTagReaderSessionDelegate {
                 }
 
                 guard let validator = self.validator else {
+                    if tag.hasRandomIdentifier {
+                        let err = ScanError.NFCError.unstableIdentifier
+                        session.invalidate(errorMessage: err.alertMessage)
+                        self.finish(with: .failure(ScanError.nfc(err)))
+                        return
+                    }
                     session.alertMessage = "Key Detected"
                     session.invalidate()
                     self.finish(with: .success(hexId))

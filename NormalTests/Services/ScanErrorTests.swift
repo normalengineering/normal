@@ -32,9 +32,14 @@ struct ScanErrorTests {
         #expect(ScanError.NFCError.unsupportedTag.errorDescription == "This tag type isn't compatible with this app.")
     }
 
+    @Test func nfcUnstableIdentifierHasMessage() {
+        #expect(ScanError.NFCError.unstableIdentifier.errorDescription?.contains("can't be used as a key") == true)
+    }
+
     @Test func nfcAlertMessagesAreSet() {
         #expect(!ScanError.NFCError.unavailable.alertMessage.isEmpty)
         #expect(!ScanError.NFCError.connectionFailed.alertMessage.isEmpty)
         #expect(!ScanError.NFCError.unsupportedTag.alertMessage.isEmpty)
+        #expect(!ScanError.NFCError.unstableIdentifier.alertMessage.isEmpty)
     }
 }
