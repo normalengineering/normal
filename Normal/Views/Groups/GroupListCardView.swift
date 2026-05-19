@@ -92,7 +92,7 @@ struct GroupListCardView: View {
 
     private var tokenStrip: some View {
         HStack(spacing: DS.Spacing.sm) {
-            SelectionIconsView(tokens: appGroup.selection.allTokens)
+            SelectionIconsView(tokens: appGroup.selection.allTokens, limit: 6)
         }
     }
 

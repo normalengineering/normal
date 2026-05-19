@@ -20,7 +20,7 @@ enum ScanError: LocalizedError {
             case .unsupportedTag: "This tag type isn't compatible with this app."
             case .unstableIdentifier:
                 """
-                This document changes its ID every scan (passports do this for \
+                This NFC Tag changes its ID every scan (passports do this for \
                 privacy), so it can't be used as a key. Use a tag with a fixed \
                 ID instead.
                 """
@@ -32,7 +32,7 @@ enum ScanError: LocalizedError {
             case .unavailable: "NFC unavailable."
             case .connectionFailed: "Connection failed."
             case .unsupportedTag: "Unsupported NFC type. Please contact us to add support."
-            case .unstableIdentifier: "This document can't be used as a key."
+            case .unstableIdentifier: "This NFC type can't be used. Please try a different NFC tag."
             }
         }
     }

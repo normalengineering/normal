@@ -143,7 +143,7 @@ struct ScheduleCardView: View {
     private var tokenStrip: some View {
         if !schedule.selection.allTokens.isEmpty {
             HStack(spacing: DS.Spacing.sm) {
-                SelectionIconsView(tokens: schedule.selection.allTokens)
+                SelectionIconsView(tokens: schedule.selection.allTokens, limit: 6)
             }
         }
     }

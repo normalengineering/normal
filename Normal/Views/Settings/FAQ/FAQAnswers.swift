@@ -151,6 +151,21 @@ enum FAQAnswer {
         .foregroundStyle(.secondary)
     )
 
+    static let nfcTypeSupport = AnyView(
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            Text("Normal identifies an NFC tag by its unique ID, not by the data stored inside it.")
+            Text("Some high-security tags, like certain bank or transit cards, deliberately use a rotating ID that changes on every scan, for privacy and anti-tracking reasons.")
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                BulletRow(text: "Their ID is different every time you tap them")
+                BulletRow(text: "We can't confirm it's the same tag you registered")
+                BulletRow(text: "So they can't be used as a reliable key")
+            }
+            Text("Use a tag with a fixed unique ID; AirTags, Amiibo, most Credit Cards and most everyday NFC tags work well. Or use a QR code or barcode as a key instead.")
+        }
+        .font(body)
+        .foregroundStyle(.secondary)
+    )
+
     static let keyTypes = AnyView(KeyTypesFAQView())
 }
 

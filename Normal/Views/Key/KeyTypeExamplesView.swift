@@ -16,7 +16,7 @@ struct KeyTypeExamplesView: View {
     private var nfcCard: some View {
         card {
             cardTitle("NFC tag examples", systemImage: "wave.3.right")
-            FeatureRow(systemImage: "tag.fill", text: "Almost any NFC tag works. AirTags, transit cards, amiibo, and even passports all have NFC chips you can use.")
+            FeatureRow(systemImage: "tag.fill", text: "Almost any NFC tag works. AirTags, Amiibo, and even Credit Cards have NFC chips you can use.")
             FeatureRow(systemImage: "cart.fill", text: "You can also buy packs of blank NFC tags online for very little.")
             FeatureRow(systemImage: "lock.shield.fill", text: "Normal only reads the tag's unique ID, never the data on it. That means only the tag you register can unblock your apps, and your privacy stays protected.")
         }
