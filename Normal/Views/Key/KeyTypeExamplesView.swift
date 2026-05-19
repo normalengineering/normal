@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Shared explainer for what NFC tags / QR codes can be used as keys and
-/// where to place them. Reused by the Keys empty state and the FAQ.
 struct KeyTypeExamplesView: View {
     private var isNFCAvailable: Bool { KeyType.nfc.isAvailableOnDevice }
 

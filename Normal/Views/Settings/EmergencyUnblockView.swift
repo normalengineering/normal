@@ -12,8 +12,10 @@ struct EmergencyUnblockView: View {
         List {
             Section {
                 Text("\(settings.emergencyUnblocksAvailable) of \(Settings.maxEmergencyUnblocks) remaining")
+                    .accessibilityIdentifier("emergency.remaining")
                 Button("Emergency Unblock") { showConfirmation = true }
                     .disabled(settings.emergencyUnblocksAvailable == 0)
+                    .accessibilityIdentifier("emergency.unblockButton")
             } header: {
                 Text("Emergency Unblock")
             } footer: {

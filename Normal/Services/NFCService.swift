@@ -40,6 +40,12 @@ final class NFCService: NSObject {
     }
 
     func scan(validate: ((String) -> Bool)?) async throws -> String {
+        if UITestSupport.isActive {
+            if let validate, !validate(UITestSupport.stubScanValue) {
+                throw ScanError.invalidKey
+            }
+            return UITestSupport.stubScanValue
+        }
         guard !isScanning else { throw ScanError.alreadyScanning }
         guard NFCTagReaderSession.readingAvailable else { throw ScanError.nfc(.unavailable) }
 

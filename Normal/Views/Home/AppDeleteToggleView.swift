@@ -25,6 +25,7 @@ struct AppDeleteToggleView: View {
         ) {
             Toggle("Prevent App Deletion", isOn: binding)
                 .tint(.accentColor)
+                .accessibilityIdentifier("home.preventDeleteToggle")
         }
         .protectedAction($authAction, allowBypass: pendingValue == true)
     }

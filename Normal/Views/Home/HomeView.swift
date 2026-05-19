@@ -10,7 +10,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             List {
-                if let mainSelection, !mainSelection.selection.isEmpty {
+                if let mainSelection, !mainSelection.selection.isEmpty || UITestSupport.isActive {
                     TimedUnblockBannerView(selection: mainSelection.selection)
                     MainBlockButtonView(mainSelection: mainSelection)
                     BlockStatusView(mainSelection: mainSelection)

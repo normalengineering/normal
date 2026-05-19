@@ -106,6 +106,7 @@ struct ScheduleCardView: View {
                 .labelsHidden()
                 .tint(.accentColor)
                 .disabled(isLocked)
+                .accessibilityIdentifier("schedule.enabledToggle")
         }
     }
 

@@ -1,0 +1,49 @@
+{
+  "configurations" : [
+    {
+      "id" : "407D7CD2-BA40-4047-807A-C6BED3A1E95C",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:Normal.xcodeproj",
+          "identifier" : "2F58EFE72EC9C5DE00A38180",
+          "name" : "Normal"
+        },
+        {
+          "containerPath" : "container:Normal.xcodeproj",
+          "identifier" : "2F4718642F5569C90013F94D",
+          "name" : "NormalMonitor"
+        }
+      ]
+    },
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Normal.xcodeproj",
+      "identifier" : "2F58EFE72EC9C5DE00A38180",
+      "name" : "Normal"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Normal.xcodeproj",
+        "identifier" : "2F58EFF42EC9C5DF00A38180",
+        "name" : "NormalTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Normal.xcodeproj",
+        "identifier" : "2F58EFFE2EC9C5DF00A38180",
+        "name" : "NormalUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

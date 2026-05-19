@@ -38,6 +38,7 @@ struct KeyFormSheetSetupSection: View {
             stepLabel(number: hasMultipleTypes ? 2 : 1, title: "Scan")
             Button(action: handleScan) { scanButtonContent }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("key.scanButton")
         }
         .padding(.vertical, DS.Spacing.sm)
     }

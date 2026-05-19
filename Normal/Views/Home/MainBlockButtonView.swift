@@ -52,6 +52,7 @@ struct MainBlockButtonView: View {
                 Spacer()
             }
         }
+        .accessibilityIdentifier("home.blockAll")
         .padding(.vertical, DS.Spacing.sm)
     }
 
@@ -77,6 +78,7 @@ struct MainBlockButtonView: View {
                 Spacer()
             }
         }
+        .accessibilityIdentifier("home.unblockAll")
         .padding(.vertical, DS.Spacing.sm)
     }
 

@@ -4,8 +4,6 @@ import Foundation
 import Testing
 
 struct ScheduleActiveDayTests {
-    // Fixed UTC Gregorian calendar so weekday values are deterministic.
-    // June 2024: day 2 = Sunday(1) ... day 8 = Saturday(7).
     private let cal: Calendar = {
         var c = Calendar(identifier: .gregorian)
         c.timeZone = TimeZone(identifier: "UTC")!
@@ -49,7 +47,6 @@ struct ScheduleActiveDayTests {
 
     @Test func nonWrappingEndDoesNotFireOnUnselectedDays() {
         let s = schedule(weekdays: [2, 3, 4, 5, 6])
-        // Saturday (day 8 -> weekday 7) is the reported bug: must be false.
         #expect(!s.endApplies(on: date(day: 8), calendar: cal))
         #expect(!s.endApplies(on: date(day: 2), calendar: cal)) // Sunday
         #expect(s.endApplies(on: date(day: 7), calendar: cal))  // Friday
@@ -63,18 +60,12 @@ struct ScheduleActiveDayTests {
     }
 
     @Test func wrappingFridayNightEndFiresSaturdayNotOtherDays() {
-        // Friday only, 23:00 + 2h -> ends 01:00 Saturday.
         let s = schedule(weekdays: [6], startHour: 23, startMinute: 0, durationMinutes: 120)
 
-        // Start only on Friday (day 7 -> weekday 6).
         #expect(s.startApplies(on: date(day: 7), calendar: cal))
         #expect(!s.startApplies(on: date(day: 8), calendar: cal))
-
-        // End fires Saturday (day 8) and maps back to Friday start day -> true.
         #expect(s.endApplies(on: date(day: 8), calendar: cal))
-        // End on Friday maps to Thursday start -> false.
         #expect(!s.endApplies(on: date(day: 7), calendar: cal))
-        // End on Sunday maps to Saturday start -> false.
         #expect(!s.endApplies(on: date(day: 2), calendar: cal))
     }
 }

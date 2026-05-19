@@ -33,6 +33,7 @@ struct KeyFormSheet: View {
             Form {
                 Section("Name") {
                     TextField("e.g. Office Keycard", text: $name)
+                        .accessibilityIdentifier("key.nameField")
                 }
 
                 if isNew {
@@ -61,6 +62,7 @@ struct KeyFormSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isNew ? "Save" : "Update", action: save)
                         .fontWeight(.semibold)
+                        .accessibilityIdentifier("key.saveButton")
                         .disabled(!canSave)
                 }
             }

@@ -42,6 +42,7 @@ struct KeyListCardView: View {
                     .foregroundStyle(.tertiary)
             }
         }
+        .accessibilityIdentifier("key.card")
         .onTapGesture { if !isBlocked { isEditing = true } }
         .sheet(isPresented: $isEditing) {
             KeyFormSheet(existing: key)

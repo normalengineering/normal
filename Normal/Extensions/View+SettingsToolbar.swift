@@ -18,6 +18,7 @@ private struct SettingsToolbarModifier: ViewModifier {
                     } label: {
                         Label("Settings", systemImage: "gearshape")
                     }
+                    .accessibilityIdentifier("nav.settings")
                 }
             }
     }

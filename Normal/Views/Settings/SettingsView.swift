@@ -63,7 +63,6 @@ struct SettingsView: View {
 
     private func performEmergencyUnblock() {
         settings.recordEmergencyUnblock()
-        // Emergency unblock is an escape hatch: always re-allow app deletion.
         screenTimeService.removeShieldOnAll(blockAllPreventsAppDelete: true)
         showSuccessAlert = true
     }

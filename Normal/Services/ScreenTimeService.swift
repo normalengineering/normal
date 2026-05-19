@@ -1,6 +1,5 @@
 import FamilyControls
 import Foundation
-import ManagedSettings
 import Observation
 import OSLog
 
@@ -10,21 +9,23 @@ final class ScreenTimeService: ScreenTimeProviding {
     var authorizationState: AuthorizationState = .notAuthorized
     var lastUpdate: Date = .now
 
-    private let store = ManagedSettingsStore()
+    private let shield: ShieldStoring
     private let authCenter = AuthorizationCenter.shared
     private let defaults: UserDefaults
     private let logger = Logger(subsystem: "com.normalengineering.normal", category: "ScreenTime")
 
     private static let authorizedKey = "hasAuthorizedFamilyControls"
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, shield: ShieldStoring? = nil) {
         self.defaults = defaults
+        self.shield = shield
+            ?? (UITestSupport.isActive ? InMemoryShieldStore() : ManagedSettingsShieldStore())
         Task { await checkAuthorizationStatus() }
     }
 
     var isAppDeleteDisabled: Bool {
         _ = lastUpdate
-        return store.application.denyAppRemoval ?? false
+        return shield.denyAppRemoval
     }
 
     func notifyUpdate() {
@@ -32,6 +33,10 @@ final class ScreenTimeService: ScreenTimeProviding {
     }
 
     func checkAuthorizationStatus() async {
+        if UITestSupport.isActive {
+            authorizationState = .authorized
+            return
+        }
         if authCenter.authorizationStatus == .approved {
             authorizationState = .authorized
         } else if defaults.bool(forKey: Self.authorizedKey) {
@@ -42,6 +47,10 @@ final class ScreenTimeService: ScreenTimeProviding {
     }
 
     func requestAuthorization() async {
+        if UITestSupport.isActive {
+            authorizationState = .authorized
+            return
+        }
         do {
             try await authCenter.requestAuthorization(for: .individual)
             authorizationState = .authorized
@@ -58,66 +67,48 @@ final class ScreenTimeService: ScreenTimeProviding {
     }
 
     func enablePreventAppDelete() {
-        store.application.denyAppRemoval = true
+        shield.denyAppRemoval = true
         notifyUpdate()
     }
 
     func disablePreventAppDelete() {
-        store.application.denyAppRemoval = false
+        shield.denyAppRemoval = false
         notifyUpdate()
     }
 
     func applyShieldOnAll(selection: FamilyActivitySelection, blockAllPreventsAppDelete: Bool) {
-        store.replaceShields(with: selection)
+        shield.replace(with: selection)
         if blockAllPreventsAppDelete {
-            store.application.denyAppRemoval = true
+            shield.denyAppRemoval = true
         }
         notifyUpdate()
     }
 
     func removeShieldOnAll(blockAllPreventsAppDelete: Bool) {
-        store.clearShields()
+        shield.clear()
         if blockAllPreventsAppDelete {
-            store.application.denyAppRemoval = false
+            shield.denyAppRemoval = false
         }
         notifyUpdate()
     }
 
     func addToShields(selection: FamilyActivitySelection) {
-        store.unionShields(with: selection)
+        shield.union(with: selection)
         notifyUpdate()
     }
 
     func removeFromShields(selection: FamilyActivitySelection) {
-        store.subtractShields(with: selection)
+        shield.subtract(with: selection)
         notifyUpdate()
     }
 
     func activeShieldCount() -> Int {
         _ = lastUpdate
-        return (store.shield.applications?.count ?? 0)
-            + (store.shield.webDomains?.count ?? 0)
-            + store.shield.applicationCategories.tokenSet.count
+        return shield.shieldedCount()
     }
 
     func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus {
         _ = lastUpdate
-        guard let selection else { return .none }
-
-        let currentApps = store.shield.applications ?? []
-        let currentWeb = store.shield.webDomains ?? []
-        let currentCats = store.shield.applicationCategories.tokenSet
-
-        let appsDisjoint = selection.applicationTokens.isDisjoint(with: currentApps)
-        let webDisjoint = selection.webDomainTokens.isDisjoint(with: currentWeb)
-        let catsDisjoint = selection.categoryTokens.isDisjoint(with: currentCats)
-        if appsDisjoint && webDisjoint && catsDisjoint { return .none }
-
-        let appsSubset = selection.applicationTokens.isSubset(of: currentApps)
-        let webSubset = selection.webDomainTokens.isSubset(of: currentWeb)
-        let catsSubset = selection.categoryTokens.isSubset(of: currentCats)
-        if appsSubset && webSubset && catsSubset { return .all }
-
-        return .some
+        return shield.status(for: selection)
     }
 }

@@ -87,6 +87,8 @@
 		2FAF37862F6FDA3300B585E1 /* Exceptions for "NormalUITests" folder in "NormalUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				BlockingUITests.swift,
+				RecoveryUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 			);
@@ -95,6 +97,8 @@
 		2FAF37872F6FDA5000B585E1 /* Exceptions for "NormalUITests" folder in "Normal" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				BlockingUITests.swift,
+				RecoveryUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 			);

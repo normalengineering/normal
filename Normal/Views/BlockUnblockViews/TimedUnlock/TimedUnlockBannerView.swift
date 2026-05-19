@@ -43,6 +43,7 @@ struct TimedUnblockBannerView: View {
                             )
                         }
                     }
+                    .accessibilityIdentifier("home.blockAllNow")
                 }
             }
             .keySelect(action: $authAction, allowBypass: true)

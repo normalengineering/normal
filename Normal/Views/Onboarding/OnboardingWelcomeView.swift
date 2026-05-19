@@ -25,7 +25,9 @@ struct OnboardingWelcomeView: View {
         } actions: {
             VStack(spacing: DS.Spacing.md) {
                 PrimaryActionButton(title: "Get Started", action: onGetStarted)
+                    .accessibilityIdentifier("onboarding.getStarted")
                 SecondaryTextButton(title: "Skip", action: onSkip)
+                    .accessibilityIdentifier("onboarding.skip")
             }
         }
     }

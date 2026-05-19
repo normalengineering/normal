@@ -21,6 +21,7 @@ struct KeysView: View {
                         Button { isShowingSheet.toggle() } label: {
                             Label("Add Key", systemImage: "plus")
                         }
+                        .accessibilityIdentifier("keys.addButton")
                         .disabled(isBlocked)
                         .sheet(isPresented: $isShowingSheet) {
                             KeyFormSheet()

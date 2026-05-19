@@ -21,6 +21,7 @@ struct TimedUnblockSheet: View {
                         ) {
                             selectedDuration = duration
                         }
+                        .accessibilityIdentifier("timedUnblock.duration.\(duration.rawValue)")
                     }
                 } header: {
                     Text("Timed Unblock")
@@ -35,6 +36,7 @@ struct TimedUnblockSheet: View {
                     ) {
                         selectedDuration = nil
                     }
+                    .accessibilityIdentifier("timedUnblock.permanent")
                 } footer: {
                     Text("You will need to manually block apps again.")
                 }
@@ -52,7 +54,9 @@ struct TimedUnblockSheet: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Confirm", action: performUnblock).fontWeight(.semibold)
+                    Button("Confirm", action: performUnblock)
+                        .fontWeight(.semibold)
+                        .accessibilityIdentifier("timedUnblock.confirm")
                 }
             }
         }

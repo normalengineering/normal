@@ -17,6 +17,7 @@ struct KeySelectView: View {
                     } label: {
                         KeySelectRow(type: type)
                     }
+                    .accessibilityIdentifier("keySelect.row.\(type.rawValue)")
                 }
             }
 
@@ -30,6 +31,7 @@ struct KeySelectView: View {
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity)
                     }
+                    .accessibilityIdentifier("keySelect.blockWithoutKey")
                 }
             }
         }
