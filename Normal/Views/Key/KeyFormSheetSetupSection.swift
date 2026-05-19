@@ -6,6 +6,7 @@ struct KeyFormSheetSetupSection: View {
 
     @Binding var keyType: KeyType
     @Binding var scannedKeyId: String?
+    @Binding var scannedKind: ScanCodeKind?
     @Binding var showQRScanner: Bool
 
     private var hasMultipleTypes: Bool {
@@ -28,7 +29,10 @@ struct KeyFormSheetSetupSection: View {
                 }
             }
             .pickerStyle(.segmented)
-            .onChange(of: keyType) { _, _ in scannedKeyId = nil }
+            .onChange(of: keyType) { _, _ in
+                scannedKeyId = nil
+                scannedKind = nil
+            }
         }
         .padding(.vertical, DS.Spacing.xs)
     }
@@ -77,16 +81,20 @@ struct KeyFormSheetSetupSection: View {
         Task {
             do {
                 let id: String
+                let kind: ScanCodeKind?
                 switch keyType {
                 case .nfc:
                     id = try await nfcService.scan()
+                    kind = nil
                 case .qr:
                     showQRScanner = true
                     id = try await qrService.scan()
                     showQRScanner = false
+                    kind = qrService.lastScanCodeKind
                 }
                 withAnimation(.spring()) {
                     scannedKeyId = id
+                    scannedKind = kind
                 }
             } catch {
                 showQRScanner = false

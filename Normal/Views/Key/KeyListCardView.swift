@@ -20,7 +20,10 @@ struct KeyListCardView: View {
     private var isLastKey: Bool { keys.count <= 1 }
 
     private var iconName: String {
-        key.type == .nfc ? "sensor.tag.radiowaves.forward.fill" : "qrcode"
+        switch key.type {
+        case .nfc: "sensor.tag.radiowaves.forward.fill"
+        case .qr: key.scanKind?.icon ?? "qrcode"
+        }
     }
 
     var body: some View {
@@ -30,7 +33,7 @@ struct KeyListCardView: View {
 
                 VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
                     Text(key.name).font(.headline)
-                    Text(key.type.rawValue)
+                    Text(key.displayTypeLabel)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

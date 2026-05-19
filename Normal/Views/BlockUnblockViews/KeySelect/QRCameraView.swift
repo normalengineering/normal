@@ -2,7 +2,7 @@ import AVFoundation
 import SwiftUI
 
 struct QRCameraView: UIViewControllerRepresentable {
-    let onScan: (String) -> Void
+    let onScan: (String, ScanCodeKind) -> Void
     let scanResult: QRService.ScanResult
 
     func makeUIViewController(context _: Context) -> QRCameraController {
@@ -18,8 +18,14 @@ struct QRCameraView: UIViewControllerRepresentable {
     }
 }
 
+extension AVMetadataObject.ObjectType {
+    var scanCodeKind: ScanCodeKind {
+        self == .qr ? .qr : .barcode
+    }
+}
+
 final class QRCameraController: UIViewController {
-    var onScan: ((String) -> Void)?
+    var onScan: ((String, ScanCodeKind) -> Void)?
 
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "org.normalengineering.normal.qr.session")
@@ -113,7 +119,8 @@ extension QRCameraController: AVCaptureMetadataOutputObjectsDelegate {
         else { return }
 
         hasScanned = true
+        let kind = object.type.scanCodeKind
         sessionQueue.async { [weak self] in self?.session.stopRunning() }
-        DispatchQueue.main.async { [weak self] in self?.onScan?(value) }
+        DispatchQueue.main.async { [weak self] in self?.onScan?(value, kind) }
     }
 }

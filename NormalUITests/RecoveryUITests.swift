@@ -93,6 +93,17 @@ final class RecoveryUITests: XCTestCase {
         )
     }
 
+    func testLegacyKeyWithoutScanKindShowsQRCodeLabel() {
+        let app = launch([])
+
+        app.tabBars.buttons["Keys"].tap()
+        require(app.staticTexts["Test Key"].firstMatch, "Seeded key card should be visible")
+        require(
+            app.staticTexts["QR Code"].firstMatch,
+            "A key created without a recorded scan kind (the upgrade case) must default to 'QR Code'"
+        )
+    }
+
     func testCannotDeleteLastKey() {
         let app = launch([])
 

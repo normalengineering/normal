@@ -7,6 +7,7 @@ final class Key: Identifiable {
     @Attribute(.unique) var id: UUID
     var name: String
     var type: KeyType
+    var scanKind: ScanCodeKind?
     private(set) var hashedValue: String
     private(set) var salt: String
 
@@ -14,13 +15,21 @@ final class Key: Identifiable {
     private static let saltLength = 16
     private static let hashLength = 32
 
-    init(name: String, type: KeyType, rawValue: String) {
+    init(name: String, type: KeyType, rawValue: String, scanKind: ScanCodeKind? = nil) {
         id = UUID()
         self.name = name
         self.type = type
+        self.scanKind = scanKind
         let salt = Self.generateSalt()
         self.salt = salt
         hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
+    }
+
+    var displayTypeLabel: String {
+        switch type {
+        case .nfc: KeyType.nfc.label
+        case .qr: (scanKind ?? .qr).label
+        }
     }
 
     static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {

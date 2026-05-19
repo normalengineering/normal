@@ -88,9 +88,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockingUITests.swift,
-				RecoveryUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
+				RecoveryUITests.swift,
 			);
 			target = 2F58EFFE2EC9C5DF00A38180 /* NormalUITests */;
 		};
@@ -98,9 +98,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockingUITests.swift,
-				RecoveryUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
+				RecoveryUITests.swift,
 			);
 			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 		};

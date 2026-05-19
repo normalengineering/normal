@@ -43,4 +43,21 @@ struct KeyTests {
     @Test func matchingKeyExistsReturnsFalseForEmpty() {
         #expect(!Key.matchingKeyExists(keys: [], unhashedId: "anything"))
     }
+
+    @Test func displayTypeLabelReflectsScanKind() {
+        let qr = Key(name: "q", type: .qr, rawValue: "v", scanKind: .qr)
+        let barcode = Key(name: "b", type: .qr, rawValue: "v", scanKind: .barcode)
+        #expect(qr.displayTypeLabel == "QR Code")
+        #expect(barcode.displayTypeLabel == "Barcode")
+    }
+
+    @Test func displayTypeLabelTreatsLegacyCameraKeysAsQRCode() {
+        let legacy = Key(name: "old", type: .qr, rawValue: "v")
+        #expect(legacy.displayTypeLabel == "QR Code")
+    }
+
+    @Test func displayTypeLabelForNFCIgnoresScanKind() {
+        let nfc = Key(name: "tag", type: .nfc, rawValue: "v")
+        #expect(nfc.displayTypeLabel == "NFC Tag")
+    }
 }

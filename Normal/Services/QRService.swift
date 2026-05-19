@@ -13,6 +13,7 @@ final class QRService {
 
     private(set) var isScanning = false
     private(set) var scanResult: ScanResult = .none
+    private(set) var lastScanCodeKind: ScanCodeKind?
 
     private var continuation: CheckedContinuation<String, Error>?
     private var validator: ((String) -> Bool)?
@@ -38,11 +39,13 @@ final class QRService {
             self.continuation = continuation
             self.validator = validate
             self.scanResult = .none
+            self.lastScanCodeKind = nil
             self.isScanning = true
         }
     }
 
-    func handleScan(_ value: String) {
+    func handleScan(_ value: String, kind: ScanCodeKind) {
+        lastScanCodeKind = kind
         guard let validator else {
             continuation?.resume(returning: value)
             cleanup()

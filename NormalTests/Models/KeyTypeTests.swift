@@ -17,7 +17,7 @@ struct KeyTypeTests {
 
     @Test func labelsAreReadable() {
         #expect(KeyType.nfc.label == "NFC Tag")
-        #expect(KeyType.qr.label == "QR Code or Barcode")
+        #expect(KeyType.qr.label == "QR Code / Barcode")
     }
 
     @Test func scanPromptsAreSet() {

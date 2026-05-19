@@ -28,7 +28,7 @@ enum KeyType: String, Codable, CaseIterable, Identifiable, Sendable {
     var label: String {
         switch self {
         case .nfc: "NFC Tag"
-        case .qr: "QR Code or Barcode"
+        case .qr: "QR Code / Barcode"
         }
     }
 
@@ -42,7 +42,7 @@ enum KeyType: String, Codable, CaseIterable, Identifiable, Sendable {
     var scanPrompt: String {
         switch self {
         case .nfc: "Hold your device near an NFC tag"
-        case .qr: "Scan a QR code or barcode with your camera"
+        case .qr: "Scan with your camera"
         }
     }
 }

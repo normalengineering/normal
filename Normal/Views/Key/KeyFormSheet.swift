@@ -11,6 +11,7 @@ struct KeyFormSheet: View {
     @State private var name: String
     @State private var keyType: KeyType
     @State private var scannedKeyId: String?
+    @State private var scannedKind: ScanCodeKind?
     @State private var showQRScanner = false
 
     private var isNew: Bool { existing == nil }
@@ -40,6 +41,7 @@ struct KeyFormSheet: View {
                     KeyFormSheetSetupSection(
                         keyType: $keyType,
                         scannedKeyId: $scannedKeyId,
+                        scannedKind: $scannedKind,
                         showQRScanner: $showQRScanner
                     )
                 } else {
@@ -89,7 +91,7 @@ struct KeyFormSheet: View {
             existing.name = trimmed
         } else {
             guard let rawValue = scannedKeyId else { return }
-            modelContext.insert(Key(name: trimmed, type: keyType, rawValue: rawValue))
+            modelContext.insert(Key(name: trimmed, type: keyType, rawValue: rawValue, scanKind: scannedKind))
         }
         dismiss()
     }
