@@ -62,11 +62,14 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				DataExtension.swift,
-				ManagedSettingsUtil.swift,
+				ShardedShieldStore.swift,
 				SharedConstants.swift,
 				SharedDTO.swift,
 				SharedStore.swift,
 				SharedStoreProviding.swift,
+				ShieldDistribution.swift,
+				ShieldShard.swift,
+				ShieldTruthStore.swift,
 			);
 			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};
@@ -88,9 +91,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockingUITests.swift,
-				RecoveryUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
+				RecoveryUITests.swift,
 			);
 			target = 2F58EFFE2EC9C5DF00A38180 /* NormalUITests */;
 		};
@@ -98,9 +101,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockingUITests.swift,
-				RecoveryUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
+				RecoveryUITests.swift,
 			);
 			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 		};

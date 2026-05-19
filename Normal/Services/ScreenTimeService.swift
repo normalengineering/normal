@@ -19,7 +19,7 @@ final class ScreenTimeService: ScreenTimeProviding {
     init(defaults: UserDefaults = .standard, shield: ShieldStoring? = nil) {
         self.defaults = defaults
         self.shield = shield
-            ?? (UITestSupport.isActive ? InMemoryShieldStore() : ManagedSettingsShieldStore())
+            ?? (UITestSupport.isActive ? InMemoryShieldStore() : ShardedShieldStoring())
         Task { await checkAuthorizationStatus() }
     }
 

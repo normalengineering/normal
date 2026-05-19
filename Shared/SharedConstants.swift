@@ -6,7 +6,10 @@ enum SharedConstants {
     enum DefaultsKey {
         static let timedUnblocks = "timedUnblocks_v1"
         static let schedules = "schedules_v1"
+        static let legacyShieldMigrated = "legacyShieldMigrated_v1"
     }
+
+    static let shieldShardPrefix = "normal.shield."
 
     static let mainTimedUnblockActivityName = "timedUnblock_main"
 

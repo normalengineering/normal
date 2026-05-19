@@ -1,4 +1,5 @@
 import FamilyControls
+import Foundation
 import ManagedSettings
 
 protocol ShieldStoring: AnyObject {
@@ -11,12 +12,19 @@ protocol ShieldStoring: AnyObject {
     func status(for selection: FamilyActivitySelection?) -> BlockStatus
 }
 
-final class ManagedSettingsShieldStore: ShieldStoring {
-    private let store = ManagedSettingsStore()
+final class ShardedShieldStoring: ShieldStoring {
+    private let store: ShardedShieldStore
+
+    init(store: ShardedShieldStore = ShardedShieldStore()) {
+        self.store = store
+        store.migrateLegacyStoreIfNeeded(
+            defaults: UserDefaults(suiteName: SharedConstants.appGroupID) ?? .standard
+        )
+    }
 
     var denyAppRemoval: Bool {
-        get { store.application.denyAppRemoval ?? false }
-        set { store.application.denyAppRemoval = newValue }
+        get { store.denyAppRemoval }
+        set { store.denyAppRemoval = newValue }
     }
 
     func replace(with selection: FamilyActivitySelection) { store.replaceShields(with: selection) }
@@ -25,17 +33,17 @@ final class ManagedSettingsShieldStore: ShieldStoring {
     func subtract(with selection: FamilyActivitySelection) { store.subtractShields(with: selection) }
 
     func shieldedCount() -> Int {
-        (store.shield.applications?.count ?? 0)
-            + (store.shield.webDomains?.count ?? 0)
-            + store.shield.applicationCategories.tokenSet.count
+        store.shieldedApplications.count
+            + store.shieldedWebDomains.count
+            + store.shieldedCategories.count
     }
 
     func status(for selection: FamilyActivitySelection?) -> BlockStatus {
         guard let selection else { return .none }
 
-        let currentApps = store.shield.applications ?? []
-        let currentWeb = store.shield.webDomains ?? []
-        let currentCats = store.shield.applicationCategories.tokenSet
+        let currentApps = store.shieldedApplications
+        let currentWeb = store.shieldedWebDomains
+        let currentCats = store.shieldedCategories
 
         let appsDisjoint = selection.applicationTokens.isDisjoint(with: currentApps)
         let webDisjoint = selection.webDomainTokens.isDisjoint(with: currentWeb)

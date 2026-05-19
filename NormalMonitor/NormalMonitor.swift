@@ -5,9 +5,16 @@ import ManagedSettings
 
 final class NormalMonitor: DeviceActivityMonitor {
     private let sharedStore = SharedStore()
-    private let store = ManagedSettingsStore()
+    private let store = ShardedShieldStore()
+
+    private func migrateLegacyIfNeeded() {
+        store.migrateLegacyStoreIfNeeded(
+            defaults: UserDefaults(suiteName: SharedConstants.appGroupID) ?? .standard
+        )
+    }
 
     override func intervalDidStart(for activity: DeviceActivityName) {
+        migrateLegacyIfNeeded()
         let name = activity.rawValue
         if name.hasPrefix("schedule_") {
             handleScheduleIntervalStart(activityName: name)
@@ -15,6 +22,7 @@ final class NormalMonitor: DeviceActivityMonitor {
     }
 
     override func intervalDidEnd(for activity: DeviceActivityName) {
+        migrateLegacyIfNeeded()
         let name = activity.rawValue
         if name.hasPrefix("timedUnblock_") {
             handleTimedUnblockExpired(activityName: name)
@@ -37,7 +45,7 @@ final class NormalMonitor: DeviceActivityMonitor {
         } else {
             store.replaceShields(with: selection)
             if dto.blockAllPreventsAppDelete == true {
-                store.application.denyAppRemoval = true
+                store.denyAppRemoval = true
             }
         }
         sharedStore.removeTimedUnblock(id: dto.id)
