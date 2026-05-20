@@ -19,6 +19,8 @@ struct AppSelectView: View {
     private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
     private var isAuthorized: Bool { screenTimeService.authorizationState == .authorized }
 
+    private let warningThreshold = 50
+
     private var footerText: Text? {
         if !isAuthorized {
             Text("Screen Time permission is required to select apps.")
@@ -38,6 +40,9 @@ struct AppSelectView: View {
     var body: some View {
         NavigationStack {
             List {
+                if selection.count > warningThreshold {
+                AppSelectLimitBannerView(selection: selection)
+                }
                 Section(header: Text("Selection"), footer: footerText) {
                     Button(buttonTitle, action: onUpdateSelectionButton)
                         .disabled(isBlocked)
