@@ -13,12 +13,11 @@ struct SelectionIconsView: View {
 
         ForEach(shown, id: \.self) { token in
             Group {
-                if let appToken = token as? ApplicationToken {
-                    Label(appToken)
-                } else if let webDomainToken = token as? WebDomainToken {
-                    Label(webDomainToken)
-                } else if let categoryToken = token as? ActivityCategoryToken {
-                    Label(categoryToken)
+                switch SelectedTokenKind(token) {
+                case let .application(token): Label(token)
+                case let .webDomain(token): Label(token)
+                case let .category(token): Label(token)
+                case nil: EmptyView()
                 }
             }
             .labelStyle(.iconOnly)

@@ -66,4 +66,57 @@ struct FamilyControlsUtilTests {
         let result = Set<Int>([1, 2, 3]).asHashableArray
         #expect(result.count == 3)
     }
+
+    @Test func summaryForAllZeroReturnsEmptyStateString() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 0)
+        #expect(summary == String(localized: "No items selected"))
+    }
+
+    @Test func summaryOmitsZeroSegments() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
+        #expect(summary.contains("5"))
+        #expect(!summary.contains("Website"))
+        #expect(!summary.contains("Categor"))
+    }
+
+    @Test func summaryIncludesAllNonZeroSegments() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 30, websites: 5, categories: 2)
+        #expect(summary.contains("30"))
+        #expect(summary.contains("App"))
+        #expect(summary.contains("5"))
+        #expect(summary.contains("Website"))
+        #expect(summary.contains("2"))
+        #expect(summary.contains("Categor"))
+    }
+
+    @Test func summaryShowsCategoriesAloneWhenOnlyCategoriesSelected() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 4)
+        #expect(summary.contains("4"))
+        #expect(summary.contains("Categor"))
+        #expect(!summary.contains("App"))
+        #expect(!summary.contains("Website"))
+    }
+
+    @Test func summaryInflectsSingularDifferentlyFromPlural() {
+        let singular = FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 0, categories: 0)
+        let plural = FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
+        
+        let singularNoun = singular.replacingOccurrences(of: "1", with: "")
+        let pluralNoun = plural.replacingOccurrences(of: "5", with: "")
+        #expect(singularNoun != pluralNoun)
+    }
+
+    @Test func emptySelectionProducesEmptyStateSummary() {
+        #expect(FamilyActivitySelection().selectedTokenCounts == String(localized: "No items selected"))
+    }
+
+    @Test func tokenKindReturnsNilForUnknownHashable() {
+        let unknown: AnyHashable = "not-a-token"
+        #expect(SelectedTokenKind(unknown) == nil)
+    }
+
+    @Test func tokenKindReturnsNilForIntHashable() {
+        let unknown: AnyHashable = 42
+        #expect(SelectedTokenKind(unknown) == nil)
+    }
 }

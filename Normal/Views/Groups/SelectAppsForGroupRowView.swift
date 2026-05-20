@@ -21,10 +21,11 @@ struct SelectAppForGroupRowView<T: Hashable>: View {
 
     @ViewBuilder
     private var tokenLabel: some View {
-        if let appToken = token as? ApplicationToken {
-            Label(appToken)
-        } else if let webDomainToken = token as? WebDomainToken {
-            Label(webDomainToken)
+        switch SelectedTokenKind(token as AnyHashable) {
+        case let .application(token): Label(token)
+        case let .webDomain(token): Label(token)
+        case let .category(token): Label(token)
+        case nil: EmptyView()
         }
     }
 }

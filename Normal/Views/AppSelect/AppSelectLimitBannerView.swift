@@ -4,7 +4,7 @@ import SwiftUI
 struct AppSelectLimitBannerView: View {
     let selection: FamilyActivitySelection
 
-    private static let warningThreshold = 50
+    static let warningThreshold = 50
 
     var body: some View {
         if selection.count >= Self.warningThreshold {
@@ -16,7 +16,7 @@ struct AppSelectLimitBannerView: View {
                             .symbolRenderingMode(.hierarchical)
                             .foregroundStyle(.orange)
                         VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
-                            Text("Too many items selected..").font(.headline)
+                            Text("Too many items selected.").font(.headline)
                             Text("\(selection.count) items selected")
                                 .font(.subheadline.monospacedDigit())
                                 .foregroundStyle(.secondary)
