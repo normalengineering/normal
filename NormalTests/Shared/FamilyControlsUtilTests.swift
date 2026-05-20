@@ -100,7 +100,7 @@ struct FamilyControlsUtilTests {
     @Test func summaryInflectsSingularDifferentlyFromPlural() {
         let singular = FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 0, categories: 0)
         let plural = FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
-        
+
         let singularNoun = singular.replacingOccurrences(of: "1", with: "")
         let pluralNoun = plural.replacingOccurrences(of: "5", with: "")
         #expect(singularNoun != pluralNoun)

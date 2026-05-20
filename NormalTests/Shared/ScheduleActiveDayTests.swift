@@ -49,8 +49,8 @@ struct ScheduleActiveDayTests {
         let s = schedule(weekdays: [2, 3, 4, 5, 6])
         #expect(!s.endApplies(on: date(day: 8), calendar: cal))
         #expect(!s.endApplies(on: date(day: 2), calendar: cal)) // Sunday
-        #expect(s.endApplies(on: date(day: 7), calendar: cal))  // Friday
-        #expect(s.endApplies(on: date(day: 3), calendar: cal))  // Monday
+        #expect(s.endApplies(on: date(day: 7), calendar: cal)) // Friday
+        #expect(s.endApplies(on: date(day: 3), calendar: cal)) // Monday
     }
 
     @Test func wrappingScheduleDetected() {
