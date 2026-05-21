@@ -41,6 +41,11 @@ struct SettingsView: View {
                     FAQView()
                         .navigationTitle("FAQ")
                 }
+
+                Tab(SettingsTab.contact.title, systemImage: SettingsTab.contact.icon, value: SettingsTab.contact) {
+                    ContactView()
+                        .navigationTitle("Contact")
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

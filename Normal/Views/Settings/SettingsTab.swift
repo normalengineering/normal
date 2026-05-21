@@ -4,6 +4,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case general
     case emergencyUnblock
     case faq
+    case contact
 
     var id: String { rawValue }
 
@@ -12,6 +13,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: "General"
         case .emergencyUnblock: "Emergency"
         case .faq: "FAQ"
+        case .contact: "Contact"
         }
     }
 
@@ -20,6 +22,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .general: "gear"
         case .emergencyUnblock: "exclamationmark.triangle"
         case .faq: "questionmark.circle"
+        case .contact: "envelope"
         }
     }
 }

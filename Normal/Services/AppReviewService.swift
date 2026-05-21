@@ -18,7 +18,8 @@ final class AppReviewService {
 
         guard count >= minSuccessfulUnblocks else { return }
         if let last = defaults.object(forKey: Key.lastRequestedDate) as? Date,
-           now.timeIntervalSince(last) < minDaysBetweenPrompts {
+           now.timeIntervalSince(last) < minDaysBetweenPrompts
+        {
             return
         }
         defaults.set(now, forKey: Key.lastRequestedDate)
