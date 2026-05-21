@@ -24,6 +24,28 @@ private extension NFCTag {
     }
 }
 
+
+private let mrtdAID = Data([0xA0, 0x00, 0x00, 0x02, 0x47, 0x10, 0x01])
+
+private extension NFCISO7816Tag {
+    func hasMRTDApplication() async -> Bool {
+        let apdu = NFCISO7816APDU(
+            instructionClass: 0x00,
+            instructionCode: 0xA4,
+            p1Parameter: 0x04,
+            p2Parameter: 0x0C,
+            data: mrtdAID,
+            expectedResponseLength: -1
+        )
+        do {
+            let (_, sw1, sw2) = try await sendCommand(apdu: apdu)
+            return sw1 == 0x90 && sw2 == 0x00
+        } catch {
+            return false
+        }
+    }
+}
+
 @Observable
 final class NFCService: NSObject {
     static let shared = NFCService()
@@ -87,45 +109,58 @@ extension NFCService: NFCTagReaderSessionDelegate {
 
     nonisolated func tagReaderSession(_ session: NFCTagReaderSession, didDetect tags: [NFCTag]) {
         guard let tag = tags.first else { return }
+        Task { @MainActor in
+            await process(tag: tag, session: session)
+        }
+    }
 
-        session.connect(to: tag) { error in
-            MainActor.assumeIsolated {
-                if error != nil {
-                    let err = ScanError.NFCError.connectionFailed
-                    session.invalidate(errorMessage: err.alertMessage)
-                    self.finish(with: .failure(ScanError.nfc(err)))
-                    return
-                }
+    private func process(tag: NFCTag, session: NFCTagReaderSession) async {
+        do {
+            try await session.connect(to: tag)
+        } catch {
+            fail(session: session, with: .connectionFailed)
+            return
+        }
 
-                guard let hexId = tag.hexId else {
-                    let err = ScanError.NFCError.unsupportedTag
-                    session.invalidate(errorMessage: err.alertMessage)
-                    self.finish(with: .failure(ScanError.nfc(err)))
-                    return
-                }
+        let hasRandomID = tag.hasRandomIdentifier
+        let hasMRTD = await checkMRTD(tag: tag, skipping: hasRandomID)
 
-                guard let validator = self.validator else {
-                    if tag.hasRandomIdentifier {
-                        let err = ScanError.NFCError.unstableIdentifier
-                        session.invalidate(errorMessage: err.alertMessage)
-                        self.finish(with: .failure(ScanError.nfc(err)))
-                        return
-                    }
-                    session.alertMessage = "Key Detected"
-                    session.invalidate()
-                    self.finish(with: .success(hexId))
-                    return
-                }
+        switch TagDecision.decide(
+            hexId: tag.hexId,
+            hasRandomIdentifier: hasRandomID,
+            hasMRTDApplication: hasMRTD
+        ) {
+        case let .proceed(hexId):
+            complete(session: session, hexId: hexId)
+        case let .reject(err):
+            fail(session: session, with: err)
+        }
+    }
 
-                if validator(hexId) {
-                    session.alertMessage = "Key Verified"
-                    session.invalidate()
-                    self.finish(with: .success(hexId))
-                } else {
-                    session.invalidate(errorMessage: ScanError.invalidKey.errorDescription)
-                    self.finish(with: .failure(ScanError.invalidKey))
-                }
-            }
+    private func checkMRTD(tag: NFCTag, skipping skip: Bool) async -> Bool {
+        guard !skip, case let .iso7816(iso) = tag else { return false }
+        return await iso.hasMRTDApplication()
+    }
+
+    private func fail(session: NFCTagReaderSession, with err: ScanError.NFCError) {
+        session.invalidate(errorMessage: err.alertMessage)
+        finish(with: .failure(ScanError.nfc(err)))
+    }
+
+    private func complete(session: NFCTagReaderSession, hexId: String) {
+        guard let validator else {
+            session.alertMessage = "Key Detected"
+            session.invalidate()
+            finish(with: .success(hexId))
+            return
+        }
+        if validator(hexId) {
+            session.alertMessage = "Key Verified"
+            session.invalidate()
+            finish(with: .success(hexId))
+        } else {
+            session.invalidate(errorMessage: ScanError.invalidKey.errorDescription)
+            finish(with: .failure(ScanError.invalidKey))
         }
     }
 }

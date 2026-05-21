@@ -32,7 +32,7 @@ enum ScanError: LocalizedError {
             case .unavailable: "NFC unavailable."
             case .connectionFailed: "Connection failed."
             case .unsupportedTag: "Unsupported NFC type. Please contact us to add support."
-            case .unstableIdentifier: "This NFC type can't be used. Please try a different NFC tag."
+            case .unstableIdentifier: "This NFC type can't be used."
             }
         }
     }
