@@ -67,47 +67,68 @@ struct FamilyControlsUtilTests {
         #expect(result.count == 3)
     }
 
-    @Test func summaryForAllZeroReturnsEmptyStateString() {
-        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 0)
-        #expect(summary == String(localized: "No items selected"))
+    // MARK: - selectedTokenCounts
+
+    @Test func emptyCountsReturnEmptyStatePhrase() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 0)
+            == String(localized: "No items selected"))
     }
 
-    @Test func summaryOmitsZeroSegments() {
-        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
-        #expect(summary.contains("5"))
-        #expect(!summary.contains("Website"))
-        #expect(!summary.contains("Categor"))
-    }
-
-    @Test func summaryIncludesAllNonZeroSegments() {
-        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 30, websites: 5, categories: 2)
-        #expect(summary.contains("30"))
-        #expect(summary.contains("App"))
-        #expect(summary.contains("5"))
-        #expect(summary.contains("Website"))
-        #expect(summary.contains("2"))
-        #expect(summary.contains("Categor"))
-    }
-
-    @Test func summaryShowsCategoriesAloneWhenOnlyCategoriesSelected() {
-        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 4)
-        #expect(summary.contains("4"))
-        #expect(summary.contains("Categor"))
-        #expect(!summary.contains("App"))
-        #expect(!summary.contains("Website"))
-    }
-
-    @Test func summaryInflectsSingularDifferentlyFromPlural() {
-        let singular = FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 0, categories: 0)
-        let plural = FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
-
-        let singularNoun = singular.replacingOccurrences(of: "1", with: "")
-        let pluralNoun = plural.replacingOccurrences(of: "5", with: "")
-        #expect(singularNoun != pluralNoun)
-    }
-
-    @Test func emptySelectionProducesEmptyStateSummary() {
+    @Test func emptySelectionReturnsEmptyStatePhrase() {
         #expect(FamilyActivitySelection().selectedTokenCounts == String(localized: "No items selected"))
+    }
+
+    @Test func singleAppUsesSingularNoun() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 0, categories: 0)
+            == String(localized: "1 App"))
+    }
+
+    @Test func multipleAppsUsePluralNoun() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
+            == String(localized: "\(5) Apps"))
+    }
+
+    @Test func singleWebsiteUsesSingularNoun() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 1, categories: 0)
+            == String(localized: "1 Website"))
+    }
+
+    @Test func multipleWebsitesUsePluralNoun() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 3, categories: 0)
+            == String(localized: "\(3) Websites"))
+    }
+
+    @Test func singleCategoryUsesSingularNoun() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 1)
+            == String(localized: "1 Category"))
+    }
+
+    @Test func multipleCategoriesUsePluralNoun() {
+        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 4)
+            == String(localized: "\(4) Categories"))
+    }
+
+    @Test func allPluralSegmentsJoinInAppsWebsitesCategoriesOrder() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 2, websites: 3, categories: 4)
+        let apps = String(localized: "\(2) Apps")
+        let websites = String(localized: "\(3) Websites")
+        let categories = String(localized: "\(4) Categories")
+        #expect(summary == "\(apps), \(websites), \(categories)")
+    }
+
+    @Test func singularAndPluralCoexistInSameSummary() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 5, categories: 1)
+        let app = String(localized: "1 App")
+        let websites = String(localized: "\(5) Websites")
+        let category = String(localized: "1 Category")
+        #expect(summary == "\(app), \(websites), \(category)")
+    }
+
+    @Test func zeroSegmentsAreOmittedFromMixedSummary() {
+        let summary = FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 3)
+        let apps = String(localized: "\(5) Apps")
+        let categories = String(localized: "\(3) Categories")
+        #expect(summary == "\(apps), \(categories)")
     }
 
     @Test func tokenKindReturnsNilForUnknownHashable() {

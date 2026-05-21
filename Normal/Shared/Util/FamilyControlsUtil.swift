@@ -28,20 +28,32 @@ extension FamilyActivitySelection {
     }
 
     static func selectedTokenCounts(apps: Int, websites: Int, categories: Int) -> String {
-        var parts: [String] = []
-        if apps > 0 {
-            parts.append(String(localized: "^[\(apps) App](inflect: true)"))
-        }
-        if websites > 0 {
-            parts.append(String(localized: "^[\(websites) Website](inflect: true)"))
-        }
-        if categories > 0 {
-            parts.append(String(localized: "^[\(categories) Category](inflect: true)"))
-        }
-        if parts.isEmpty {
-            return String(localized: "No items selected")
-        }
+        let parts: [String] = [
+            pluralized(count: apps,
+                       singular: String(localized: "1 App"),
+                       plural: String(localized: "\(apps) Apps")),
+            pluralized(count: websites,
+                       singular: String(localized: "1 Website"),
+                       plural: String(localized: "\(websites) Websites")),
+            pluralized(count: categories,
+                       singular: String(localized: "1 Category"),
+                       plural: String(localized: "\(categories) Categories")),
+        ].compactMap(\.self)
+
+        if parts.isEmpty { return String(localized: "No items selected") }
         return parts.joined(separator: ", ")
+    }
+
+    private static func pluralized(
+        count: Int,
+        singular: @autoclosure () -> String,
+        plural: @autoclosure () -> String
+    ) -> String? {
+        switch count {
+        case 0: return nil
+        case 1: return singular()
+        default: return plural()
+        }
     }
 
     func isSubset(of other: FamilyActivitySelection) -> Bool {
