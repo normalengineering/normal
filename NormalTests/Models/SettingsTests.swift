@@ -32,14 +32,14 @@ struct SettingsTests {
 
     @Test func oldEmergencyUnblocksRegenerate() {
         let s = Settings()
-        let oldDate = Date.now.addingTimeInterval(-60 * 60 * 24 * 200)
+        let oldDate = Date.now.addingTimeInterval(-.days(200))
         s.emergencyUnblockDates = [oldDate, oldDate, oldDate]
         #expect(s.emergencyUnblocksAvailable == Settings.maxEmergencyUnblocks)
     }
 
     @Test func recentEmergencyUnblocksCount() {
         let s = Settings()
-        let recent = Date.now.addingTimeInterval(-60 * 60 * 24 * 10)
+        let recent = Date.now.addingTimeInterval(-.days(10))
         s.emergencyUnblockDates = [recent]
         #expect(s.emergencyUnblocksAvailable == Settings.maxEmergencyUnblocks - 1)
     }

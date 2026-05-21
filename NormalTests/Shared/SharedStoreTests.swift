@@ -10,7 +10,7 @@ struct SharedStoreTests {
         return (store, defaults)
     }
 
-    private func makeDTO(id: String, endDate: Date = .now.addingTimeInterval(3600)) -> TimedUnblockDTO {
+    private func makeDTO(id: String, endDate: Date = .now.addingTimeInterval(.hours(1))) -> TimedUnblockDTO {
         try! TimedUnblockDTO(
             id: id,
             selectionData: FamilyActivitySelection().toData(),
@@ -36,8 +36,8 @@ struct SharedStoreTests {
 
     @Test func upsertReplacesById() {
         let (store, _) = makeStore()
-        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(60)))
-        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(3600)))
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(.minutes(1))))
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(.hours(1))))
         #expect(store.loadTimedUnblocks().count == 1)
     }
 
@@ -65,10 +65,10 @@ struct SharedStoreTests {
 
     @Test func mainActiveOnlyWhenFutureEndDate() {
         let (store, _) = makeStore()
-        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(3600)))
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(.hours(1))))
         #expect(store.isMainTimedUnblockActive())
 
-        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(-60)))
+        store.upsertTimedUnblock(makeDTO(id: "main", endDate: .now.addingTimeInterval(-.minutes(1))))
         #expect(!store.isMainTimedUnblockActive())
     }
 

@@ -205,7 +205,7 @@ struct TimedUnblockServiceTests {
     @Test func restoresActiveUnblocksFromStore() {
         let activity = FakeDeviceActivityCenter()
         let store = FakeSharedStore()
-        let futureEnd = Date.now.addingTimeInterval(3600)
+        let futureEnd = Date.now.addingTimeInterval(.hours(1))
         let dto = try! TimedUnblockDTO(
             id: TimedUnblockService.mainID,
             selectionData: FamilyActivitySelection().toData(),
@@ -226,7 +226,7 @@ struct TimedUnblockServiceTests {
 
     @Test func discardsExpiredUnblocksOnRestore() {
         let store = FakeSharedStore()
-        let pastEnd = Date.now.addingTimeInterval(-60)
+        let pastEnd = Date.now.addingTimeInterval(-.minutes(1))
         let dto = try! TimedUnblockDTO(
             id: TimedUnblockService.mainID,
             selectionData: FamilyActivitySelection().toData(),

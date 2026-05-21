@@ -8,6 +8,7 @@ struct AppContainer: View {
     @State private var keyManager = KeyManager()
     @State private var scheduleService: ScheduleService
     @State private var onboardingService = OnboardingService()
+    @State private var appReviewService: AppReviewService
 
     init() {
         let screenTime = ScreenTimeService()
@@ -27,11 +28,15 @@ struct AppContainer: View {
                 activityCenter: center,
                 sharedStore: store
             ))
+            _appReviewService = State(initialValue: AppReviewService(
+                defaults: UserDefaults(suiteName: "uitest-review-\(UUID().uuidString)")!
+            ))
         } else {
             _timedUnblockService = State(initialValue: TimedUnblockService(
                 onExpiration: { screenTime.notifyUpdate() }
             ))
             _scheduleService = State(initialValue: ScheduleService())
+            _appReviewService = State(initialValue: AppReviewService())
         }
     }
 
@@ -44,5 +49,6 @@ struct AppContainer: View {
             .environment(timedUnblockService)
             .environment(scheduleService)
             .environment(onboardingService)
+            .environment(appReviewService)
     }
 }

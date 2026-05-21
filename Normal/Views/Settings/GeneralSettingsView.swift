@@ -6,12 +6,14 @@ struct GeneralSettingsView: View {
     let availableKeyTypes: [KeyType]
 
     private static let defaultPageOptions: [AppTab] = [.home, .groups, .schedules]
+    private static let writeReviewURL = URL(string: "https://apps.apple.com/app/id6768861415?action=write-review")!
 
     var body: some View {
         List {
             defaultPageSection
             appDeletionSection
             quickUnblockSection
+            rateAppSection
         }
     }
 
@@ -45,6 +47,16 @@ struct GeneralSettingsView: View {
             Text("App Deletion Protection")
         } footer: {
             Text("When enabled, blocking all apps also prevents app deletion, and unblocking re-allows it.")
+        }
+    }
+
+    private var rateAppSection: some View {
+        Section {
+            Link(destination: Self.writeReviewURL) {
+                Label("Rate Normal", systemImage: "star.fill")
+            }
+        } footer: {
+            Text("If Normal has helped you, please consider leaving a review.")
         }
     }
 

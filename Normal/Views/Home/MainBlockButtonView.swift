@@ -1,9 +1,12 @@
+import StoreKit
 import SwiftData
 import SwiftUI
 
 struct MainBlockButtonView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Environment(AppReviewService.self) private var appReviewService
+    @Environment(\.requestReview) private var requestReview
     @Query private var allSettings: [Settings]
 
     let mainSelection: SelectedApps
@@ -61,12 +64,15 @@ struct MainBlockButtonView: View {
             allowBypass = false
             authAction = {
                 if let duration = settings.defaultUnblockDuration {
-                    try? timedUnblockService.startMain(
-                        duration: duration,
-                        selection: mainSelection.selection,
-                        screenTimeService: screenTimeService,
-                        blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                    )
+                    do {
+                        try timedUnblockService.startMain(
+                            duration: duration,
+                            selection: mainSelection.selection,
+                            screenTimeService: screenTimeService,
+                            blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+                        )
+                        recordUnblockForReview()
+                    } catch {}
                 } else {
                     showTimedUnblockSheet = true
                 }
@@ -92,12 +98,18 @@ struct MainBlockButtonView: View {
                     screenTimeService: screenTimeService,
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
+                recordUnblockForReview()
             },
             onPermanentUnblock: {
                 screenTimeService.removeShieldOnAll(
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
+                recordUnblockForReview()
             }
         )
+    }
+
+    private func recordUnblockForReview() {
+        appReviewService.recordUnblockEvent { requestReview() }
     }
 }
