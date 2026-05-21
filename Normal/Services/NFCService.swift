@@ -24,7 +24,6 @@ private extension NFCTag {
     }
 }
 
-
 private let mrtdAID = Data([0xA0, 0x00, 0x00, 0x02, 0x47, 0x10, 0x01])
 
 private extension NFCISO7816Tag {

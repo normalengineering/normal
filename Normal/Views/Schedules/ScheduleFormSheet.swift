@@ -19,6 +19,7 @@ struct ScheduleFormSheet: View {
     @State private var selectedWeekdays: Set<Int>
     @State private var shouldBlock: Bool
     @State private var isTimed: Bool
+    @State private var isEnabled: Bool
     @State private var isShowingAppSelect = false
     @State private var error: Error?
 
@@ -47,6 +48,7 @@ struct ScheduleFormSheet: View {
         _selectedWeekdays = State(initialValue: existing?.weekdays ?? Set(2 ... 6))
         _shouldBlock = State(initialValue: existing?.shouldBlock ?? false)
         _isTimed = State(initialValue: existing?.isTimed ?? true)
+        _isEnabled = State(initialValue: existing?.isEnabled ?? false)
 
         var startComponents = DateComponents()
         startComponents.hour = existing?.startHour ?? 9
@@ -62,6 +64,7 @@ struct ScheduleFormSheet: View {
     var body: some View {
         NavigationStack {
             Form {
+                if !isNew { statusSection }
                 nameSection
                 appSection
                 modeSection
@@ -168,6 +171,12 @@ struct ScheduleFormSheet: View {
         }
     }
 
+    private var statusSection: some View {
+        Section {
+            Toggle("Enabled", isOn: $isEnabled)
+        }
+    }
+
     @ViewBuilder
     private var errorSection: some View {
         if let error {
@@ -197,6 +206,7 @@ struct ScheduleFormSheet: View {
             existing.weekdays = selectedWeekdays
             existing.shouldBlock = shouldBlock
             existing.isTimed = isTimed
+            existing.isEnabled = isEnabled
             schedule = existing
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allSchedules, sortIndex: \.sortIndex)
@@ -209,22 +219,18 @@ struct ScheduleFormSheet: View {
                 weekdays: selectedWeekdays,
                 shouldBlock: shouldBlock,
                 isTimed: isTimed,
-                isEnabled: false,
+                isEnabled: isEnabled,
                 sortIndex: nextIndex
             )
             modelContext.insert(schedule)
         }
 
         do {
-            if isNew {
-                scheduleService.syncAllToSharedStore(allSchedules + [schedule])
-            } else {
-                try scheduleService.syncAndPersist(
-                    schedule,
-                    allSchedules: allSchedules,
-                    screenTimeService: screenTimeService
-                )
-            }
+            try scheduleService.syncAndPersist(
+                schedule,
+                allSchedules: isNew ? allSchedules + [schedule] : allSchedules,
+                screenTimeService: screenTimeService
+            )
             dismiss()
         } catch {
             self.error = error

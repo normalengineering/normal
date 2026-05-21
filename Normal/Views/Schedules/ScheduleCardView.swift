@@ -38,8 +38,6 @@ struct ScheduleCardView: View {
             tokenStrip
             if needsSync {
                 syncWarningText
-            } else if !schedule.isEnabled && !isLocked {
-                offHintText
             }
         }
         .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
@@ -80,18 +78,12 @@ struct ScheduleCardView: View {
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                Text(schedule.name).font(.headline)
+                titleRow
                 HStack(spacing: DS.Spacing.sm - 2) {
-                    InlineIconText(
-                        systemImage: schedule.isEnabled ? "checkmark.circle.fill" : "pause.circle.fill",
-                        text: schedule.isEnabled ? "On" : "Off",
-                        tint: schedule.isEnabled ? .green : .secondary
-                    )
-                    Text("\u{00B7}").foregroundStyle(.secondary)
                     InlineIconText(
                         systemImage: schedule.shouldBlock ? "lock.fill" : "lock.open.fill",
                         text: schedule.shouldBlock ? "Block" : "Unblock",
-                        tint: schedule.shouldBlock ? .red : .green
+                        tint: .blue
                     )
                     Text("\u{00B7}").foregroundStyle(.secondary)
                     InlineIconText(
@@ -102,12 +94,30 @@ struct ScheduleCardView: View {
                 }
             }
             Spacer()
-            Toggle("", isOn: enabledBinding)
-                .labelsHidden()
-                .tint(.accentColor)
-                .disabled(isLocked)
-                .accessibilityIdentifier("schedule.enabledToggle")
+            enabledToggle
         }
+    }
+
+    private var titleRow: some View {
+        HStack(spacing: DS.Spacing.sm) {
+            Text(schedule.name).font(.headline)
+            if !schedule.isEnabled {
+                Text("OFF")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, DS.Spacing.sm)
+                    .padding(.vertical, DS.Spacing.xs - 2)
+                    .background(.red, in: Capsule())
+            }
+        }
+    }
+
+    private var enabledToggle: some View {
+        Toggle("", isOn: enabledBinding)
+            .labelsHidden()
+            .tint(.accentColor)
+            .disabled(isLocked)
+            .accessibilityIdentifier("schedule.enabledToggle")
     }
 
     @ViewBuilder
@@ -151,12 +161,6 @@ struct ScheduleCardView: View {
 
     private var syncWarningText: some View {
         Text("App selection changed. Please re-select apps in this schedule.")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-    }
-
-    private var offHintText: some View {
-        Text("Toggle on to start running this schedule.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }
