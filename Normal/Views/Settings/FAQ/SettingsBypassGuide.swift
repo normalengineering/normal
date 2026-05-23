@@ -1,15 +1,22 @@
 import SwiftUI
 
 struct SettingsBypassGuide: View {
+    @State private var isMethod1Expanded = false
+    @State private var isMethod2Expanded = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+            Text("Yes. There are two ways to close the Settings bypass. Pick the one that fits how strict you want to be.")
             disclaimer
-            Text("Yes! Fixing the Settings bypass is straightforward using Apple's Shortcuts app.")
-            stepOne
-            stepTwo
-            stepThree
-            howItWorks
-            importantNotes
+
+            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                ExpandableSection(title: "Method 1: Shortcuts automation", isExpanded: $isMethod1Expanded) {
+                    method1Content
+                }
+                ExpandableSection(title: "Method 2: Screen Time passcode", isExpanded: $isMethod2Expanded) {
+                    method2Content
+                }
+            }
         }
         .font(.body)
         .foregroundStyle(.secondary)
@@ -32,6 +39,19 @@ struct SettingsBypassGuide: View {
             RoundedRectangle(cornerRadius: DS.Radius.md)
                 .stroke(Color.orange.opacity(0.4), lineWidth: 1)
         )
+    }
+
+    // MARK: - Method 1: Shortcuts automation
+
+    private var method1Content: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+            Text("Use Apple's Shortcuts app to automatically bounce you out of Settings before you can reach the Screen Time toggle.")
+            stepOne
+            stepTwo
+            stepThree
+            howItWorks
+            importantNotes
+        }
     }
 
     private var stepOne: some View {
@@ -107,6 +127,99 @@ struct SettingsBypassGuide: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(DS.Radius.md)
+    }
+
+    // MARK: - Method 2: Screen Time passcode
+
+    private var method2Content: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+            Text("Lock Screen Time behind a passcode and Apple ID you don't know. Without them, the Screen Time toggle can't be reached at all.")
+            pickOneOption
+            whyAppleIdMatters
+            passcodeSteps
+        }
+    }
+
+    private var pickOneOption: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+            Text("Pick one option for the passcode and Apple ID").font(.headline)
+            Text("Any of these works on its own; you only need one.")
+                .font(.footnote)
+                .foregroundStyle(.tertiary)
+            VStack(spacing: DS.Spacing.sm) {
+                optionCard(
+                    title: Text("Option A: Ask a trusted friend"),
+                    body: Text("Hand them your phone so they can enter a passcode and Apple ID that only they know.")
+                )
+                optionCard(
+                    title: Text("Option B: Use a service like [password-locker](https://password-locker.com/)"),
+                    body: Text("It provides both a dummy Apple ID and a random passcode. This can be made near impossible to recover.")
+                )
+                optionCard(
+                    title: Text("Option C: Do it yourself"),
+                    body: Text("Type in a random passcode and Apple ID password yourself without memorizing them.")
+                )
+            }
+        }
+    }
+
+    private var whyAppleIdMatters: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+            Text("Why the Apple ID matters")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.blue)
+            Text("Apple lets you reset a forgotten Screen Time passcode using the Apple ID you registered. If that's your own account, you can bypass the lock yourself. Which is why it's important to use credentials you don't have easy access to.")
+                .font(.footnote)
+                .foregroundStyle(.primary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.blue.opacity(DS.Opacity.muted))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.Radius.md)
+                .stroke(Color.blue.opacity(0.4), lineWidth: 1)
+        )
+    }
+
+    private var passcodeSteps: some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            Text("Steps").font(.headline)
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                NumberedRow(number: 1, text: "Open Screen Time in Settings")
+                NumberedRow(number: 2, text: "Tap \"Lock Screen Time Settings\"")
+                passcodeStep3
+                NumberedRow(number: 4, text: "Enter an Apple ID for passcode recovery, ideally a second account you don't have the password to")
+                NumberedRow(number: 5, text: "Done. Screen Time can no longer be disabled without that passcode or Apple ID login.")
+            }
+            HStack(spacing: DS.Spacing.md) {
+                BypassImage(name: "LockScreenTimeStep1", maxWidth: 110)
+                BypassImage(name: "LockScreenTimeStep2", maxWidth: 110)
+                BypassImage(name: "LockScreenTimeStep3", maxWidth: 110)
+            }
+        }
+    }
+
+    // Inline markdown link — Text literal init renders [label](url) as a tappable link.
+    private var passcodeStep3: some View {
+        HStack(alignment: .top, spacing: DS.Spacing.sm) {
+            Text("3.")
+                .foregroundStyle(.secondary)
+            Text("Set a Screen Time passcode (have a friend enter it, use [password-locker](https://password-locker.com/), or type a random PIN yourself)")
+        }
+    }
+
+    private func optionCard(title: Text, body: Text) -> some View {
+        VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+            title
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+            body
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 }
 
