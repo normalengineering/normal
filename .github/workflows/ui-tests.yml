@@ -1,22 +1,28 @@
-name: CI
+name: UI Tests
 
+# Manual / ad-hoc only — never runs on push or PR. Trigger from the Actions tab
+# ("Run workflow") or with: gh workflow run ui-tests.yml [-f only=...]
 on:
-  push:
-    branches: ["**"]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Test identifier to run (e.g. NormalUITests or NormalUITests/ReconcileLifecycleUITests)"
+        required: false
+        default: "NormalUITests"
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ui-tests-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  unit-tests:
-    name: Unit tests
+  ui-tests:
+    name: UI tests
     runs-on: macos-15
+    timeout-minutes: 30
     env:
       SCHEME: Normal
       SIMULATOR: iPhone 16 Pro
+      ONLY: ${{ inputs.only }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,23 +31,23 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Show toolchain
-        run: |
-          xcodebuild -version
-          xcrun simctl list runtimes | grep iOS || true
-
       - name: Ensure xcbeautify
         run: command -v xcbeautify >/dev/null || brew install xcbeautify
 
-      - name: Run unit tests
+      - name: Boot simulator
+        run: xcrun simctl bootstatus "$SIMULATOR" -b || true
+
+      - name: Run UI tests
         run: |
           set -o pipefail
           xcodebuild test \
             -project Normal.xcodeproj \
             -scheme "$SCHEME" \
             -destination "platform=iOS Simulator,name=$SIMULATOR" \
-            -only-testing:NormalTests \
-            -resultBundlePath TestResults.xcresult \
+            -only-testing:"$ONLY" \
+            -resultBundlePath UITestResults.xcresult \
+            -retry-tests-on-failure \
+            -test-iterations 3 \
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify --renderer github-actions --report junit
 
@@ -53,8 +59,8 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results
+          name: ui-test-results
           path: |
-            TestResults.xcresult
+            UITestResults.xcresult
             build/reports/junit.xml
           if-no-files-found: ignore
