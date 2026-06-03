@@ -52,9 +52,11 @@ final class TimedUnblockService {
         cancelMonitoring(activityName: activityName)
         cancelAllGroupUnblocks()
 
-        let endDate = Date.now.addingTimeInterval(duration.timeInterval)
+        let start = Date.now
+        let endDate = start.addingTimeInterval(duration.timeInterval)
         screenTimeService.removeShieldOnAll(blockAllPreventsAppDelete: blockAllPreventsAppDelete)
-        try scheduleActivity(name: activityName, endDate: endDate)
+        sharedStore.setScheduleOverrideActive(false)
+        try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
             id: Self.mainID,
@@ -76,9 +78,10 @@ final class TimedUnblockService {
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
         cancelMonitoring(activityName: activityName)
 
-        let endDate = Date.now.addingTimeInterval(duration.timeInterval)
+        let start = Date.now
+        let endDate = start.addingTimeInterval(duration.timeInterval)
         screenTimeService.removeFromShields(selection: selection)
-        try scheduleActivity(name: activityName, endDate: endDate)
+        try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
             id: id,
@@ -220,14 +223,8 @@ final class TimedUnblockService {
         }
     }
 
-    private func scheduleActivity(name: String, endDate: Date) throws {
-        let calendar = Calendar.current
-        let fields: Set<Calendar.Component> = [.year, .month, .day, .hour, .minute, .second]
-        let schedule = DeviceActivitySchedule(
-            intervalStart: calendar.dateComponents(fields, from: .now),
-            intervalEnd: calendar.dateComponents(fields, from: endDate),
-            repeats: false
-        )
+    private func scheduleActivity(name: String, start: Date, endDate: Date) throws {
+        let schedule = DeviceActivityScheduleFactory.window(from: start, to: endDate)
         try activityCenter.startMonitoring(
             DeviceActivityName(name),
             during: schedule,

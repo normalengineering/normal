@@ -49,6 +49,8 @@ final class NormalMonitor: DeviceActivityMonitor {
               let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return }
 
+        guard sharedStore.resolveScheduleStart() == .apply else { return }
+
         if schedule.shouldBlock {
             store.unionShields(with: selection)
         } else {

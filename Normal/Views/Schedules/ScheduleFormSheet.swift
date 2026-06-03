@@ -25,11 +25,17 @@ struct ScheduleFormSheet: View {
 
     private var isNew: Bool { existing == nil }
 
+    private static let minimumDurationMinutes = 15
+
+    private var isDurationTooShort: Bool {
+        isTimed && computedDurationMinutes < Self.minimumDurationMinutes
+    }
+
     private var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
             && selection.count > 0
             && !selectedWeekdays.isEmpty
-            && (!isTimed || computedDurationMinutes > 0)
+            && !isDurationTooShort
     }
 
     private var computedDurationMinutes: Int {
@@ -151,7 +157,12 @@ struct ScheduleFormSheet: View {
             Text("Time")
         } footer: {
             if isTimed {
-                Text("Duration: \(formattedComputedDuration)")
+                if isDurationTooShort {
+                    Text("Duration must be at least \(Self.minimumDurationMinutes) minutes.")
+                        .foregroundStyle(.red)
+                } else {
+                    Text("Duration: \(formattedComputedDuration)")
+                }
             }
         }
     }

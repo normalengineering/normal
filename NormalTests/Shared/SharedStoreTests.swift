@@ -90,4 +90,51 @@ struct SharedStoreTests {
         #expect(loaded.count == 1)
         #expect(loaded.first?.name == "Test")
     }
+
+    @Test func scheduleOverrideFlagRoundTrips() {
+        let (store, _) = makeStore()
+        #expect(!store.isScheduleOverrideActive(), "Defaults to off")
+
+        store.setScheduleOverrideActive(true)
+        #expect(store.isScheduleOverrideActive())
+
+        store.setScheduleOverrideActive(false)
+        #expect(!store.isScheduleOverrideActive())
+    }
+
+    @Test func unblockAllInEffectReflectsTimedOrOverride() {
+        let (store, _) = makeStore()
+        #expect(!store.isUnblockAllInEffect())
+
+        store.setScheduleOverrideActive(true)
+        #expect(store.isUnblockAllInEffect(), "Permanent override counts")
+
+        store.setScheduleOverrideActive(false)
+        store.upsertTimedUnblock(makeDTO(id: "main"))
+        #expect(store.isUnblockAllInEffect(), "Live timed unblock counts")
+    }
+
+    @Test func resolveScheduleStartAppliesWhenNothingActive() {
+        let (store, _) = makeStore()
+        #expect(store.resolveScheduleStart() == .apply)
+    }
+
+    @Test func resolveScheduleStartConsumesPermanentOverrideThenApplies() {
+        let (store, _) = makeStore()
+        store.setScheduleOverrideActive(true)
+
+        #expect(store.resolveScheduleStart() == .apply, "The start proceeds (override ends here)")
+        #expect(!store.isScheduleOverrideActive(), "...and the one-shot override is consumed")
+        #expect(store.resolveScheduleStart() == .apply, "Subsequent starts apply normally")
+    }
+
+    @Test func resolveScheduleStartSkipsDuringTimedUnblockWithoutConsumingOverride() {
+        let (store, _) = makeStore()
+        store.upsertTimedUnblock(makeDTO(id: "main"))
+        store.setScheduleOverrideActive(true)
+
+        #expect(store.resolveScheduleStart() == .skip, "A live timed unblock wins for its whole window")
+        #expect(store.isScheduleOverrideActive(),
+                "A timed-unblock skip must not consume the permanent override")
+    }
 }
