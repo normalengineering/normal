@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(OnboardingService.self) private var onboardingService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
     @Environment(\.scenePhase) private var scenePhase
     @Query private var allSettings: [Settings]
 
@@ -39,6 +40,9 @@ struct ContentView: View {
     }
 
     private func onAppear() {
+        if let settings {
+            emergencyUnblockService.reconcile(into: settings)
+        }
         if settings?.hasCompletedOnboarding == true {
             onboardingService.isOnboardingActive = false
             onboardingService.currentStep = .complete

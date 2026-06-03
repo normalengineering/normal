@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
 
@@ -67,7 +68,7 @@ struct SettingsView: View {
     }
 
     private func performEmergencyUnblock() {
-        settings.recordEmergencyUnblock()
+        emergencyUnblockService.record(into: settings)
         screenTimeService.removeShieldOnAll(blockAllPreventsAppDelete: true)
         showSuccessAlert = true
     }
