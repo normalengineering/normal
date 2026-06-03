@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: macos-15
+    env:
+      SCHEME: Normal
+      SIMULATOR: iPhone 16 Pro
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select latest stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes | grep iOS || true
+
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          # Prettify output if xcbeautify is available (it is on GitHub macOS images),
+          # otherwise fall back to raw xcodebuild output so the run never fails on tooling.
+          FORMATTER="cat"
+          if command -v xcbeautify >/dev/null 2>&1; then
+            FORMATTER="xcbeautify --renderer github-actions"
+          fi
+          xcodebuild test \
+            -project Normal.xcodeproj \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,name=$SIMULATOR" \
+            -only-testing:NormalTests \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            | $FORMATTER
+
+      - name: Upload result bundle
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          if-no-files-found: ignore
