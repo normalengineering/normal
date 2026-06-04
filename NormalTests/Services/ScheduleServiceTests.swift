@@ -234,7 +234,8 @@ struct ScheduleServiceTests {
         for day in 1 ... 7 {
             components.day = day
             if let candidate = Self.utc.date(from: components),
-               Self.utc.component(.weekday, from: candidate) == weekday {
+               Self.utc.component(.weekday, from: candidate) == weekday
+            {
                 return candidate
             }
         }

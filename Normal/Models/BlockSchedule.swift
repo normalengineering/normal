@@ -91,7 +91,8 @@ final class BlockSchedule: Identifiable {
             else { continue }
             let end = start + .minutes(durationMinutes)
             if weekdays.contains(calendar.component(.weekday, from: start)),
-               now >= start, now < end {
+               now >= start, now < end
+            {
                 return true
             }
         }
