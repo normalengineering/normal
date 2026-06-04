@@ -6,6 +6,7 @@ enum SharedConstants {
     enum DefaultsKey {
         static let timedUnblocks = "timedUnblocks_v1"
         static let schedules = "schedules_v1"
+        static let scheduleOverride = "scheduleOverride_v1"
     }
 
     static let mainTimedUnblockActivityName = "timedUnblock_main"

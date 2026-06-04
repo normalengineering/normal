@@ -93,6 +93,27 @@ final class RecoveryUITests: XCTestCase {
         )
     }
 
+    func testEmergencyUnblockDisablesSchedules() {
+        let app = launch(["-uiTestSeedSchedule"])
+
+        app.tabBars.buttons["Schedules"].tap()
+        let toggle = app.switches["schedule.enabledToggle"]
+        require(toggle, "Seeded schedule toggle should exist")
+        XCTAssertEqual(toggle.value as? String, "1", "Seeded schedule starts enabled")
+
+        openEmergencyTab(app)
+        app.buttons["emergency.unblockButton"].tap()
+        app.alerts.buttons["Unblock All Apps"].tap()
+        app.alerts.buttons["OK"].tap()
+        app.buttons["Close"].tap()
+
+        app.tabBars.buttons["Schedules"].tap()
+        XCTAssertEqual(
+            app.switches["schedule.enabledToggle"].value as? String, "0",
+            "Emergency unblock must toggle schedules off so they can't re-block"
+        )
+    }
+
     func testLegacyKeyWithoutScanKindShowsQRCodeLabel() {
         let app = launch([])
 

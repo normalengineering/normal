@@ -31,6 +31,17 @@ final class ScheduleService {
 
         let deviceSchedule = makeDeviceSchedule(for: schedule)
         try activityCenter.startMonitoring(activityName, during: deviceSchedule, events: [:])
+        applyIfActiveNow(schedule, screenTimeService: screenTimeService)
+    }
+
+    func registerAll(
+        _ schedules: [BlockSchedule],
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        syncAllToSharedStore(schedules)
+        for schedule in schedules where schedule.isEnabled {
+            try? sync(schedule, screenTimeService: screenTimeService)
+        }
     }
 
     func remove(
@@ -49,6 +60,23 @@ final class ScheduleService {
         try sync(schedule, screenTimeService: screenTimeService)
     }
 
+    func setScheduleOverride(_ active: Bool) {
+        sharedStore.setScheduleOverrideActive(active)
+    }
+
+    func disableAll(
+        _ schedules: [BlockSchedule],
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        for schedule in schedules where schedule.isEnabled {
+            schedule.isEnabled = false
+        }
+        for schedule in schedules {
+            try? sync(schedule, screenTimeService: screenTimeService)
+        }
+        syncAllToSharedStore(schedules)
+    }
+
     func syncAllToSharedStore(_ schedules: [BlockSchedule]) {
         sharedStore.saveSchedules(schedules.compactMap { $0.toDTO() })
     }
@@ -64,6 +92,19 @@ final class ScheduleService {
 
     private func activityName(for schedule: BlockSchedule) -> DeviceActivityName {
         DeviceActivityName(SharedConstants.scheduleActivityName(for: schedule.id))
+    }
+
+    private func applyIfActiveNow(
+        _ schedule: BlockSchedule,
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        guard schedule.isActive(at: .now) else { return }
+        if schedule.shouldBlock {
+            guard !sharedStore.isUnblockAllInEffect() else { return }
+            screenTimeService.addToShields(selection: schedule.selection)
+        } else {
+            screenTimeService.removeFromShields(selection: schedule.selection)
+        }
     }
 
     private func liftBlockIfNeeded(

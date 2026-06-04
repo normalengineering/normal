@@ -56,4 +56,12 @@ struct SharedStore: SharedStoreProviding, Sendable {
         }
         return (try? PropertyListDecoder().decode([ScheduleDTO].self, from: data)) ?? []
     }
+
+    func isScheduleOverrideActive() -> Bool {
+        defaults.bool(forKey: SharedConstants.DefaultsKey.scheduleOverride)
+    }
+
+    func setScheduleOverrideActive(_ active: Bool) {
+        defaults.set(active, forKey: SharedConstants.DefaultsKey.scheduleOverride)
+    }
 }

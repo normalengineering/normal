@@ -5,6 +5,7 @@ import SwiftUI
 struct MainBlockButtonView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Environment(ScheduleService.self) private var scheduleService
     @Environment(AppReviewService.self) private var appReviewService
     @Environment(\.requestReview) private var requestReview
     @Query private var allSettings: [Settings]
@@ -47,6 +48,7 @@ struct MainBlockButtonView: View {
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
                 timedUnblockService.clearAll()
+                scheduleService.setScheduleOverride(false)
             }
         } label: {
             HStack {
@@ -104,6 +106,7 @@ struct MainBlockButtonView: View {
                 screenTimeService.removeShieldOnAll(
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
+                scheduleService.setScheduleOverride(true)
                 recordUnblockForReview()
             }
         )

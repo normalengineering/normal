@@ -4,6 +4,7 @@ import Foundation
 final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var timedUnblocks: [TimedUnblockDTO] = []
     var schedules: [ScheduleDTO] = []
+    var scheduleOverrideActive = false
 
     func loadTimedUnblocks() -> [TimedUnblockDTO] { timedUnblocks }
     func saveTimedUnblocks(_ unblocks: [TimedUnblockDTO]) { timedUnblocks = unblocks }
@@ -28,4 +29,7 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
 
     func saveSchedules(_ dtos: [ScheduleDTO]) { schedules = dtos }
     func loadSchedules() -> [ScheduleDTO] { schedules }
+
+    func isScheduleOverrideActive() -> Bool { scheduleOverrideActive }
+    func setScheduleOverrideActive(_ active: Bool) { scheduleOverrideActive = active }
 }

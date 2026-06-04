@@ -1,3 +1,4 @@
+import DeviceActivity
 import FamilyControls
 import Foundation
 @testable import Normal
@@ -94,6 +95,21 @@ struct TimedUnblockServiceTests {
         #expect(screenTime.addToShieldsCalled)
         #expect(store.timedUnblocks.isEmpty)
         #expect(!service.isGroupUnblockActive(groupId: groupId))
+    }
+
+    @Test func startMainClearsPermanentScheduleOverride() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        store.setScheduleOverrideActive(true)
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        #expect(!store.isScheduleOverrideActive(),
+                "A timed unblock supersedes a permanent override; its own window guard takes over")
     }
 
     @Test func startMainCancelsExistingGroupUnblocks() throws {
@@ -244,5 +260,42 @@ struct TimedUnblockServiceTests {
 
         #expect(!service.isMainUnblockActive)
         #expect(store.timedUnblocks.isEmpty)
+    }
+}
+
+@MainActor
+struct DeviceActivityScheduleFactoryTests {
+    private static let utc: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
+        return calendar
+    }()
+
+    private func date(hour: Int, minute: Int, second: Int = 0) -> Date {
+        Self.utc.date(from: DateComponents(
+            year: 2026, month: 6, day: 1, hour: hour, minute: minute, second: second
+        ))!
+    }
+
+    private func intervalSeconds(_ schedule: DeviceActivitySchedule) -> TimeInterval {
+        let start = Self.utc.date(from: schedule.intervalStart)!
+        let end = Self.utc.date(from: schedule.intervalEnd)!
+        return end.timeIntervalSince(start)
+    }
+
+    @Test func fifteenMinuteWindowIsFlooredAboveTheMinimum() {
+        let start = date(hour: 10, minute: 0)
+        let schedule = DeviceActivityScheduleFactory.window(
+            from: start, to: start.addingTimeInterval(.minutes(15)), calendar: Self.utc
+        )
+        #expect(intervalSeconds(schedule) > .minutes(15))
+    }
+
+    @Test func longerWindowIsPreservedExactly() {
+        let start = date(hour: 10, minute: 0)
+        let schedule = DeviceActivityScheduleFactory.window(
+            from: start, to: start.addingTimeInterval(.hours(1)), calendar: Self.utc
+        )
+        #expect(intervalSeconds(schedule) == .hours(1))
     }
 }
