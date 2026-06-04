@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(ScheduleService.self) private var scheduleService
+    @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
     @Query private var schedules: [BlockSchedule]
@@ -69,7 +70,7 @@ struct SettingsView: View {
     }
 
     private func performEmergencyUnblock() {
-        settings.recordEmergencyUnblock()
+        emergencyUnblockService.record(into: settings)
         screenTimeService.removeShieldOnAll(blockAllPreventsAppDelete: true)
         scheduleService.disableAll(schedules, screenTimeService: screenTimeService)
         showSuccessAlert = true
