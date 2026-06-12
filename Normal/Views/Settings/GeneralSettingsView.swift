@@ -10,10 +10,11 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         List {
+            rateAppSection
+            donateButtonSection
             defaultPageSection
             appDeletionSection
             quickUnblockSection
-            rateAppSection
         }
     }
 
@@ -57,6 +58,17 @@ struct GeneralSettingsView: View {
             }
         } footer: {
             Text("If Normal has helped you, please consider leaving a review.")
+        }
+    }
+
+    private var donateButtonSection: some View {
+        Section {
+            Toggle(
+                "Hide Donate Button",
+                isOn: Bindable(settings).hideDonateButton
+            )
+        } footer: {
+            Text("Hides the Donate button from the toolbar. You can still donate from the Donate tab.")
         }
     }
 

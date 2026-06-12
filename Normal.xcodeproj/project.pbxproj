@@ -88,6 +88,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockingUITests.swift,
+				DonationUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 				RecoveryUITests.swift,
@@ -98,6 +99,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				BlockingUITests.swift,
+				DonationUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 				RecoveryUITests.swift,

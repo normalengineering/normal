@@ -10,6 +10,7 @@ struct AppContainer: View {
     @State private var onboardingService = OnboardingService()
     @State private var appReviewService: AppReviewService
     @State private var emergencyUnblockService: EmergencyUnblockService
+    @State private var donationService = DonationService()
 
     init() {
         let screenTime = ScreenTimeService()
@@ -58,5 +59,6 @@ struct AppContainer: View {
             .environment(onboardingService)
             .environment(appReviewService)
             .environment(emergencyUnblockService)
+            .environment(donationService)
     }
 }

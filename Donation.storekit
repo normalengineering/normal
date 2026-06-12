@@ -1,0 +1,199 @@
+{
+  "identifier" : "5E6F0A11-DON8-4A21-9C33-NORMALDONATE1",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "5.00",
+      "familyShareable" : false,
+      "internalID" : "1",
+      "localizations" : [
+        {
+          "description" : "A one-time $5 donation to support Normal.",
+          "displayName" : "$5 One-Time Donation",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.normalengineering.Normal.donation.onetime.5",
+      "referenceName" : "Donation One-Time $5",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "10.00",
+      "familyShareable" : false,
+      "internalID" : "2",
+      "localizations" : [
+        {
+          "description" : "A one-time $10 donation to support Normal.",
+          "displayName" : "$10 One-Time Donation",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.normalengineering.Normal.donation.onetime.10",
+      "referenceName" : "Donation One-Time $10",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "20.00",
+      "familyShareable" : false,
+      "internalID" : "3",
+      "localizations" : [
+        {
+          "description" : "A one-time $20 donation to support Normal.",
+          "displayName" : "$20 One-Time Donation",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.normalengineering.Normal.donation.onetime.20",
+      "referenceName" : "Donation One-Time $20",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "50.00",
+      "familyShareable" : false,
+      "internalID" : "4",
+      "localizations" : [
+        {
+          "description" : "A one-time $50 donation to support Normal.",
+          "displayName" : "$50 One-Time Donation",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.normalengineering.Normal.donation.onetime.50",
+      "referenceName" : "Donation One-Time $50",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "100.00",
+      "familyShareable" : false,
+      "internalID" : "5",
+      "localizations" : [
+        {
+          "description" : "A one-time $100 donation to support Normal.",
+          "displayName" : "$100 One-Time Donation",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.normalengineering.Normal.donation.onetime.100",
+      "referenceName" : "Donation One-Time $100",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "200.00",
+      "familyShareable" : false,
+      "internalID" : "11",
+      "localizations" : [
+        {
+          "description" : "A one-time $200 donation to support Normal.",
+          "displayName" : "$200 One-Time Donation",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "org.normalengineering.Normal.donation.onetime.200",
+      "referenceName" : "Donation One-Time $200",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "normal",
+    "_developerTeamID" : "NORMALENG",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "9A0B1C2D-DON8-4E5F-8A90-NORMALMONTHLY",
+      "localizations" : [
+
+      ],
+      "name" : "Monthly Support",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "5.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A recurring $5 monthly donation to support Normal.",
+              "displayName" : "$5 Monthly Donation",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "org.normalengineering.Normal.donation.monthly.5",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Donation Monthly $5",
+          "subscriptionGroupID" : "9A0B1C2D-DON8-4E5F-8A90-NORMALMONTHLY",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "10.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "7",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A recurring $10 monthly donation to support Normal.",
+              "displayName" : "$10 Monthly Donation",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "org.normalengineering.Normal.donation.monthly.10",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Donation Monthly $10",
+          "subscriptionGroupID" : "9A0B1C2D-DON8-4E5F-8A90-NORMALMONTHLY",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "20.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "8",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A recurring $20 monthly donation to support Normal.",
+              "displayName" : "$20 Monthly Donation",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "org.normalengineering.Normal.donation.monthly.20",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Donation Monthly $20",
+          "subscriptionGroupID" : "9A0B1C2D-DON8-4E5F-8A90-NORMALMONTHLY",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

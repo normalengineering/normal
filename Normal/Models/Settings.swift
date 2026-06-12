@@ -11,6 +11,7 @@ final class Settings {
     var hasCompletedOnboarding: Bool = false
     var blockAllPreventsAppDelete: Bool = true
     var defaultTab: AppTab?
+    var hideDonateButton: Bool = false
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180

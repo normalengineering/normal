@@ -12,7 +12,11 @@ struct SettingsView: View {
 
     @State private var showConfirmation = false
     @State private var showSuccessAlert = false
-    @State private var selectedTab: SettingsTab = .general
+    @State private var selectedTab: SettingsTab
+
+    init(initialTab: SettingsTab = .general) {
+        _selectedTab = State(initialValue: initialTab)
+    }
 
     private var settings: Settings { allSettings.unwrapped }
 
@@ -45,9 +49,9 @@ struct SettingsView: View {
                         .navigationTitle("FAQ")
                 }
 
-                Tab(SettingsTab.contact.title, systemImage: SettingsTab.contact.icon, value: SettingsTab.contact) {
-                    ContactView()
-                        .navigationTitle("Contact")
+                Tab(SettingsTab.donation.title, systemImage: SettingsTab.donation.icon, value: SettingsTab.donation) {
+                    DonationView()
+                        .navigationTitle("Donate")
                 }
             }
             .toolbar {

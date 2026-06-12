@@ -4,8 +4,13 @@ import SwiftUI
 @Observable
 final class NavigationCoordinator {
     var isSettingsPresented = false
+    private(set) var settingsInitialTab: SettingsTab = .general
 
-    func presentSettings() { isSettingsPresented = true }
+    func presentSettings(tab: SettingsTab = .general) {
+        settingsInitialTab = tab
+        isSettingsPresented = true
+    }
+
     func dismissSettings() { isSettingsPresented = false }
 }
 

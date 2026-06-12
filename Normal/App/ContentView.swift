@@ -25,7 +25,7 @@ struct ContentView: View {
         }
         .environment(\.navigationCoordinator, navigationCoordinator)
         .sheet(isPresented: $navigationCoordinator.isSettingsPresented) {
-            SettingsView()
+            SettingsView(initialTab: navigationCoordinator.settingsInitialTab)
         }
         .onChange(of: onboardingService.requiredTab) { _, newTab in
             if let newTab { selectedTab = newTab }
