@@ -261,6 +261,151 @@ struct TimedUnblockServiceTests {
         #expect(!service.isMainUnblockActive)
         #expect(store.timedUnblocks.isEmpty)
     }
+
+    // MARK: - Multiple simultaneous group unblocks
+
+    @discardableResult
+    private func startGroup(
+        _ service: TimedUnblockService,
+        _ screenTime: FakeScreenTimeService,
+        _ groupId: UUID,
+        duration: UnblockDuration = .fifteenMinutes
+    ) throws -> String {
+        try service.startGroup(
+            duration: duration,
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+        return groupId.uuidString
+    }
+
+    private func groupActivityName(_ groupId: UUID) -> String {
+        SharedConstants.groupTimedUnblockActivityName(for: groupId)
+    }
+
+    @Test func twoGroupsUnblockIndependently() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupA = UUID()
+        let groupB = UUID()
+
+        try startGroup(service, screenTime, groupA)
+        try startGroup(service, screenTime, groupB)
+
+        #expect(service.isGroupUnblockActive(groupId: groupA))
+        #expect(service.isGroupUnblockActive(groupId: groupB))
+        #expect(Set(store.timedUnblocks.map(\.id)) == [groupA.uuidString, groupB.uuidString])
+
+        let started = activity.startCalls.map(\.name.rawValue)
+        #expect(started.contains(groupActivityName(groupA)))
+        #expect(started.contains(groupActivityName(groupB)))
+    }
+
+    @Test func cancellingOneGroupLeavesTheOtherActive() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupA = UUID()
+        let groupB = UUID()
+
+        try startGroup(service, screenTime, groupA)
+        try startGroup(service, screenTime, groupB)
+        service.cancelGroup(
+            groupId: groupA,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        #expect(!service.isGroupUnblockActive(groupId: groupA))
+        #expect(service.isGroupUnblockActive(groupId: groupB))
+        #expect(store.timedUnblocks.map(\.id) == [groupB.uuidString])
+    }
+
+    @Test func eachGroupKeepsItsOwnEndDate() throws {
+        let (service, _, _) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let shortGroup = UUID()
+        let longGroup = UUID()
+
+        try startGroup(service, screenTime, shortGroup, duration: .fifteenMinutes)
+        try startGroup(service, screenTime, longGroup, duration: .fourHours)
+
+        let shortEnd = try #require(service.groupUnblockEndDate(groupId: shortGroup))
+        let longEnd = try #require(service.groupUnblockEndDate(groupId: longGroup))
+        #expect(longEnd > shortEnd)
+    }
+
+    @Test func reUnblockingSameGroupReplacesItsEntry() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let group = UUID()
+
+        try startGroup(service, screenTime, group, duration: .fifteenMinutes)
+        let firstEnd = try #require(service.groupUnblockEndDate(groupId: group))
+        try startGroup(service, screenTime, group, duration: .fourHours)
+
+        #expect(store.timedUnblocks.map(\.id) == [group.uuidString], "Same group is upserted, not duplicated")
+        let secondEnd = try #require(service.groupUnblockEndDate(groupId: group))
+        #expect(secondEnd > firstEnd, "End date extends to the new duration")
+    }
+
+    @Test func startMainCancelsMultipleGroupUnblocks() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupA = UUID()
+        let groupB = UUID()
+
+        try startGroup(service, screenTime, groupA)
+        try startGroup(service, screenTime, groupB)
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        #expect(!service.isGroupUnblockActive(groupId: groupA))
+        #expect(!service.isGroupUnblockActive(groupId: groupB))
+        #expect(service.isMainUnblockActive)
+        #expect(store.timedUnblocks.map(\.id) == [TimedUnblockService.mainID])
+    }
+
+    @Test func clearAllRemovesEveryGroupUnblock() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupA = UUID()
+        let groupB = UUID()
+
+        try startGroup(service, screenTime, groupA)
+        try startGroup(service, screenTime, groupB)
+        service.clearAll()
+
+        #expect(!service.isGroupUnblockActive(groupId: groupA))
+        #expect(!service.isGroupUnblockActive(groupId: groupB))
+        #expect(store.timedUnblocks.isEmpty)
+
+        let stopped = activity.stopCalls.flatMap { $0 }.map(\.rawValue)
+        #expect(stopped.contains(groupActivityName(groupA)))
+        #expect(stopped.contains(groupActivityName(groupB)))
+    }
+
+    @Test func cancellingOneGroupDoesNotTouchAnother() throws {
+        let (service, _, _) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupA = UUID()
+        let groupB = UUID()
+
+        try startGroup(service, screenTime, groupA)
+        try startGroup(service, screenTime, groupB)
+        let endBBefore = try #require(service.groupUnblockEndDate(groupId: groupB))
+
+        service.cancelGroup(
+            groupId: groupA,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        #expect(service.groupUnblockEndDate(groupId: groupB) == endBBefore)
+    }
 }
 
 @MainActor

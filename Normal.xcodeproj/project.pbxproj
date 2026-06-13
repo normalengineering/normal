@@ -127,6 +127,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				SharedConstants.swift,
+				TimedUnblockActivityAttributes.swift,
 				WidgetSharedData.swift,
 			);
 			target = 2FDA0000000000000000A003 /* NormalWidget */;

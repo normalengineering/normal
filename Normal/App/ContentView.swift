@@ -25,6 +25,7 @@ struct ContentView: View {
         }
         .environment(\.navigationCoordinator, navigationCoordinator)
         .widgetActionResponder(coordinator: navigationCoordinator, selectedTab: $selectedTab)
+        .liveActivitySync()
         .sheet(isPresented: $navigationCoordinator.isSettingsPresented) {
             SettingsView(initialTab: navigationCoordinator.settingsInitialTab)
         }
