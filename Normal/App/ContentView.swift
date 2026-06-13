@@ -37,7 +37,7 @@ struct ContentView: View {
             if newPhase == .active {
                 Task { await screenTimeService.checkAuthorizationStatus() }
                 screenTimeService.notifyUpdate()
-                timedUnblockService.refresh()
+                timedUnblockService.refresh(screenTimeService: screenTimeService)
                 reregisterSchedules()
             }
         }
@@ -48,6 +48,8 @@ struct ContentView: View {
         if let settings {
             emergencyUnblockService.reconcile(into: settings)
         }
+
+        timedUnblockService.reconcile(screenTimeService: screenTimeService)
         if settings?.hasCompletedOnboarding == true {
             onboardingService.isOnboardingActive = false
             onboardingService.currentStep = .complete

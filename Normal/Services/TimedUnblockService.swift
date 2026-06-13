@@ -232,23 +232,49 @@ final class TimedUnblockService {
         )
     }
 
-    func refresh() {
+    func refresh(screenTimeService: any ScreenTimeProviding) {
         for (_, task) in expirationTasks {
             task.cancel()
         }
         expirationTasks.removeAll()
         activeUnblocks.removeAll()
-        restoreState()
+        reconcile(screenTimeService: screenTimeService)
     }
 
     private func restoreState() {
+        for unblock in sharedStore.loadTimedUnblocks() where unblock.endDate > .now {
+            activeUnblocks[unblock.id] = unblock.endDate
+            scheduleExpiration(id: unblock.id, at: unblock.endDate)
+        }
+    }
+
+    func reconcile(screenTimeService: any ScreenTimeProviding) {
         for unblock in sharedStore.loadTimedUnblocks() {
             if unblock.endDate > .now {
                 activeUnblocks[unblock.id] = unblock.endDate
                 scheduleExpiration(id: unblock.id, at: unblock.endDate)
             } else {
+                reapplyShield(for: unblock, screenTimeService: screenTimeService)
                 sharedStore.removeTimedUnblock(id: unblock.id)
             }
+        }
+    }
+
+    private func reapplyShield(
+        for unblock: TimedUnblockDTO,
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        guard let selection = try? FamilyActivitySelection.fromData(unblock.selectionData)
+        else { return }
+
+        if unblock.isGroupUnblock {
+            guard !sharedStore.isMainTimedUnblockActive() else { return }
+            screenTimeService.addToShields(selection: selection)
+        } else {
+            screenTimeService.applyShieldOnAll(
+                selection: selection,
+                blockAllPreventsAppDelete: unblock.blockAllPreventsAppDelete ?? false
+            )
         }
     }
 }

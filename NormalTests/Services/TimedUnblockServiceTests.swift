@@ -240,17 +240,20 @@ struct TimedUnblockServiceTests {
         #expect(service.isMainUnblockActive)
     }
 
-    @Test func discardsExpiredUnblocksOnRestore() {
-        let store = FakeSharedStore()
-        let pastEnd = Date.now.addingTimeInterval(-.minutes(1))
-        let dto = try! TimedUnblockDTO(
+    private func expiredMainDTO(blockAllPreventsAppDelete: Bool? = nil) -> TimedUnblockDTO {
+        try! TimedUnblockDTO(
             id: TimedUnblockService.mainID,
             selectionData: FamilyActivitySelection().toData(),
-            endDate: pastEnd,
+            endDate: Date.now.addingTimeInterval(-.minutes(1)),
             activityName: SharedConstants.mainTimedUnblockActivityName,
-            isGroupUnblock: false
+            isGroupUnblock: false,
+            blockAllPreventsAppDelete: blockAllPreventsAppDelete
         )
-        store.timedUnblocks = [dto]
+    }
+
+    @Test func expiredUnblockIsRetainedNotActiveAtInit() {
+        let store = FakeSharedStore()
+        store.timedUnblocks = [expiredMainDTO()]
 
         let service = TimedUnblockService(
             activityCenter: FakeDeviceActivityCenter(),
@@ -259,7 +262,123 @@ struct TimedUnblockServiceTests {
         )
 
         #expect(!service.isMainUnblockActive)
+        #expect(store.timedUnblocks.count == 1)
+    }
+
+    @Test func reconcileReblocksUnblockThatExpiredWhileAppWasDead() {
+        let store = FakeSharedStore()
+        store.timedUnblocks = [expiredMainDTO()]
+        let screenTime = FakeScreenTimeService()
+
+        let service = TimedUnblockService(
+            activityCenter: FakeDeviceActivityCenter(),
+            sharedStore: store,
+            onExpiration: {}
+        )
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(screenTime.applyShieldOnAllCalled)
         #expect(store.timedUnblocks.isEmpty)
+    }
+
+    @Test func reconcilePropagatesPreventAppDeleteWhenReblocking() {
+        let store = FakeSharedStore()
+        store.timedUnblocks = [expiredMainDTO(blockAllPreventsAppDelete: true)]
+        let screenTime = FakeScreenTimeService()
+
+        let service = TimedUnblockService(
+            activityCenter: FakeDeviceActivityCenter(),
+            sharedStore: store,
+            onExpiration: {}
+        )
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(screenTime.applyShieldOnAllBlockAllPreventsAppDelete == true)
+    }
+
+    @Test func reconcileReblocksExpiredGroupViaUnion() {
+        let store = FakeSharedStore()
+        let groupId = UUID()
+        store.timedUnblocks = [try! TimedUnblockDTO(
+            id: groupId.uuidString,
+            selectionData: FamilyActivitySelection().toData(),
+            endDate: Date.now.addingTimeInterval(-.minutes(1)),
+            activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
+            isGroupUnblock: true
+        )]
+        let screenTime = FakeScreenTimeService()
+
+        let service = TimedUnblockService(
+            activityCenter: FakeDeviceActivityCenter(),
+            sharedStore: store,
+            onExpiration: {}
+        )
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(screenTime.addToShieldsCalled)
+        #expect(!screenTime.applyShieldOnAllCalled)
+        #expect(store.timedUnblocks.isEmpty)
+    }
+
+    @Test func reconcileSkipsExpiredGroupWhenMainStillActive() {
+        let store = FakeSharedStore()
+        let groupId = UUID()
+        store.timedUnblocks = [
+            try! TimedUnblockDTO(
+                id: TimedUnblockService.mainID,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: Date.now.addingTimeInterval(.minutes(30)),
+                activityName: SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: false
+            ),
+            try! TimedUnblockDTO(
+                id: groupId.uuidString,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: Date.now.addingTimeInterval(-.minutes(1)),
+                activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
+                isGroupUnblock: true
+            ),
+        ]
+        let screenTime = FakeScreenTimeService()
+
+        let service = TimedUnblockService(
+            activityCenter: FakeDeviceActivityCenter(),
+            sharedStore: store,
+            onExpiration: {}
+        )
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(!screenTime.addToShieldsCalled)
+        #expect(service.isMainUnblockActive)
+        #expect(store.timedUnblocks.map(\.id) == [TimedUnblockService.mainID])
+    }
+
+    @Test func reconcileLeavesActiveUnblockArmedWithoutReblocking() {
+        let store = FakeSharedStore()
+        store.timedUnblocks = [try! TimedUnblockDTO(
+            id: TimedUnblockService.mainID,
+            selectionData: FamilyActivitySelection().toData(),
+            endDate: Date.now.addingTimeInterval(.minutes(30)),
+            activityName: SharedConstants.mainTimedUnblockActivityName,
+            isGroupUnblock: false
+        )]
+        let screenTime = FakeScreenTimeService()
+
+        let service = TimedUnblockService(
+            activityCenter: FakeDeviceActivityCenter(),
+            sharedStore: store,
+            onExpiration: {}
+        )
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(!screenTime.applyShieldOnAllCalled)
+        #expect(service.isMainUnblockActive)
+        #expect(store.timedUnblocks.count == 1)
     }
 
     // MARK: - Multiple simultaneous group unblocks
