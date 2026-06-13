@@ -22,7 +22,6 @@ struct SelectGroupIntent: WidgetConfigurationIntent {
     }
 }
 
-
 struct GroupEntity: AppEntity {
     static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Group")
     static let defaultQuery = GroupEntityQuery()

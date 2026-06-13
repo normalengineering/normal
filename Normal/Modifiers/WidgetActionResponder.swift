@@ -1,7 +1,6 @@
 import SwiftData
 import SwiftUI
 
-
 private struct WidgetActionResponder: ViewModifier {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(ScreenTimeService.self) private var screenTimeService
