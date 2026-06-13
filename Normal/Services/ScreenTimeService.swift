@@ -111,4 +111,9 @@ final class ScreenTimeService: ScreenTimeProviding {
         _ = lastUpdate
         return shield.status(for: selection)
     }
+
+    func isShielded(_ token: SelectedTokenKind) -> Bool {
+        _ = lastUpdate
+        return shield.isShielded(token)
+    }
 }

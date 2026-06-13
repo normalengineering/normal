@@ -9,6 +9,7 @@ protocol ShieldStoring: AnyObject {
     func subtract(with selection: FamilyActivitySelection)
     func shieldedCount() -> Int
     func status(for selection: FamilyActivitySelection?) -> BlockStatus
+    func isShielded(_ token: SelectedTokenKind) -> Bool
 }
 
 final class ManagedSettingsShieldStore: ShieldStoring {
@@ -49,6 +50,14 @@ final class ManagedSettingsShieldStore: ShieldStoring {
 
         return .some
     }
+
+    func isShielded(_ token: SelectedTokenKind) -> Bool {
+        switch token {
+        case let .application(t): (store.shield.applications ?? []).contains(t)
+        case let .webDomain(t): (store.shield.webDomains ?? []).contains(t)
+        case let .category(t): store.shield.applicationCategories.tokenSet.contains(t)
+        }
+    }
 }
 
 final class InMemoryShieldStore: ShieldStoring {
@@ -66,4 +75,5 @@ final class InMemoryShieldStore: ShieldStoring {
     func subtract(with _: FamilyActivitySelection) { shielded = false }
     func shieldedCount() -> Int { shielded ? 1 : 0 }
     func status(for _: FamilyActivitySelection?) -> BlockStatus { shielded ? .all : .none }
+    func isShielded(_: SelectedTokenKind) -> Bool { shielded }
 }

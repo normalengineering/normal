@@ -11,18 +11,27 @@ struct BlockStatusView: View {
 
     var body: some View {
         Section("Status") {
-            HStack(spacing: DS.Spacing.lg - 1) {
-                Image(systemName: status.icon)
-                    .font(.title)
-                    .foregroundStyle(status.color)
+            NavigationLink {
+                StatusDetailView(mainSelection: mainSelection)
+            } label: {
+                statusRow
+            }
+            .accessibilityIdentifier("home.statusLink")
+        }
+    }
 
-                VStack(alignment: .leading) {
-                    Text(status.title)
-                        .font(.headline)
-                    Text("\(screenTimeService.activeShieldCount()) of \(mainSelection.selection.count) Blocked")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+    private var statusRow: some View {
+        HStack(spacing: DS.Spacing.lg - 1) {
+            Image(systemName: status.icon)
+                .font(.title)
+                .foregroundStyle(status.color)
+
+            VStack(alignment: .leading) {
+                Text(status.title)
+                    .font(.headline)
+                Text("\(screenTimeService.activeShieldCount()) of \(mainSelection.selection.count) Blocked")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
