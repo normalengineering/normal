@@ -17,7 +17,7 @@ struct KeySelectModifier: ViewModifier {
     @State private var actionTrigger = false
 
     private var availableKeyTypes: [KeyType] {
-        KeyType.availableOnDevice.filter { type in keys.contains { $0.type == type } }
+        KeyType.selectable(registered: keys.map(\.type))
     }
 
     func body(content: Content) -> some View {

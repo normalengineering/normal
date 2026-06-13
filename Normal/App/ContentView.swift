@@ -24,6 +24,7 @@ struct ContentView: View {
             }
         }
         .environment(\.navigationCoordinator, navigationCoordinator)
+        .widgetActionResponder(coordinator: navigationCoordinator, selectedTab: $selectedTab)
         .sheet(isPresented: $navigationCoordinator.isSettingsPresented) {
             SettingsView(initialTab: navigationCoordinator.settingsInitialTab)
         }

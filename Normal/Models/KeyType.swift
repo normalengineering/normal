@@ -1,4 +1,3 @@
-@preconcurrency import CoreNFC
 import Foundation
 
 enum KeyType: String, Codable, CaseIterable, Identifiable, Sendable {
@@ -6,17 +5,6 @@ enum KeyType: String, Codable, CaseIterable, Identifiable, Sendable {
     case qr = "QR"
 
     var id: String { rawValue }
-
-    var isAvailableOnDevice: Bool {
-        switch self {
-        case .nfc: NFCTagReaderSession.readingAvailable
-        case .qr: true
-        }
-    }
-
-    static var availableOnDevice: [KeyType] {
-        allCases.filter(\.isAvailableOnDevice)
-    }
 
     var icon: String {
         switch self {

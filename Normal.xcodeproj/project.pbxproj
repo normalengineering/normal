@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2F4718682F5569C90013F94D /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F4718672F5569C90013F94D /* DeviceActivity.framework */; };
 		2F4718702F5569C90013F94D /* NormalMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2F4718652F5569C90013F94D /* NormalMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2FDA0000000000000000A002 /* NormalWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2FDA0000000000000000A001 /* NormalWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +34,13 @@
 			remoteGlobalIDString = 2F58EFE72EC9C5DE00A38180;
 			remoteInfo = Normal;
 		};
+		2FDA0000000000000000A007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F58EFE02EC9C5DE00A38180 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2FDA0000000000000000A003;
+			remoteInfo = NormalWidget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,6 +51,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				2F4718702F5569C90013F94D /* NormalMonitor.appex in Embed Foundation Extensions */,
+				2FDA0000000000000000A002 /* NormalWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -55,6 +64,7 @@
 		2F58EFE82EC9C5DE00A38180 /* Normal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Normal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F58EFF52EC9C5DF00A38180 /* NormalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NormalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F58EFFF2EC9C5DF00A38180 /* NormalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NormalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FDA0000000000000000A001 /* NormalWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NormalWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -106,6 +116,29 @@
 			);
 			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 		};
+		2FDA0000000000000000A005 /* Exceptions for "NormalWidget" folder in "NormalWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2FDA0000000000000000A003 /* NormalWidget */;
+		};
+		2FDA0000000000000000A006 /* Exceptions for "Shared" folder in "NormalWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				SharedConstants.swift,
+				WidgetSharedData.swift,
+			);
+			target = 2FDA0000000000000000A003 /* NormalWidget */;
+		};
+		2FDA0000000000000000A015 /* Exceptions for "Normal" folder in "NormalWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/KeyType.swift,
+				Models/UnblockDuration.swift,
+			);
+			target = 2FDA0000000000000000A003 /* NormalWidget */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -135,6 +168,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "NormalMonitor" target */,
+				2FDA0000000000000000A006 /* Exceptions for "Shared" folder in "NormalWidget" target */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -143,8 +177,17 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				2F4719242F57A53F0013F94D /* Exceptions for "Normal" folder in "Normal" target */,
+				2FDA0000000000000000A015 /* Exceptions for "Normal" folder in "NormalWidget" target */,
 			);
 			path = Normal;
+			sourceTree = "<group>";
+		};
+		2FDA0000000000000000A004 /* NormalWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2FDA0000000000000000A005 /* Exceptions for "NormalWidget" folder in "NormalWidget" target */,
+			);
+			path = NormalWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -179,6 +222,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2FDA0000000000000000A010 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -196,6 +246,7 @@
 				2F47187A2F556B950013F94D /* Shared */,
 				2F58EFEA2EC9C5DE00A38180 /* Normal */,
 				2F4718692F5569C90013F94D /* NormalMonitor */,
+				2FDA0000000000000000A004 /* NormalWidget */,
 				2F4718662F5569C90013F94D /* Frameworks */,
 				2F58EFE92EC9C5DE00A38180 /* Products */,
 				2F4301E62ECBBAA7001FBF91 /* NormalTests */,
@@ -210,6 +261,7 @@
 				2F58EFF52EC9C5DF00A38180 /* NormalTests.xctest */,
 				2F58EFFF2EC9C5DF00A38180 /* NormalUITests.xctest */,
 				2F4718652F5569C90013F94D /* NormalMonitor.appex */,
+				2FDA0000000000000000A001 /* NormalWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -252,6 +304,7 @@
 			);
 			dependencies = (
 				2F47186F2F5569C90013F94D /* PBXTargetDependency */,
+				2FDA0000000000000000A008 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				2F4301E92ECBBAA7001FBF91 /* NormalUITests */,
@@ -308,6 +361,28 @@
 			productReference = 2F58EFFF2EC9C5DF00A38180 /* NormalUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		2FDA0000000000000000A003 /* NormalWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2FDA0000000000000000A014 /* Build configuration list for PBXNativeTarget "NormalWidget" */;
+			buildPhases = (
+				2FDA0000000000000000A009 /* Sources */,
+				2FDA0000000000000000A010 /* Frameworks */,
+				2FDA0000000000000000A011 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2FDA0000000000000000A004 /* NormalWidget */,
+			);
+			name = NormalWidget;
+			packageProductDependencies = (
+			);
+			productName = NormalWidget;
+			productReference = 2FDA0000000000000000A001 /* NormalWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -352,6 +427,7 @@
 				2F58EFF42EC9C5DF00A38180 /* NormalTests */,
 				2F58EFFE2EC9C5DF00A38180 /* NormalUITests */,
 				2F4718642F5569C90013F94D /* NormalMonitor */,
+				2FDA0000000000000000A003 /* NormalWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -379,6 +455,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2F58EFFD2EC9C5DF00A38180 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2FDA0000000000000000A011 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -416,6 +499,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2FDA0000000000000000A009 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -433,6 +523,11 @@
 			isa = PBXTargetDependency;
 			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 			targetProxy = 2F58F0002EC9C5DF00A38180 /* PBXContainerItemProxy */;
+		};
+		2FDA0000000000000000A008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2FDA0000000000000000A003 /* NormalWidget */;
+			targetProxy = 2FDA0000000000000000A007 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -782,6 +877,72 @@
 			};
 			name = Release;
 		};
+		2FDA0000000000000000A012 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = NormalWidget/NormalWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8FNVWC4DBU;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NormalWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Normal;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.3;
+				PRODUCT_BUNDLE_IDENTIFIER = org.normalengineering.Normal.NormalWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2FDA0000000000000000A013 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = NormalWidget/NormalWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8FNVWC4DBU;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NormalWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Normal;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.3;
+				PRODUCT_BUNDLE_IDENTIFIER = org.normalengineering.Normal.NormalWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -826,6 +987,15 @@
 			buildConfigurations = (
 				2F58F0102EC9C5DF00A38180 /* Debug */,
 				2F58F0112EC9C5DF00A38180 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2FDA0000000000000000A014 /* Build configuration list for PBXNativeTarget "NormalWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2FDA0000000000000000A012 /* Debug */,
+				2FDA0000000000000000A013 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

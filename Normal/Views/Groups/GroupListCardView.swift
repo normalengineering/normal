@@ -60,7 +60,7 @@ struct GroupListCardView: View {
         .sheet(isPresented: $isEditing) {
             GroupFormSheet(existing: appGroup)
         }
-        .sheet(isPresented: $showTimedUnblockSheet) { timedUnblockSheet }
+        .sheet(isPresented: $showTimedUnblockSheet) { GroupTimedUnblockSheet(group: appGroup) }
         .deleteConfirmation(
             title: "Delete Group?",
             itemName: appGroup.name,
@@ -171,22 +171,5 @@ struct GroupListCardView: View {
                 }
             }
         }
-    }
-
-    private var timedUnblockSheet: some View {
-        TimedUnblockSheet(
-            title: "Unblock \(appGroup.name)",
-            onTimedUnblock: { duration in
-                try timedUnblockService.startGroup(
-                    duration: duration,
-                    groupId: appGroup.id,
-                    selection: appGroup.selection,
-                    screenTimeService: screenTimeService
-                )
-            },
-            onPermanentUnblock: {
-                screenTimeService.removeFromShields(selection: appGroup.selection)
-            }
-        )
     }
 }

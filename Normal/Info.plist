@@ -2,6 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.normalengineering.Normal.unlock</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>normal</string>
+			</array>
+		</dict>
+	</array>
 	<key>Privacy - Camera Usage Description</key>
 	<string>Normal uses the camera to scan QR codes and barcodes you've set up as keys, to block and unlock apps on your device.</string>
 	<key>Privacy - Family Controls Usage Description</key>
