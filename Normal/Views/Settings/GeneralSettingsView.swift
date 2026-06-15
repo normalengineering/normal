@@ -10,86 +10,19 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         List {
-            rateAppSection
-            donateButtonSection
-            defaultPageSection
-            appDeletionSection
-            liveActivitySection
-            quickUnblockSection
+            unblockingSection
+            blockingSection
+            appearanceSection
+            aboutSection
         }
     }
 
-    private var liveActivitySection: some View {
-        Section {
-            Toggle(
-                "Show Live Activity",
-                isOn: Bindable(settings).showTimedUnblockLiveActivity
-            )
-        } header: {
-            Text("Timed Unblocks")
-        } footer: {
-            Text("Shows a Live Activity and Dynamic Island countdown while a timed unblock is running.")
-        }
-    }
+    // MARK: - Unblocking
 
-    private var defaultPageSection: some View {
+    private var unblockingSection: some View {
         Section {
             Picker(
-                "Default Page",
-                selection: Binding(
-                    get: { settings.defaultTab ?? .home },
-                    set: { settings.defaultTab = $0 }
-                )
-            ) {
-                ForEach(Self.defaultPageOptions, id: \.self) { tab in
-                    Text(tab.label).tag(tab)
-                }
-            }
-        } header: {
-            Text("Default Page")
-        } footer: {
-            Text("The page shown when the app opens.")
-        }
-    }
-
-    private var appDeletionSection: some View {
-        Section {
-            Toggle(
-                "Block All Prevents App Deletion",
-                isOn: Bindable(settings).blockAllPreventsAppDelete
-            )
-        } header: {
-            Text("App Deletion Protection")
-        } footer: {
-            Text("When enabled, blocking all apps also prevents app deletion, and unblocking re-allows it.")
-        }
-    }
-
-    private var rateAppSection: some View {
-        Section {
-            Link(destination: Self.writeReviewURL) {
-                Label("Rate Normal", systemImage: "star.fill")
-            }
-        } footer: {
-            Text("If Normal has helped you, please consider leaving a review.")
-        }
-    }
-
-    private var donateButtonSection: some View {
-        Section {
-            Toggle(
-                "Hide Donate Button",
-                isOn: Bindable(settings).hideDonateButton
-            )
-        } footer: {
-            Text("Hides the Donate button from the toolbar. You can still donate from the Donate tab.")
-        }
-    }
-
-    private var quickUnblockSection: some View {
-        Section {
-            Picker(
-                "Default Key Type",
+                "Default Key",
                 selection: Binding(
                     get: {
                         guard let keyType = settings.defaultKeyType,
@@ -106,16 +39,75 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Picker("Default Unblock Duration", selection: Bindable(settings).defaultUnblockDuration) {
+            Picker("Default Duration", selection: Bindable(settings).defaultUnblockDuration) {
                 Text("None").tag(UnblockDuration?.none)
                 ForEach(UnblockDuration.allCases) { duration in
                     Text(duration.label).tag(UnblockDuration?.some(duration))
                 }
             }
+
+            Toggle(
+                "Live Activity",
+                isOn: Bindable(settings).showTimedUnblockLiveActivity
+            )
         } header: {
-            Text("Quick Unblock Settings")
+            Text("Unblocking")
         } footer: {
-            Text("When set, unblocking skips the key type and duration selection steps.")
+            Text("A default key and duration skip those steps when unblocking. The Live Activity shows a Lock Screen and Dynamic Island countdown while a timed unblock runs.")
+        }
+    }
+
+    // MARK: - Blocking
+
+    private var blockingSection: some View {
+        Section {
+            Toggle(
+                "Prevent App Deletion on Block All",
+                isOn: Bindable(settings).blockAllPreventsAppDelete
+            )
+        } header: {
+            Text("Blocking All Apps")
+        } footer: {
+            Text("When enabled Block All and app deletion are linked. Blocking all apps will prevent app deletion. Unblocking all re-allows deletion.")
+        }
+    }
+
+    // MARK: - Appearance
+
+    private var appearanceSection: some View {
+        Section {
+            Picker(
+                "Default Page",
+                selection: Binding(
+                    get: { settings.defaultTab ?? .home },
+                    set: { settings.defaultTab = $0 }
+                )
+            ) {
+                ForEach(Self.defaultPageOptions, id: \.self) { tab in
+                    Text(tab.label).tag(tab)
+                }
+            }
+
+            Toggle(
+                "Hide Donate Button",
+                isOn: Bindable(settings).hideDonateButton
+            )
+        } header: {
+            Text("Navigation & Appearance")
+        } footer: {
+            Text("Default Page opens when you launch the app. Hiding the Donate button removes it from the toolbar, you can still donate from the Donate tab.")
+        }
+    }
+
+    // MARK: - About
+
+    private var aboutSection: some View {
+        Section {
+            Link(destination: Self.writeReviewURL) {
+                Label("Rate Normal", systemImage: "star.fill")
+            }
+        } footer: {
+            Text("If Normal has helped you, please consider leaving a review.")
         }
     }
 }
