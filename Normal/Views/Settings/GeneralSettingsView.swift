@@ -14,7 +14,21 @@ struct GeneralSettingsView: View {
             donateButtonSection
             defaultPageSection
             appDeletionSection
+            liveActivitySection
             quickUnblockSection
+        }
+    }
+
+    private var liveActivitySection: some View {
+        Section {
+            Toggle(
+                "Show Live Activity",
+                isOn: Bindable(settings).showTimedUnblockLiveActivity
+            )
+        } header: {
+            Text("Timed Unblocks")
+        } footer: {
+            Text("Shows a Live Activity and Dynamic Island countdown while a timed unblock is running.")
         }
     }
 

@@ -12,6 +12,7 @@ final class Settings {
     var blockAllPreventsAppDelete: Bool = true
     var defaultTab: AppTab?
     var hideDonateButton: Bool = false
+    var showTimedUnblockLiveActivity: Bool = false
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180
