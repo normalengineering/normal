@@ -1,3 +1,4 @@
+import FamilyControls
 import SwiftData
 import SwiftUI
 
@@ -13,6 +14,7 @@ struct ScheduleCardView: View {
     let schedule: BlockSchedule
 
     @State private var isEditing = false
+    @State private var isReselecting = false
     @State private var showDeleteConfirmation = false
     @State private var showToggleConfirmation = false
     @State private var error: Error?
@@ -41,14 +43,19 @@ struct ScheduleCardView: View {
             }
         }
         .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
-        .onTapGesture { if !isLocked || needsSync { isEditing = true } }
+        .onTapGesture {
+            if needsSync { isReselecting = true } else if !isLocked { isEditing = true }
+        }
         .editDeleteContextMenu(
             isDisabled: isLocked && !needsSync,
-            onEdit: { isEditing = true },
+            onEdit: { if needsSync { isReselecting = true } else { isEditing = true } },
             onDelete: { showDeleteConfirmation = true }
         )
         .sheet(isPresented: $isEditing) {
             ScheduleFormSheet(existing: schedule)
+        }
+        .sheet(isPresented: $isReselecting) {
+            SelectAppsForGroupSheet(selection: reselectionBinding)
         }
         .alert(
             schedule.isEnabled ? "Disable Schedule?" : "Enable Schedule?",
@@ -163,6 +170,20 @@ struct ScheduleCardView: View {
         Text("App selection changed. Please re-select apps in this schedule.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
+    }
+
+    private var reselectionBinding: Binding<FamilyActivitySelection> {
+        Binding(
+            get: { schedule.selection },
+            set: { newValue in
+                schedule.selection = newValue
+                try? scheduleService.syncAndPersist(
+                    schedule,
+                    allSchedules: allSchedules,
+                    screenTimeService: screenTimeService
+                )
+            }
+        )
     }
 
     private var enabledBinding: Binding<Bool> {

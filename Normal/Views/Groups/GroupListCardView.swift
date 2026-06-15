@@ -15,6 +15,7 @@ struct GroupListCardView: View {
     @State private var authAction: (@MainActor () -> Void)?
     @State private var allowBypass = false
     @State private var isEditing = false
+    @State private var isReselecting = false
     @State private var showDeleteConfirmation = false
     @State private var showTimedUnblockSheet = false
 
@@ -52,13 +53,16 @@ struct GroupListCardView: View {
             if !needsSync && !showsTimedUnblock { actionRow }
         }
         .opacity(needsSync ? DS.Opacity.dim : 1)
-        .onTapGesture { isEditing = true }
+        .onTapGesture { if needsSync { isReselecting = true } else { isEditing = true } }
         .editDeleteContextMenu(
-            onEdit: { isEditing = true },
+            onEdit: { if needsSync { isReselecting = true } else { isEditing = true } },
             onDelete: { showDeleteConfirmation = true }
         )
         .sheet(isPresented: $isEditing) {
             GroupFormSheet(existing: appGroup)
+        }
+        .sheet(isPresented: $isReselecting) {
+            SelectAppsForGroupSheet(selection: reselectionBinding)
         }
         .sheet(isPresented: $showTimedUnblockSheet) { GroupTimedUnblockSheet(group: appGroup) }
         .deleteConfirmation(
@@ -94,6 +98,17 @@ struct GroupListCardView: View {
         HStack(spacing: DS.Spacing.sm) {
             SelectionIconsView(tokens: appGroup.selection.allTokens, limit: 6)
         }
+    }
+
+    private var reselectionBinding: Binding<FamilyActivitySelection> {
+        Binding(
+            get: { appGroup.selection },
+            set: { newValue in
+                appGroup.selection = newValue
+                appGroup.lastUpdated = .now
+                timedUnblockService.updateGroupSelection(groupId: appGroup.id, selection: newValue)
+            }
+        )
     }
 
     private var syncWarningText: some View {
