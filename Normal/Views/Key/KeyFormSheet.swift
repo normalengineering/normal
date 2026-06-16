@@ -213,10 +213,17 @@ struct KeyFormSheet: View {
         if let existing {
             existing.name = trimmed
         } else {
+            let nextIndex = SortIndexing.nextIndex(after: keys, sortIndex: \.sortIndex)
             switch keyType {
             case .nfc, .qr:
                 guard let rawValue = scannedKeyId else { return }
-                modelContext.insert(Key(name: trimmed, type: keyType, rawValue: rawValue, scanKind: scannedKind))
+                modelContext.insert(Key(
+                    name: trimmed,
+                    type: keyType,
+                    rawValue: rawValue,
+                    scanKind: scannedKind,
+                    sortIndex: nextIndex
+                ))
             case .location:
                 guard let captured = capturedLocation else { return }
                 modelContext.insert(Key(
@@ -224,7 +231,8 @@ struct KeyFormSheet: View {
                     latitude: captured.latitude,
                     longitude: captured.longitude,
                     radiusMeters: captured.radiusMeters,
-                    radiusKind: captured.kind
+                    radiusKind: captured.kind,
+                    sortIndex: nextIndex
                 ))
             }
         }

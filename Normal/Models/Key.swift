@@ -13,6 +13,7 @@ final class Key: Identifiable {
     var longitude: Double?
     var radiusMeters: Double?
     var radiusKind: LocationRadiusKind?
+    var sortIndex: Int = 0
     private(set) var hashedValue: String
     private(set) var salt: String
 
@@ -20,7 +21,7 @@ final class Key: Identifiable {
     private static let saltLength = 16
     private static let hashLength = 32
 
-    init(name: String, type: KeyType, rawValue: String, scanKind: ScanCodeKind? = nil) {
+    init(name: String, type: KeyType, rawValue: String, scanKind: ScanCodeKind? = nil, sortIndex: Int = 0) {
         id = UUID()
         self.name = name
         self.type = type
@@ -29,12 +30,20 @@ final class Key: Identifiable {
         longitude = nil
         radiusMeters = nil
         radiusKind = nil
+        self.sortIndex = sortIndex
         let salt = Self.generateSalt()
         self.salt = salt
         hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
     }
 
-    init(name: String, latitude: Double, longitude: Double, radiusMeters: Double, radiusKind: LocationRadiusKind) {
+    init(
+        name: String,
+        latitude: Double,
+        longitude: Double,
+        radiusMeters: Double,
+        radiusKind: LocationRadiusKind,
+        sortIndex: Int = 0
+    ) {
         id = UUID()
         self.name = name
         type = .location
@@ -43,6 +52,7 @@ final class Key: Identifiable {
         self.longitude = longitude
         self.radiusMeters = radiusMeters
         self.radiusKind = radiusKind
+        self.sortIndex = sortIndex
         salt = ""
         hashedValue = ""
     }
@@ -69,7 +79,6 @@ final class Key: Identifiable {
         return Self.hash(unhashedString: unhashedId, salt: salt) == hashedValue
     }
 
-    /// Whether `location` falls inside this key's saved radius.
     func matches(location: CLLocation) -> Bool {
         guard type == .location, let latitude, let longitude, let radiusMeters else { return false }
         let target = CLLocation(latitude: latitude, longitude: longitude)
@@ -80,13 +89,10 @@ final class Key: Identifiable {
         keys.filter { $0.type == .location }
     }
 
-    /// All location keys share a single kind; this returns it (or `nil` if none exist).
     static func existingLocationKind(in keys: [Key]) -> LocationRadiusKind? {
         locationKeys(in: keys).first?.radiusKind
     }
 
-    /// Verifies the location keys against the user's current position.
-    /// Unblock radii pass when inside any zone; block radii pass when outside every zone.
     static func locationKeyVerifies(keys: [Key], location: CLLocation) -> Bool {
         let locKeys = locationKeys(in: keys)
         guard let kind = locKeys.first?.radiusKind else { return false }

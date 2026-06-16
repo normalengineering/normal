@@ -4,7 +4,8 @@ import SwiftUI
 struct KeysView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
 
-    @Query private var keys: [Key]
+    @Query(sort: [SortDescriptor(\Key.sortIndex)])
+    private var keys: [Key]
     @State private var isShowingSheet = false
 
     private var isBlocked: Bool {
@@ -36,14 +37,18 @@ struct KeysView: View {
         if keys.isEmpty {
             KeysEmptyStateView { isShowingSheet = true }
         } else {
-            ListView(items: keys) { key in
+            ReorderableListView(items: keys, rowContent: { key in
                 KeyListCardView(key: key)
-            }
-            .safeAreaInset(edge: .bottom) {
-                if isBlocked {
-                    FooterMessage(text: "Unblock all apps to edit or delete keys.")
+            }, onMove: move)
+                .safeAreaInset(edge: .bottom) {
+                    if isBlocked {
+                        FooterMessage(text: "Unblock all apps to edit or delete keys.")
+                    }
                 }
-            }
         }
+    }
+
+    private func move(from source: IndexSet, to destination: Int) {
+        _ = SortIndexing.reorder(keys, from: source, to: destination, sortIndex: \.sortIndex)
     }
 }
