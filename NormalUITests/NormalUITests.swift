@@ -18,6 +18,12 @@ final class NormalUITests: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), message)
     }
 
+    private func requireEnabled(_ element: XCUIElement, _ message: String) {
+        let predicate = NSPredicate(format: "isEnabled == true")
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: timeout), .completed, message)
+    }
+
     @MainActor
     func testOnboardingWelcomeAppearsAndSkipReachesMainUI() {
         let app = launch(["-uiTestMode"])
@@ -71,5 +77,47 @@ final class NormalUITests: XCTestCase {
         save.tap()
 
         require(app.staticTexts["Test Key"], "Saved key should appear in the keys list")
+    }
+
+    @MainActor
+    func testAddLocationKeyCreatesKey() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+
+        let keysTab = app.tabBars.buttons["Keys"]
+        require(keysTab, "Keys tab should be reachable when onboarding is skipped")
+        keysTab.tap()
+
+        let addButton = app.buttons["keys.addButton"]
+        require(addButton, "Add Key button should exist")
+        addButton.tap()
+
+        let nameField = app.textFields["key.nameField"]
+        require(nameField, "Key name field should appear in the new-key sheet")
+        nameField.tap()
+        nameField.typeText("Office")
+
+        let locationSegment = app.buttons["Location"]
+        require(locationSegment, "Location key type should be selectable")
+        locationSegment.tap()
+
+        let setLocation = app.buttons["key.locationButton"]
+        require(setLocation, "Set Location button should appear for a location key")
+        setLocation.tap()
+
+        // The location is stubbed in UI test mode, so the picker auto-drops a pin
+        // and the Save button becomes enabled without any map interaction.
+        let pickerSave = app.buttons["locationPicker.saveButton"]
+        require(pickerSave, "Location picker save button should exist")
+        requireEnabled(pickerSave, "Location picker save should enable once a pin is set")
+        pickerSave.tap()
+
+        require(app.staticTexts["Location Set"], "Picking a location should mark it as set")
+
+        let save = app.buttons["key.saveButton"]
+        require(save, "Save button should exist")
+        requireEnabled(save, "Save should enable once a location is captured")
+        save.tap()
+
+        require(app.staticTexts["Office"], "Saved location key should appear in the keys list")
     }
 }
