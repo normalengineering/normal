@@ -12,6 +12,9 @@ struct KeyFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(QRService.self) private var qrService
+    @Environment(ScreenTimeService.self) private var screenTimeService
+
+    @Query private var keys: [Key]
 
     let existing: Key?
 
@@ -23,8 +26,21 @@ struct KeyFormSheet: View {
     @State private var capturedLocation: CapturedLocation?
     @State private var showQRScanner = false
     @State private var showLocationPicker = false
+    @State private var showDeleteConfirmation = false
+    @State private var showLastKeyAlert = false
+    @State private var showKeyTypeLockedAlert = false
 
     private var isNew: Bool { existing == nil }
+
+    /// Existing keys can't be modified while apps are blocked — the sheet becomes read-only.
+    private var isReadOnly: Bool { !isNew && screenTimeService.activeShieldCount() > 0 }
+
+    private var isLastKey: Bool { keys.count <= 1 }
+
+    private var navigationTitle: String {
+        if isNew { return "New Key" }
+        return isReadOnly ? "Key" : "Edit Key"
+    }
 
     private var isCaptured: Bool {
         switch keyType {
@@ -51,8 +67,12 @@ struct KeyFormSheet: View {
         NavigationStack {
             Form {
                 Section("Name") {
-                    TextField("e.g. Office Keycard", text: $name)
-                        .accessibilityIdentifier("key.nameField")
+                    if isReadOnly {
+                        Text(name)
+                    } else {
+                        TextField("e.g. Office Keycard", text: $name)
+                            .accessibilityIdentifier("key.nameField")
+                    }
                 }
 
                 if isNew {
@@ -67,12 +87,18 @@ struct KeyFormSheet: View {
                     )
                 } else {
                     Section("Key Type") {
-                        HStack {
-                            Label(keyType.label, systemImage: keyType.icon)
-                            Spacer()
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundStyle(.green)
+                        Button {
+                            if !isReadOnly { showKeyTypeLockedAlert = true }
+                        } label: {
+                            HStack {
+                                Label(keyType.label, systemImage: keyType.icon)
+                                Spacer()
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundStyle(.green)
+                            }
                         }
+                        .buttonStyle(.plain)
+                        .disabled(isReadOnly)
                     }
 
                     if keyType == .location, let existing, existing.coordinate != nil {
@@ -84,19 +110,43 @@ struct KeyFormSheet: View {
                             }
                         }
                     }
+
+                    if !isNew, !isReadOnly {
+                        Section {
+                            Button(role: .destructive, action: attemptDelete) {
+                                Text("Delete Key")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .accessibilityIdentifier("key.deleteButton")
+                        }
+                    }
+
+                    if isReadOnly {
+                        Section {
+                        } footer: {
+                            Text("Unblock all apps to edit or delete keys.")
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                    }
                 }
             }
-            .navigationTitle(isNew ? "New Key" : "Edit Key")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Save" : "Update", action: save)
-                        .fontWeight(.semibold)
-                        .accessibilityIdentifier("key.saveButton")
-                        .disabled(!canSave)
+                if isReadOnly {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }.fontWeight(.semibold)
+                    }
+                } else {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(isNew ? "Save" : "Update", action: save)
+                            .fontWeight(.semibold)
+                            .accessibilityIdentifier("key.saveButton")
+                            .disabled(!canSave)
+                    }
                 }
             }
             .navigationDestination(isPresented: $showQRScanner) {
@@ -123,7 +173,37 @@ struct KeyFormSheet: View {
                     }
                 }
             }
+            .deleteConfirmation(
+                title: "Delete Key?",
+                itemName: existing?.name ?? name,
+                isPresented: $showDeleteConfirmation,
+                onDelete: deleteKey
+            )
+            .alert("Can't Delete Key", isPresented: $showLastKeyAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("At least one key must exist. Add another key before deleting this one.")
+            }
+            .alert("Can't Change Key Type", isPresented: $showKeyTypeLockedAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Keys cannot be re-assigned once created. Please create a new key instead and delete this one.")
+            }
         }
+    }
+
+    private func attemptDelete() {
+        if isLastKey {
+            showLastKeyAlert = true
+        } else {
+            showDeleteConfirmation = true
+        }
+    }
+
+    private func deleteKey() {
+        guard let existing, keys.count > 1 else { return }
+        modelContext.delete(existing)
+        dismiss()
     }
 
     private func save() {

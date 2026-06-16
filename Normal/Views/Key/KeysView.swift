@@ -41,7 +41,7 @@ struct KeysView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 if isBlocked {
-                    FooterMessage(text: "Unblock all apps to manage keys.")
+                    FooterMessage(text: "Unblock all apps to edit or delete keys.")
                 }
             }
         }

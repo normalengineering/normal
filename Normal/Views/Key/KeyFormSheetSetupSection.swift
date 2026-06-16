@@ -33,6 +33,14 @@ struct KeyFormSheetSetupSection: View {
         .onAppear {
             if let lockedKind { radiusKind = lockedKind }
         }
+
+        if keyType == .location {
+            Section {
+                unlockAnywhereNote
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
+        }
     }
 
     private var typePickerStep: some View {
@@ -89,6 +97,20 @@ struct KeyFormSheetSetupSection: View {
         .padding(.vertical, DS.Spacing.sm)
     }
 
+    private var unlockAnywhereNote: some View {
+        HStack(alignment: .top, spacing: DS.Spacing.sm) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.blue)
+            Text("Location keys still require you to unblock selected apps/groups by opening the Normal app and unblocking. Your NFC and QR keys will still work from anywhere!")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Spacing.md)
+        .background(Color.blue.opacity(DS.Opacity.subtle))
+        .cornerRadius(DS.Radius.md)
+    }
+
     private func lockedKindRow(_ kind: LocationRadiusKind) -> some View {
         VStack(alignment: .leading, spacing: DS.Spacing.xs) {
             HStack {
@@ -101,6 +123,7 @@ struct KeyFormSheetSetupSection: View {
             Text("You currently have \(kind.label) keys. You can only have one type of location key at a time. To change the type, delete all existing location keys of this type.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(DS.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)

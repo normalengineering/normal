@@ -22,6 +22,7 @@ struct ScheduleFormSheet: View {
     @State private var isEnabled: Bool
     @State private var isShowingAppSelect = false
     @State private var error: Error?
+    @State private var showDeleteConfirmation = false
 
     private var isNew: Bool { existing == nil }
 
@@ -78,6 +79,7 @@ struct ScheduleFormSheet: View {
                 timeSection
                 weekdaySection
                 errorSection
+                if !isNew { deleteSection }
             }
             .navigationTitle(isNew ? "New Schedule" : "Edit Schedule")
             .navigationBarTitleDisplayMode(.inline)
@@ -93,6 +95,21 @@ struct ScheduleFormSheet: View {
             }
             .sheet(isPresented: $isShowingAppSelect) {
                 SelectAppsForGroupSheet(selection: $selection)
+            }
+            .deleteConfirmation(
+                title: "Delete Schedule?",
+                itemName: existing?.name ?? name,
+                isPresented: $showDeleteConfirmation,
+                onDelete: deleteSchedule
+            )
+        }
+    }
+
+    private var deleteSection: some View {
+        Section {
+            Button(role: .destructive) { showDeleteConfirmation = true } label: {
+                Text("Delete Schedule")
+                    .frame(maxWidth: .infinity)
             }
         }
     }
@@ -199,6 +216,15 @@ struct ScheduleFormSheet: View {
 
     private func presentPicker() {
         screenTimeService.ifAuthorized { isShowingAppSelect = true }
+    }
+
+    private func deleteSchedule() {
+        guard let existing else { return }
+        scheduleService.remove(existing, screenTimeService: screenTimeService)
+        modelContext.delete(existing)
+        let remaining = allSchedules.filter { $0.id != existing.id }
+        scheduleService.syncAllToSharedStore(remaining)
+        dismiss()
     }
 
     private func save() {

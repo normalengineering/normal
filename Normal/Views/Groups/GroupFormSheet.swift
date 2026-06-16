@@ -15,6 +15,7 @@ struct GroupFormSheet: View {
     @State private var name: String
     @State private var selection: FamilyActivitySelection
     @State private var isShowingAppSelectSheet = false
+    @State private var showDeleteConfirmation = false
 
     private var isNew: Bool { existing == nil }
 
@@ -40,6 +41,15 @@ struct GroupFormSheet: View {
                         CountChevronRow(title: "Select Apps", count: selection.count)
                     }
                 }
+
+                if !isNew {
+                    Section {
+                        Button(role: .destructive) { showDeleteConfirmation = true } label: {
+                            Text("Delete Group")
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                }
             }
             .navigationTitle(isNew ? "New Group" : "Edit Group")
             .navigationBarTitleDisplayMode(.inline)
@@ -56,7 +66,19 @@ struct GroupFormSheet: View {
             .sheet(isPresented: $isShowingAppSelectSheet) {
                 SelectAppsForGroupSheet(selection: $selection)
             }
+            .deleteConfirmation(
+                title: "Delete Group?",
+                itemName: existing?.name ?? name,
+                isPresented: $showDeleteConfirmation,
+                onDelete: deleteGroup
+            )
         }
+    }
+
+    private func deleteGroup() {
+        guard let existing else { return }
+        modelContext.delete(existing)
+        dismiss()
     }
 
     private func presentPicker() {

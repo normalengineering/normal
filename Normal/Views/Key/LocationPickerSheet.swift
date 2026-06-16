@@ -394,6 +394,8 @@ struct LocationKeyMapPreview: View {
                         .shadow(radius: 1)
                 }
                 .annotationTitles(.hidden)
+
+                UserAnnotation()
             }
             .mapStyle(.standard(pointsOfInterest: .excludingAll))
             .frame(height: 180)

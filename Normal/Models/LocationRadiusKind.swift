@@ -8,7 +8,7 @@ enum LocationRadiusKind: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var label: String {
         switch self {
-        case .unblock: "Location"
+        case .unblock: "Unblock Radius"
         case .block: "Block Radius"
         }
     }
@@ -45,7 +45,7 @@ enum LocationRadiusKind: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var fieldLegend: String {
         switch self {
-        case .unblock: "Blocked elsewhere"
+        case .unblock: "Cannot unblock elsewhere"
         case .block: "Can unblock elsewhere"
         }
     }
