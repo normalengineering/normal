@@ -1,6 +1,13 @@
 import SwiftData
 import SwiftUI
 
+struct CapturedLocation: Equatable {
+    var latitude: Double
+    var longitude: Double
+    var radiusMeters: Double
+    var kind: LocationRadiusKind
+}
+
 struct KeyFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -12,14 +19,24 @@ struct KeyFormSheet: View {
     @State private var keyType: KeyType
     @State private var scannedKeyId: String?
     @State private var scannedKind: ScanCodeKind?
+    @State private var radiusKind: LocationRadiusKind
+    @State private var capturedLocation: CapturedLocation?
     @State private var showQRScanner = false
+    @State private var showLocationPicker = false
 
     private var isNew: Bool { existing == nil }
+
+    private var isCaptured: Bool {
+        switch keyType {
+        case .nfc, .qr: scannedKeyId != nil
+        case .location: capturedLocation != nil
+        }
+    }
 
     private var canSave: Bool {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return false }
-        return isNew ? scannedKeyId != nil : true
+        return isNew ? isCaptured : true
     }
 
     init(existing: Key? = nil) {
@@ -27,6 +44,7 @@ struct KeyFormSheet: View {
         _name = State(initialValue: existing?.name ?? "")
         _keyType = State(initialValue: existing?.type ?? KeyType.availableOnDevice.first ?? .qr)
         _scannedKeyId = State(initialValue: nil)
+        _radiusKind = State(initialValue: existing?.radiusKind ?? .unblock)
     }
 
     var body: some View {
@@ -42,7 +60,10 @@ struct KeyFormSheet: View {
                         keyType: $keyType,
                         scannedKeyId: $scannedKeyId,
                         scannedKind: $scannedKind,
-                        showQRScanner: $showQRScanner
+                        radiusKind: $radiusKind,
+                        capturedLocation: $capturedLocation,
+                        showQRScanner: $showQRScanner,
+                        showLocationPicker: $showLocationPicker
                     )
                 } else {
                     Section("Key Type") {
@@ -51,6 +72,16 @@ struct KeyFormSheet: View {
                             Spacer()
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundStyle(.green)
+                        }
+                    }
+
+                    if keyType == .location, let existing, existing.coordinate != nil {
+                        Section("Location") {
+                            LocationKeyMapPreview(key: existing)
+                                .listRowInsets(EdgeInsets())
+                            if let radius = existing.radiusMeters {
+                                LabeledContent("Radius", value: LocationPickerSheet.formatted(meters: radius))
+                            }
                         }
                     }
                 }
@@ -80,6 +111,18 @@ struct KeyFormSheet: View {
                         }
                     }
             }
+            .sheet(isPresented: $showLocationPicker) {
+                LocationPickerSheet(kind: radiusKind) { latitude, longitude, radius in
+                    withAnimation(.spring()) {
+                        capturedLocation = CapturedLocation(
+                            latitude: latitude,
+                            longitude: longitude,
+                            radiusMeters: radius,
+                            kind: radiusKind
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -90,8 +133,20 @@ struct KeyFormSheet: View {
         if let existing {
             existing.name = trimmed
         } else {
-            guard let rawValue = scannedKeyId else { return }
-            modelContext.insert(Key(name: trimmed, type: keyType, rawValue: rawValue, scanKind: scannedKind))
+            switch keyType {
+            case .nfc, .qr:
+                guard let rawValue = scannedKeyId else { return }
+                modelContext.insert(Key(name: trimmed, type: keyType, rawValue: rawValue, scanKind: scannedKind))
+            case .location:
+                guard let captured = capturedLocation else { return }
+                modelContext.insert(Key(
+                    name: trimmed,
+                    latitude: captured.latitude,
+                    longitude: captured.longitude,
+                    radiusMeters: captured.radiusMeters,
+                    radiusKind: captured.kind
+                ))
+            }
         }
         dismiss()
     }

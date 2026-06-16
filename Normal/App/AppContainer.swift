@@ -5,6 +5,7 @@ struct AppContainer: View {
     @State private var timedUnblockService: TimedUnblockService
     @State private var nfcService = NFCService.shared
     @State private var qrService = QRService.shared
+    @State private var locationService = LocationService.shared
     @State private var keyManager = KeyManager()
     @State private var scheduleService: ScheduleService
     @State private var onboardingService = OnboardingService()
@@ -53,6 +54,7 @@ struct AppContainer: View {
             .environment(screenTimeService)
             .environment(nfcService)
             .environment(qrService)
+            .environment(locationService)
             .environment(keyManager)
             .environment(timedUnblockService)
             .environment(scheduleService)

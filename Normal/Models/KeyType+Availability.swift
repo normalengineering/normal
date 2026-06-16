@@ -5,6 +5,7 @@ extension KeyType {
         switch self {
         case .nfc: NFCTagReaderSession.readingAvailable
         case .qr: true
+        case .location: true
         }
     }
 

@@ -738,6 +738,7 @@
 				INFOPLIST_FILE = Normal/Info.plist;
 				INFOPLIST_KEY_NFCReaderUsageDescription = "Normal uses NFC to scan tags so you can lock and unlock your blocked apps.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Normal uses the camera to scan QR codes so you can lock and unlock your blocked apps.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Normal uses your location only when you create or verify a Location key.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -776,6 +777,7 @@
 				INFOPLIST_FILE = Normal/Info.plist;
 				INFOPLIST_KEY_NFCReaderUsageDescription = "Normal uses NFC to scan tags so you can lock and unlock your blocked apps.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Normal uses the camera to scan QR codes so you can lock and unlock your blocked apps.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Normal uses your location only when you create or verify a Location key.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

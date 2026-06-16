@@ -5,6 +5,7 @@ struct KeySelectModifier: ViewModifier {
     @Environment(KeyManager.self) private var keyManager
     @Environment(NFCService.self) private var nfcService
     @Environment(QRService.self) private var qrService
+    @Environment(LocationService.self) private var locationService
     @Query private var keys: [Key]
 
     @Binding var action: (@MainActor () -> Void)?
@@ -15,6 +16,7 @@ struct KeySelectModifier: ViewModifier {
     @State private var showQRScanner = false
     @State private var showNoKeysAlert = false
     @State private var actionTrigger = false
+    @State private var locationError: LocationKeyError?
 
     private var availableKeyTypes: [KeyType] {
         KeyType.selectable(registered: keys.map(\.type))
@@ -40,6 +42,17 @@ struct KeySelectModifier: ViewModifier {
             }
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
                 keySelectSheet
+            }
+            .alert(
+                locationError?.alertTitle ?? "",
+                isPresented: Binding(
+                    get: { locationError != nil },
+                    set: { if !$0 { locationError = nil } }
+                )
+            ) {
+                Button("OK", role: .cancel) { locationError = nil }
+            } message: {
+                Text(locationError?.alertMessage ?? "")
             }
     }
 
@@ -98,6 +111,9 @@ struct KeySelectModifier: ViewModifier {
         case .qr:
             showQRScanner = true
             Task { await authenticate(with: .qr) }
+        case .location:
+            showKeySelect = false
+            Task { await authenticate(with: .location) }
         }
     }
 
@@ -112,6 +128,11 @@ struct KeySelectModifier: ViewModifier {
         let method: KeyMethod = switch choice {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: keys)
         case .qr: QRKeyMethod(qrService: qrService, keys: keys)
+        case .location: LocationKeyMethod(
+            locationProvider: locationService,
+            keys: keys,
+            onError: { locationError = $0 }
+        )
         }
         _ = await keyManager.performWithKeyCheck(using: method) { pendingAction() }
         showKeySelect = false

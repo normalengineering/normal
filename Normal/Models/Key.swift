@@ -1,4 +1,5 @@
 import CommonCrypto
+import CoreLocation
 import Foundation
 import SwiftData
 
@@ -8,6 +9,10 @@ final class Key: Identifiable {
     var name: String
     var type: KeyType
     var scanKind: ScanCodeKind?
+    var latitude: Double?
+    var longitude: Double?
+    var radiusMeters: Double?
+    var radiusKind: LocationRadiusKind?
     private(set) var hashedValue: String
     private(set) var salt: String
 
@@ -20,16 +25,39 @@ final class Key: Identifiable {
         self.name = name
         self.type = type
         self.scanKind = scanKind
+        latitude = nil
+        longitude = nil
+        radiusMeters = nil
+        radiusKind = nil
         let salt = Self.generateSalt()
         self.salt = salt
         hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
+    }
+
+    init(name: String, latitude: Double, longitude: Double, radiusMeters: Double, radiusKind: LocationRadiusKind) {
+        id = UUID()
+        self.name = name
+        type = .location
+        scanKind = nil
+        self.latitude = latitude
+        self.longitude = longitude
+        self.radiusMeters = radiusMeters
+        self.radiusKind = radiusKind
+        salt = ""
+        hashedValue = ""
     }
 
     var displayTypeLabel: String {
         switch type {
         case .nfc: KeyType.nfc.label
         case .qr: (scanKind ?? .qr).label
+        case .location: radiusKind?.label ?? KeyType.location.label
         }
+    }
+
+    var coordinate: CLLocationCoordinate2D? {
+        guard let latitude, let longitude else { return nil }
+        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
     static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {
@@ -37,7 +65,36 @@ final class Key: Identifiable {
     }
 
     func matches(unhashedId: String) -> Bool {
-        Self.hash(unhashedString: unhashedId, salt: salt) == hashedValue
+        guard type != .location, !hashedValue.isEmpty else { return false }
+        return Self.hash(unhashedString: unhashedId, salt: salt) == hashedValue
+    }
+
+    /// Whether `location` falls inside this key's saved radius.
+    func matches(location: CLLocation) -> Bool {
+        guard type == .location, let latitude, let longitude, let radiusMeters else { return false }
+        let target = CLLocation(latitude: latitude, longitude: longitude)
+        return location.distance(from: target) <= radiusMeters
+    }
+
+    static func locationKeys(in keys: [Key]) -> [Key] {
+        keys.filter { $0.type == .location }
+    }
+
+    /// All location keys share a single kind; this returns it (or `nil` if none exist).
+    static func existingLocationKind(in keys: [Key]) -> LocationRadiusKind? {
+        locationKeys(in: keys).first?.radiusKind
+    }
+
+    /// Verifies the location keys against the user's current position.
+    /// Unblock radii pass when inside any zone; block radii pass when outside every zone.
+    static func locationKeyVerifies(keys: [Key], location: CLLocation) -> Bool {
+        let locKeys = locationKeys(in: keys)
+        guard let kind = locKeys.first?.radiusKind else { return false }
+        let inside = locKeys.contains { $0.matches(location: location) }
+        switch kind {
+        case .unblock: return inside
+        case .block: return !inside
+        }
     }
 
     private static func hash(unhashedString: String, salt: String) -> String {

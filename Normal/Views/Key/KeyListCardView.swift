@@ -23,6 +23,7 @@ struct KeyListCardView: View {
         switch key.type {
         case .nfc: "sensor.tag.radiowaves.forward.fill"
         case .qr: key.scanKind?.icon ?? "qrcode"
+        case .location: key.radiusKind?.icon ?? KeyType.location.icon
         }
     }
 
