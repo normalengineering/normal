@@ -1,7 +1,8 @@
 import Foundation
 
 enum LocationFormat {
-    static func distance(meters: Double) -> String {
-        meters < 1000 ? "\(Int(meters)) m" : String(format: "%.1f km", meters / 1000)
+    static func distance(meters: Double, locale: Locale = .autoupdatingCurrent) -> String {
+        Measurement(value: meters, unit: UnitLength.meters)
+            .formatted(.measurement(width: .abbreviated, usage: .road).locale(locale))
     }
 }
