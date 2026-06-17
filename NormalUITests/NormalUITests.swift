@@ -104,8 +104,6 @@ final class NormalUITests: XCTestCase {
         require(setLocation, "Set Location button should appear for a location key")
         setLocation.tap()
 
-        // The location is stubbed in UI test mode, so the picker auto-drops a pin
-        // and the Save button becomes enabled without any map interaction.
         let pickerSave = app.buttons["locationPicker.saveButton"]
         require(pickerSave, "Location picker save button should exist")
         requireEnabled(pickerSave, "Location picker save should enable once a pin is set")

@@ -29,8 +29,6 @@ struct GroupFormSheet: View {
 
     private var isNew: Bool { existing == nil }
 
-    /// While apps are blocked an existing group is shown read-only (like the Keys
-    /// tab) — you can review its details but not edit them.
     private var isReadOnly: Bool { !isNew && screenTimeService.activeShieldCount() > 0 }
 
     private var customDomainsEnabled: Bool {

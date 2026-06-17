@@ -44,7 +44,6 @@ enum WebFilter {
         current.subtracting(webDomains(from: domains))
     }
 
-    /// Empty set fully disables the filter; non-empty uses `.specific` (deny-list).
     static func policy(for domains: Set<WebDomain>) -> WebContentSettings.FilterPolicy? {
         domains.isEmpty ? nil : .specific(domains)
     }

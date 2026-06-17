@@ -6,7 +6,6 @@ struct GroupEntry: TimelineEntry {
     let groupID: UUID?
     let groupName: String?
     let isUnblocked: Bool
-    /// Countdown end for an active timed unblock, or `nil` for a permanent unblock.
     let countdownEnd: Date?
     let durationSeconds: Int?
     let keyRawValue: String?
@@ -23,7 +22,6 @@ struct GroupEntry: TimelineEntry {
 
     var isConfigured: Bool { groupID != nil }
 
-    /// Where a tap goes: an already-unblocked group re-blocks, otherwise it unlocks.
     var actionURL: URL? {
         guard let groupID else { return nil }
         return isUnblocked
@@ -47,8 +45,6 @@ struct GroupUnlockProvider: AppIntentTimelineProvider {
 
     func timeline(for configuration: SelectGroupIntent, in _: Context) async -> Timeline<GroupEntry> {
         let entry = entry(for: configuration)
-        // Refresh when an active timed unblock expires so the widget flips back to
-        // blocked; otherwise there's nothing time-based to wait for.
         let policy: TimelineReloadPolicy = entry.countdownEnd.map { .after($0) } ?? .never
         return Timeline(entries: [entry], policy: policy)
     }

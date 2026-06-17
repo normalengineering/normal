@@ -29,7 +29,6 @@ enum LocationKeyError: Error, Equatable {
 @MainActor
 protocol LocationProviding: AnyObject {
     var authorizationStatus: CLAuthorizationStatus { get }
-    /// The most recent fix already known to the system, if any — instant, may be slightly stale.
     var cachedLocation: CLLocation? { get }
     func currentLocation() async throws -> CLLocation
 }
@@ -63,7 +62,6 @@ final class LocationService: NSObject, LocationProviding {
 
     func currentLocation() async throws -> CLLocation {
         if UITestSupport.isActive {
-            // Stub a fixed coordinate so UI tests never touch CoreLocation.
             return CLLocation(latitude: 37.33182, longitude: -122.03118)
         }
         let status = await waitForAuthorization()

@@ -52,7 +52,6 @@ enum LiveActivityManager {
         ActivityContent(
             state: .init(endDate: endDate),
             staleDate: endDate,
-            // Surface the soonest-ending unblock first when several are active.
             relevanceScore: -endDate.timeIntervalSinceReferenceDate
         )
     }

@@ -114,13 +114,11 @@ struct KeySelectModifier: ViewModifier {
             showQRScanner = true
             Task { await authenticate(with: .qr) }
         case .location:
-            // Capture the pending action so it survives the key-select sheet's
-            // dismissal, then present the location map popup.
             pendingLocationAction = action
             if showKeySelect {
-                showKeySelect = false // onSheetDismiss presents the location popup
+                showKeySelect = false
             } else {
-                showLocationUnlock = true // came straight from auto-select
+                showLocationUnlock = true
             }
         }
     }

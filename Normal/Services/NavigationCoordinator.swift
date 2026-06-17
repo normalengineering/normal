@@ -38,7 +38,6 @@ final class NavigationCoordinator {
         pendingGroupAction = GroupActionRequest(token: UUID(), groupID: groupID, action: .block)
     }
 
-    /// Parses `normal://unlock?…` and `normal://block?…` deep links into a request.
     func handle(url: URL) {
         guard url.scheme == WidgetDeepLink.scheme,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false)

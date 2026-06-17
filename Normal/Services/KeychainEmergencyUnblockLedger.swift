@@ -30,7 +30,7 @@ struct KeychainEmergencyUnblockLedger: EmergencyUnblockLedger {
     func save(_ dates: [Date]) {
         let seconds = dates.map(\.timeIntervalSinceReferenceDate)
         let encoder = PropertyListEncoder()
-        encoder.outputFormat = .binary // exact Double round-trip (XML would stringify reals)
+        encoder.outputFormat = .binary
         guard let data = try? encoder.encode(seconds) else { return }
 
         let update = [kSecValueData as String: data]
