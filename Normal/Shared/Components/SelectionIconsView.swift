@@ -26,11 +26,11 @@ struct SelectionIconsView: View {
                     }
                 case let .domain(domain):
                     Image(systemName: "globe")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.blue.opacity(0.45))
                         .overlay {
                             Text(domain.prefix(1).lowercased())
-                                .font(.system(size: 8, weight: .heavy))
-                                .foregroundStyle(.primary)
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(.blue)
                         }
                 }
             }

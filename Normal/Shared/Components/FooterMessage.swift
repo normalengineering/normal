@@ -11,3 +11,10 @@ struct FooterMessage: View {
             .padding()
     }
 }
+
+enum BlockedMessage {
+    static let groups: LocalizedStringKey = "Unblock all apps to add or edit groups."
+    static let schedules: LocalizedStringKey = "Unblock all apps to add or edit schedules."
+    static let keys: LocalizedStringKey = "Unblock all apps to add or delete keys."
+    static let customDomains: LocalizedStringKey = "Unblock all apps to edit custom domains."
+}

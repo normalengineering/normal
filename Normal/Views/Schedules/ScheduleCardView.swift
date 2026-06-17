@@ -52,7 +52,7 @@ struct ScheduleCardView: View {
         }
         .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
         .onTapGesture {
-            if needsSync { isReselecting = true } else if !isLocked { isEditing = true }
+            if needsSync { isReselecting = true } else if !isLocked || isBlocked { isEditing = true }
         }
         .editDeleteContextMenu(
             isDisabled: isLocked && !needsSync,

@@ -49,7 +49,7 @@ struct GroupsView: View {
             }, onMove: move)
                 .safeAreaInset(edge: .bottom) {
                     if isBlocked {
-                        FooterMessage(text: "Unblock all apps to add or edit groups.")
+                        FooterMessage(text: BlockedMessage.groups)
                     } else if !hasGlobalKey {
                         FooterMessage(text: "Add a key in the Keys tab before blocking groups.")
                     }

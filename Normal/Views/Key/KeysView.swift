@@ -49,7 +49,7 @@ struct KeysView: View {
         }
         .safeAreaInset(edge: .bottom) {
             if isBlocked {
-                FooterMessage(text: "Unblock all apps to edit or delete keys.")
+                FooterMessage(text: BlockedMessage.keys)
             } else if keys.isEmpty, !groupKeys.isEmpty {
                 groupKeysLink
                     .padding(.horizontal, DS.Spacing.lg)

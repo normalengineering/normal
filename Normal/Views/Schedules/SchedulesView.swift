@@ -61,7 +61,7 @@ struct SchedulesView: View {
     }
 
     private var bottomMessage: LocalizedStringKey? {
-        if isBlocked { "Unblock all apps to make schedule changes." }
+        if isBlocked { BlockedMessage.schedules }
         else if !hasGlobalKey { "Add a key in the Keys tab to manage schedules." }
         else { nil }
     }

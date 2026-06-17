@@ -83,10 +83,12 @@ struct GroupFormSheet: View {
                 }
 
                 if customDomainsEnabled {
-                    if isReadOnly {
-                        customDomainsReadOnlySection
-                    } else {
-                        CustomDomainsSubsetSection(available: availableDomains, selected: $customDomains)
+                    Section {
+                        CustomDomainsSubsetLink(
+                            available: availableDomains,
+                            selected: $customDomains,
+                            isEditable: !isReadOnly
+                        )
                     }
                 }
 
@@ -103,6 +105,11 @@ struct GroupFormSheet: View {
             }
             .navigationTitle(isReadOnly ? "Group" : (isNew ? "New Group" : "Edit Group"))
             .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                if isReadOnly {
+                    FooterMessage(text: BlockedMessage.groups)
+                }
+            }
             .toolbar {
                 if isReadOnly {
                     ToolbarItem(placement: .confirmationAction) {
@@ -135,27 +142,10 @@ struct GroupFormSheet: View {
     }
 
     private var appsReadOnlyRow: some View {
-        HStack(spacing: DS.Spacing.md) {
-            Text("Apps")
-            Spacer()
-            if selection.count > 0 {
-                SelectionIconsView(tokens: selection.allTokens, limit: 5)
-            } else {
-                Text("None").foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var customDomainsReadOnlySection: some View {
-        Section("Custom Domains") {
-            if effectiveCustomDomains.isEmpty {
-                Text("None").foregroundStyle(.secondary)
-            } else {
-                ForEach(effectiveCustomDomains, id: \.self) { domain in
-                    Label(domain, systemImage: "globe").lineLimit(1)
-                }
-            }
+        NavigationLink {
+            ViewOnlyAppsList(selection: selection)
+        } label: {
+            CountRow(title: "Apps", count: selection.count)
         }
     }
 

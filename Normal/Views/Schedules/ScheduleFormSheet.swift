@@ -29,6 +29,9 @@ struct ScheduleFormSheet: View {
 
     private var isNew: Bool { existing == nil }
 
+    private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
+    private var isReadOnly: Bool { !isNew && isBlocked }
+
     private static let minimumDurationMinutes = 15
 
     private var isDurationTooShort: Bool {
@@ -91,29 +94,46 @@ struct ScheduleFormSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                if !isNew { statusSection }
-                nameSection
+                if !isNew { statusSection.disabled(isReadOnly) }
+                nameSection.disabled(isReadOnly)
                 appSection
-                modeSection
-                timingSection
-                timeSection
-                weekdaySection
                 if customDomainsEnabled {
-                    CustomDomainsSubsetSection(available: availableDomains, selected: $customDomains)
+                    Section {
+                        CustomDomainsSubsetLink(
+                            available: availableDomains,
+                            selected: $customDomains,
+                            isEditable: !isReadOnly
+                        )
+                    }
                 }
+                modeSection.disabled(isReadOnly)
+                timingSection.disabled(isReadOnly)
+                timeSection.disabled(isReadOnly)
+                weekdaySection.disabled(isReadOnly)
                 errorSection
-                if !isNew { deleteSection }
+                if !isNew, !isReadOnly { deleteSection }
             }
-            .navigationTitle(isNew ? "New Schedule" : "Edit Schedule")
+            .navigationTitle(isReadOnly ? "Schedule" : (isNew ? "New Schedule" : "Edit Schedule"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+            .safeAreaInset(edge: .bottom) {
+                if isReadOnly {
+                    FooterMessage(text: BlockedMessage.schedules)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Save" : "Update", action: save)
-                        .fontWeight(.semibold)
-                        .disabled(!canSave)
+            }
+            .toolbar {
+                if isReadOnly {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }.fontWeight(.semibold)
+                    }
+                } else {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(isNew ? "Save" : "Update", action: save)
+                            .fontWeight(.semibold)
+                            .disabled(!canSave)
+                    }
                 }
             }
             .sheet(isPresented: $isShowingAppSelect) {
@@ -143,10 +163,19 @@ struct ScheduleFormSheet: View {
         }
     }
 
+    @ViewBuilder
     private var appSection: some View {
         Section("Apps") {
-            Button(action: presentPicker) {
-                CountChevronRow(title: "Select Apps", count: selection.count)
+            if isReadOnly {
+                NavigationLink {
+                    ViewOnlyAppsList(selection: selection)
+                } label: {
+                    CountRow(title: "Apps", count: selection.count)
+                }
+            } else {
+                Button(action: presentPicker) {
+                    CountChevronRow(title: "Select Apps", count: selection.count)
+                }
             }
         }
     }

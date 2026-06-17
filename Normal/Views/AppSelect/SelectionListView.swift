@@ -1,6 +1,38 @@
 import FamilyControls
 import SwiftUI
 
+struct ViewOnlyAppsList: View {
+    let selection: FamilyActivitySelection
+
+    var body: some View {
+        List {
+            tokenSection("Categories", tokens: selection.categoryTokens.asHashableArray)
+            tokenSection("Apps", tokens: selection.applicationTokens.asHashableArray)
+            tokenSection("Websites", tokens: selection.webDomainTokens.sortedStably.map { $0 as AnyHashable })
+        }
+        .navigationTitle("Apps")
+        .navigationBarTitleDisplayMode(.inline)
+        .overlay {
+            if selection.allTokens.isEmpty {
+                ContentUnavailableView("No Apps Selected", systemImage: "app.dashed")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tokenSection(_ title: LocalizedStringKey, tokens: [AnyHashable]) -> some View {
+        if !tokens.isEmpty {
+            Section(title) {
+                ForEach(tokens, id: \.self) { token in
+                    if let kind = SelectedTokenKind(token) {
+                        SelectionTokenLabel(kind: kind)
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct SelectionListView: View {
     let selection: FamilyActivitySelection
 

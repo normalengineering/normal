@@ -72,7 +72,7 @@ struct CustomDomainsEditor: View {
             .onDelete(perform: deleteAction)
         } footer: {
             if !isEditable {
-                Text("Unblock all apps to edit custom domains.")
+                Text(BlockedMessage.customDomains)
             }
         }
     }
