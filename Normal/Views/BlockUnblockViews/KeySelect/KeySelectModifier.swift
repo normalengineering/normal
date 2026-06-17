@@ -16,7 +16,8 @@ struct KeySelectModifier: ViewModifier {
     @State private var showQRScanner = false
     @State private var showNoKeysAlert = false
     @State private var actionTrigger = false
-    @State private var locationError: LocationKeyError?
+    @State private var showLocationUnlock = false
+    @State private var pendingLocationAction: (@MainActor () -> Void)?
 
     private var availableKeyTypes: [KeyType] {
         KeyType.selectable(registered: keys.map(\.type))
@@ -43,16 +44,12 @@ struct KeySelectModifier: ViewModifier {
             .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
                 keySelectSheet
             }
-            .alert(
-                locationError?.alertTitle ?? "",
-                isPresented: Binding(
-                    get: { locationError != nil },
-                    set: { if !$0 { locationError = nil } }
+            .sheet(isPresented: $showLocationUnlock, onDismiss: finishLocation) {
+                LocationUnlockSheet(
+                    keys: keys,
+                    provider: locationService,
+                    onVerified: { pendingLocationAction?() }
                 )
-            ) {
-                Button("OK", role: .cancel) { locationError = nil }
-            } message: {
-                Text(locationError?.alertMessage ?? "")
             }
     }
 
@@ -112,8 +109,14 @@ struct KeySelectModifier: ViewModifier {
             showQRScanner = true
             Task { await authenticate(with: .qr) }
         case .location:
-            showKeySelect = false
-            Task { await authenticate(with: .location) }
+            // Capture the pending action so it survives the key-select sheet's
+            // dismissal, then present the location map popup.
+            pendingLocationAction = action
+            if showKeySelect {
+                showKeySelect = false // onSheetDismiss presents the location popup
+            } else {
+                showLocationUnlock = true // came straight from auto-select
+            }
         }
     }
 
@@ -128,11 +131,7 @@ struct KeySelectModifier: ViewModifier {
         let method: KeyMethod = switch choice {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: keys)
         case .qr: QRKeyMethod(qrService: qrService, keys: keys)
-        case .location: LocationKeyMethod(
-                locationProvider: locationService,
-                keys: keys,
-                onError: { locationError = $0 }
-            )
+        case .location: preconditionFailure("location uses its own popup")
         }
         _ = await keyManager.performWithKeyCheck(using: method) { pendingAction() }
         showKeySelect = false
@@ -141,6 +140,16 @@ struct KeySelectModifier: ViewModifier {
 
     private func onSheetDismiss() {
         if qrService.isScanning { qrService.cancel() }
+
+        if pendingLocationAction != nil {
+            showLocationUnlock = true
+            return
+        }
+        action = nil
+    }
+
+    private func finishLocation() {
+        pendingLocationAction = nil
         action = nil
     }
 }
