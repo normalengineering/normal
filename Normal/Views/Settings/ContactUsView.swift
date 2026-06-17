@@ -6,7 +6,7 @@ struct ContactUsView: View {
     var body: some View {
         List {
             Section {
-                Text("We appreciate your feedback! Since Normal collects no data, contacting us is the only way to share suggestions, give feedback, or report a bug.")
+                Text("Since Normal collects no data, contacting us is the only way to share suggestions, give feedback, or report a bug. We appreciate your feedback!")
                     .font(.callout)
             }
 

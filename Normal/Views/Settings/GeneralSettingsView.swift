@@ -15,7 +15,6 @@ struct GeneralSettingsView: View {
             customDomainsSection
             appearanceSection
             aboutSection
-            contactSection
         }
     }
 
@@ -30,7 +29,7 @@ struct GeneralSettingsView: View {
         } header: {
             Text("Custom Domains")
         } footer: {
-            Text("Adds a section to App Select, allowing you to type custom website domains to block in web browsers and apps that show web content.")
+            Text("Adds a section to App Select, allowing you to type custom website domains to block.")
         }
     }
 
@@ -70,7 +69,7 @@ struct GeneralSettingsView: View {
         } header: {
             Text("Unblocking")
         } footer: {
-            Text("A default key and duration skip those steps when unblocking. The Live Activity shows a Lock Screen and Dynamic Island countdown while a timed unblock runs.")
+            Text("Defaults allow to skip selection steps for faster unblocking. Live Activity shows a Lock Screen and Dynamic Island countdown for timed unblocks.")
         }
     }
 
@@ -85,7 +84,7 @@ struct GeneralSettingsView: View {
         } header: {
             Text("Blocking All Apps")
         } footer: {
-            Text("When enabled Block All and app deletion are linked. Blocking all apps will prevent app deletion. Unblocking all re-allows deletion.")
+            Text("When enabled 'Block All' and prevent app deletion are linked.")
         }
     }
 
@@ -112,26 +111,15 @@ struct GeneralSettingsView: View {
         } header: {
             Text("Navigation & Appearance")
         } footer: {
-            Text("Default Page opens when you launch the app. Hiding the Donate button removes it from the toolbar, you can still donate from the Donate tab.")
+            Text("Default Page opens when you launch the app. Hiding the Donate button hides it from the main toolbar.")
         }
     }
-
-    // MARK: - About
 
     private var aboutSection: some View {
         Section {
             Link(destination: Self.writeReviewURL) {
                 Label("Rate Normal", systemImage: "star.fill")
             }
-        } footer: {
-            Text("If Normal has helped you, please consider leaving a review.")
-        }
-    }
-
-    // MARK: - Contact
-
-    private var contactSection: some View {
-        Section {
             NavigationLink {
                 ContactUsView()
             } label: {
