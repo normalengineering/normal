@@ -138,7 +138,7 @@ struct KeyFormSheetSetupSection: View {
                 Text(capturedLocation != nil ? "Location Set" : "Pick on Map")
                     .font(.headline)
                 if let captured = capturedLocation {
-                    Text("Radius: \(LocationPickerSheet.formatted(meters: captured.radiusMeters))")
+                    Text("Radius: \(LocationFormat.distance(meters: captured.radiusMeters))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

@@ -110,7 +110,7 @@ struct KeyFormSheet: View {
                             LocationKeyMapPreview(key: existing)
                                 .listRowInsets(EdgeInsets())
                             if let radius = existing.radiusMeters {
-                                LabeledContent("Radius", value: LocationPickerSheet.formatted(meters: radius))
+                                LabeledContent("Radius", value: LocationFormat.distance(meters: radius))
                             }
                         }
                     }
