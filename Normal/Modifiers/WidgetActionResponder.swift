@@ -31,7 +31,12 @@ private struct WidgetActionResponder: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: keyType)
+            .protectedAction(
+                $authAction,
+                allowBypass: allowBypass,
+                defaultKeyType: keyType,
+                keyGroupID: actionGroup?.id
+            )
             .sheet(isPresented: $showDurationSheet) {
                 if let actionGroup { GroupTimedUnblockSheet(group: actionGroup) }
             }

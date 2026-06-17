@@ -9,6 +9,7 @@ struct GroupListCardView: View {
 
     @Query private var selectedApps: [SelectedApps]
     @Query private var allSettings: [Settings]
+    @Query private var allKeys: [Key]
 
     let appGroup: AppGroup
 
@@ -24,6 +25,12 @@ struct GroupListCardView: View {
     private var customDomains: [String] {
         settings.enableCustomDomains ? appGroup.customDomains : []
     }
+
+    private var isBlocked: Bool {
+        screenTimeService.activeShieldCount() > 0
+    }
+
+    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: allKeys) }
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: appGroup.selection, customDomains: customDomains)
@@ -60,8 +67,11 @@ struct GroupListCardView: View {
             if !needsSync && !showsTimedUnblock { actionRow }
         }
         .opacity(needsSync ? DS.Opacity.dim : 1)
-        .onTapGesture { if needsSync { isReselecting = true } else { isEditing = true } }
+        .onTapGesture {
+            if needsSync { isReselecting = true } else { isEditing = true }
+        }
         .editDeleteContextMenu(
+            isDisabled: isBlocked,
             onEdit: { if needsSync { isReselecting = true } else { isEditing = true } },
             onDelete: { showDeleteConfirmation = true }
         )
@@ -76,9 +86,16 @@ struct GroupListCardView: View {
             title: "Delete Group?",
             itemName: appGroup.name,
             isPresented: $showDeleteConfirmation,
-            onDelete: { modelContext.delete(appGroup) }
+            onDelete: {
+                appGroup.deleteCascading(keys: allKeys, from: modelContext)
+            }
         )
-        .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
+        .protectedAction(
+            $authAction,
+            allowBypass: allowBypass,
+            defaultKeyType: settings.defaultKeyType,
+            keyGroupID: appGroup.id
+        )
     }
 
     private var header: some View {
@@ -195,6 +212,7 @@ struct GroupListCardView: View {
                 screenTimeService.addToShields(selection: appGroup.selection, customDomains: customDomains)
             }
         }
+        .disabled(!hasGlobalKey)
     }
 
     private var unblockButton: some View {

@@ -7,11 +7,18 @@ struct GroupsView: View {
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
     private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
+    @Query private var keys: [Key]
     @State private var isShowingSheet = false
 
     private var hasSelection: Bool {
         selectedApps.first?.selection.isEmpty == false
     }
+
+    private var isBlocked: Bool {
+        screenTimeService.activeShieldCount() > 0
+    }
+
+    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
 
     var body: some View {
         NavigationStack {
@@ -23,7 +30,7 @@ struct GroupsView: View {
                         Button(action: openSheet) {
                             Label("Add Group", systemImage: "plus")
                         }
-                        .disabled(!hasSelection)
+                        .disabled(!hasSelection || isBlocked)
                         .sheet(isPresented: $isShowingSheet) {
                             GroupFormSheet()
                         }
@@ -40,6 +47,13 @@ struct GroupsView: View {
             ReorderableListView(items: appGroups, rowContent: { group in
                 GroupListCardView(appGroup: group)
             }, onMove: move)
+                .safeAreaInset(edge: .bottom) {
+                    if isBlocked {
+                        FooterMessage(text: "Unblock all apps to add or edit groups.")
+                    } else if !hasGlobalKey {
+                        FooterMessage(text: "Add a key in the Keys tab before blocking groups.")
+                    }
+                }
         }
     }
 

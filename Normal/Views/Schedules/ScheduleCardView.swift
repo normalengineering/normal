@@ -28,7 +28,7 @@ struct ScheduleCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var hasKeys: Bool { !keys.isEmpty }
+    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
 
     private var needsSync: Bool {
         guard let main = selectedApps.first else { return false }
@@ -38,7 +38,7 @@ struct ScheduleCardView: View {
         return false
     }
 
-    private var isLocked: Bool { isBlocked || !hasKeys || needsSync }
+    private var isLocked: Bool { isBlocked || !hasGlobalKey || needsSync }
 
     var body: some View {
         GlassCard {

@@ -14,6 +14,7 @@ final class Key: Identifiable {
     var radiusMeters: Double?
     var radiusKind: LocationRadiusKind?
     var sortIndex: Int = 0
+    var groupID: UUID? = nil
     private(set) var hashedValue: String
     private(set) var salt: String
 
@@ -21,7 +22,14 @@ final class Key: Identifiable {
     private static let saltLength = 16
     private static let hashLength = 32
 
-    init(name: String, type: KeyType, rawValue: String, scanKind: ScanCodeKind? = nil, sortIndex: Int = 0) {
+    init(
+        name: String,
+        type: KeyType,
+        rawValue: String,
+        scanKind: ScanCodeKind? = nil,
+        sortIndex: Int = 0,
+        groupID: UUID? = nil
+    ) {
         id = UUID()
         self.name = name
         self.type = type
@@ -31,6 +39,7 @@ final class Key: Identifiable {
         radiusMeters = nil
         radiusKind = nil
         self.sortIndex = sortIndex
+        self.groupID = groupID
         let salt = Self.generateSalt()
         self.salt = salt
         hashedValue = Self.hash(unhashedString: rawValue, salt: salt)
@@ -42,7 +51,8 @@ final class Key: Identifiable {
         longitude: Double,
         radiusMeters: Double,
         radiusKind: LocationRadiusKind,
-        sortIndex: Int = 0
+        sortIndex: Int = 0,
+        groupID: UUID? = nil
     ) {
         id = UUID()
         self.name = name
@@ -53,6 +63,7 @@ final class Key: Identifiable {
         self.radiusMeters = radiusMeters
         self.radiusKind = radiusKind
         self.sortIndex = sortIndex
+        self.groupID = groupID
         salt = ""
         hashedValue = ""
     }
@@ -65,13 +76,36 @@ final class Key: Identifiable {
         }
     }
 
+    var symbolName: String {
+        switch type {
+        case .nfc: "sensor.tag.radiowaves.forward.fill"
+        case .qr: scanKind?.icon ?? "qrcode"
+        case .location: radiusKind?.icon ?? KeyType.location.icon
+        }
+    }
+
     var coordinate: CLLocationCoordinate2D? {
         guard let latitude, let longitude else { return nil }
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
+    var isGlobal: Bool { groupID == nil }
+
     static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {
         keys.contains { $0.matches(unhashedId: unhashedId) }
+    }
+
+    static func scoped(_ keys: [Key], toGroup groupID: UUID?) -> [Key] {
+        keys.filter { $0.isGlobal || $0.groupID == groupID }
+    }
+
+    static func hasGlobalKey(in keys: [Key]) -> Bool {
+        keys.contains(where: \.isGlobal)
+    }
+
+    static func canDelete(_ key: Key, in keys: [Key]) -> Bool {
+        guard key.isGlobal else { return true }
+        return hasGlobalKey(in: keys.filter { $0.id != key.id })
     }
 
     func matches(unhashedId: String) -> Bool {

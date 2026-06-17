@@ -15,5 +15,7 @@ enum UITestSupport {
 
     static let customDomains = arguments.contains("-uiTestCustomDomains")
 
+    static let seedGroupKey = arguments.contains("-uiTestSeedGroupKey")
+
     static let stubScanValue = "UITEST-SCAN-VALUE"
 }

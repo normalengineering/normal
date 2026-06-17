@@ -177,4 +177,23 @@ final class NormalUITests: XCTestCase {
         )
         XCTAssertFalse(app.buttons["customDomains.addButton"].exists, "Add button should be hidden while blocked")
     }
+
+    @MainActor
+    func testGroupKeyHiddenFromKeysTabAndVisibleInViewer() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedGroupKey"])
+
+        let keysTab = app.tabBars.buttons["Keys"]
+        require(keysTab, "Keys tab should be reachable")
+        keysTab.tap()
+
+        require(app.staticTexts["Test Key"], "Global key should appear in the Keys tab")
+        XCTAssertFalse(app.staticTexts["Group Key"].exists, "A group-only key must not appear in the Keys tab list")
+
+        let groupKeysLink = app.buttons["keys.groupKeysLink"]
+        require(groupKeysLink, "Group Keys row should appear when group keys exist")
+        groupKeysLink.tap()
+
+        require(app.staticTexts["Group Key"], "Group key should appear in the Group Keys viewer")
+        require(app.staticTexts["Test Group"], "Viewer should show the linked group name")
+    }
 }

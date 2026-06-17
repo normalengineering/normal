@@ -11,6 +11,7 @@ struct KeySelectModifier: ViewModifier {
     @Binding var action: (@MainActor () -> Void)?
     var allowBypass: Bool
     var defaultKeyType: KeyType?
+    var keyGroupID: UUID?
 
     @State private var showKeySelect = false
     @State private var showQRScanner = false
@@ -19,8 +20,12 @@ struct KeySelectModifier: ViewModifier {
     @State private var showLocationUnlock = false
     @State private var pendingLocationAction: (@MainActor () -> Void)?
 
+    private var scopedKeys: [Key] {
+        Key.scoped(keys, toGroup: keyGroupID)
+    }
+
     private var availableKeyTypes: [KeyType] {
-        KeyType.selectable(registered: keys.map(\.type))
+        KeyType.selectable(registered: scopedKeys.map(\.type))
     }
 
     func body(content: Content) -> some View {
@@ -36,7 +41,7 @@ struct KeySelectModifier: ViewModifier {
                 Button("OK", role: .cancel) { action = nil }
             } message: {
                 Text(
-                    keys.isEmpty
+                    scopedKeys.isEmpty
                         ? "Add a key in the Keys tab before blocking apps."
                         : "None of your registered keys are supported on this device. Add a QR code or barcode key to use on iPad."
                 )
@@ -46,7 +51,7 @@ struct KeySelectModifier: ViewModifier {
             }
             .sheet(isPresented: $showLocationUnlock, onDismiss: finishLocation) {
                 LocationUnlockSheet(
-                    keys: keys,
+                    keys: scopedKeys,
                     provider: locationService,
                     onVerified: { pendingLocationAction?() }
                 )
@@ -129,8 +134,8 @@ struct KeySelectModifier: ViewModifier {
     private func authenticate(with choice: KeyType) async {
         guard let pendingAction = action else { return }
         let method: KeyMethod = switch choice {
-        case .nfc: NFCKeyMethod(nfcService: nfcService, keys: keys)
-        case .qr: QRKeyMethod(qrService: qrService, keys: keys)
+        case .nfc: NFCKeyMethod(nfcService: nfcService, keys: scopedKeys)
+        case .qr: QRKeyMethod(qrService: qrService, keys: scopedKeys)
         case .location: preconditionFailure("location uses its own popup")
         }
         _ = await keyManager.performWithKeyCheck(using: method) { pendingAction() }
@@ -158,8 +163,14 @@ extension View {
     func keySelect(
         action: Binding<(@MainActor () -> Void)?>,
         allowBypass: Bool = false,
-        defaultKeyType: KeyType? = nil
+        defaultKeyType: KeyType? = nil,
+        keyGroupID: UUID? = nil
     ) -> some View {
-        modifier(KeySelectModifier(action: action, allowBypass: allowBypass, defaultKeyType: defaultKeyType))
+        modifier(KeySelectModifier(
+            action: action,
+            allowBypass: allowBypass,
+            defaultKeyType: defaultKeyType,
+            keyGroupID: keyGroupID
+        ))
     }
 }

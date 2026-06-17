@@ -37,3 +37,21 @@ struct CountChevronRow: View {
         }
     }
 }
+
+struct CountRow: View {
+    let title: LocalizedStringKey
+    let count: Int
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(.primary)
+            Spacer()
+            if count > 0 {
+                Text("\(count)")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}

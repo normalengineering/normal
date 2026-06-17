@@ -34,6 +34,11 @@ struct NormalApp: App {
             if !UITestSupport.noKeys {
                 context.insert(Key(name: "Test Key", type: .qr, rawValue: UITestSupport.stubScanValue))
             }
+            if UITestSupport.seedGroupKey {
+                let group = AppGroup(name: "Test Group", selection: FamilyActivitySelection())
+                context.insert(group)
+                context.insert(Key(name: "Group Key", type: .qr, rawValue: "GROUP-VALUE", groupID: group.id))
+            }
             if UITestSupport.seedSchedule {
                 context.insert(BlockSchedule(
                     name: "Test Schedule",

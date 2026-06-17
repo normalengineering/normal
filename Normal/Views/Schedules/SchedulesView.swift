@@ -17,8 +17,8 @@ struct SchedulesView: View {
     }
 
     private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
-    private var hasKeys: Bool { !keys.isEmpty }
-    private var canAdd: Bool { hasAppSelection && hasKeys && !isBlocked }
+    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
+    private var canAdd: Bool { hasAppSelection && hasGlobalKey && !isBlocked }
 
     var body: some View {
         NavigationStack {
@@ -62,7 +62,7 @@ struct SchedulesView: View {
 
     private var bottomMessage: LocalizedStringKey? {
         if isBlocked { "Unblock all apps to make schedule changes." }
-        else if !hasKeys { "Add a key in the Keys tab to manage schedules." }
+        else if !hasGlobalKey { "Add a key in the Keys tab to manage schedules." }
         else { nil }
     }
 
@@ -74,7 +74,7 @@ struct SchedulesView: View {
                 systemImage: "app.dashed",
                 description: Text("Go to App Select to choose which apps to manage before creating schedules.")
             )
-        } else if !hasKeys {
+        } else if !hasGlobalKey {
             ContentUnavailableView(
                 "No Keys",
                 systemImage: "key.viewfinder",

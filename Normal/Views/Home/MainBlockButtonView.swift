@@ -9,6 +9,7 @@ struct MainBlockButtonView: View {
     @Environment(AppReviewService.self) private var appReviewService
     @Environment(\.requestReview) private var requestReview
     @Query private var allSettings: [Settings]
+    @Query private var keys: [Key]
 
     let mainSelection: SelectedApps
 
@@ -34,10 +35,16 @@ struct MainBlockButtonView: View {
         blockStatus != .none && !timedUnblockService.isMainUnblockActive
     }
 
+    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
+
     var body: some View {
         Section {
             if canShowBlock { blockRow }
             if canShowUnblock { unblockRow }
+        } footer: {
+            if canShowBlock, !hasGlobalKey {
+                Text("Add a key in the Keys tab before blocking apps.")
+            }
         }
         .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
         .sheet(isPresented: $showTimedUnblockSheet) { timedUnblockSheet }
@@ -64,6 +71,7 @@ struct MainBlockButtonView: View {
         }
         .accessibilityIdentifier("home.blockAll")
         .padding(.vertical, DS.Spacing.sm)
+        .disabled(!hasGlobalKey)
     }
 
     private var unblockRow: some View {

@@ -70,7 +70,7 @@ struct AppSelectView: View {
                                 isEditable: !isBlocked
                             )
                         } label: {
-                            CountChevronRow(title: "Custom Domains", count: customDomains.count)
+                            CountRow(title: "Custom Domains", count: customDomains.count)
                                 .opacity(isBlocked ? DS.Opacity.dim : 1)
                         }
                         .accessibilityIdentifier("appSelect.customDomainsLink")

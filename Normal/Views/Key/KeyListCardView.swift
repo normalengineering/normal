@@ -17,20 +17,12 @@ struct KeyListCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var isLastKey: Bool { keys.count <= 1 }
-
-    private var iconName: String {
-        switch key.type {
-        case .nfc: "sensor.tag.radiowaves.forward.fill"
-        case .qr: key.scanKind?.icon ?? "qrcode"
-        case .location: key.radiusKind?.icon ?? KeyType.location.icon
-        }
-    }
+    private var isLastKey: Bool { !Key.canDelete(key, in: keys) }
 
     var body: some View {
         GlassCard(spacing: DS.Spacing.lg) {
             HStack(spacing: DS.Spacing.lg) {
-                CircleIconAvatar(systemImage: iconName)
+                CircleIconAvatar(systemImage: key.symbolName)
 
                 VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
                     Text(key.name).font(.headline)

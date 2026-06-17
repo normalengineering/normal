@@ -180,4 +180,65 @@ struct KeyTests {
         let keys = [Key(name: "scan", type: .qr, rawValue: "v")]
         #expect(!Key.locationKeyVerifies(keys: keys, location: here))
     }
+
+    // MARK: - Group scoping
+
+    @Test func newKeyIsGlobalByDefault() {
+        #expect(Key(name: "k", type: .nfc, rawValue: "v").groupID == nil)
+    }
+
+    @Test func scopedToNilReturnsGlobalKeysOnly() {
+        let groupA = UUID()
+        let global = Key(name: "global", type: .nfc, rawValue: "a")
+        let grouped = Key(name: "grouped", type: .nfc, rawValue: "b", groupID: groupA)
+        let result = Key.scoped([global, grouped], toGroup: nil)
+        #expect(result.map(\.name) == ["global"])
+    }
+
+    @Test func scopedToGroupReturnsGlobalPlusThatGroup() {
+        let groupA = UUID()
+        let groupB = UUID()
+        let global = Key(name: "global", type: .nfc, rawValue: "a")
+        let inA = Key(name: "inA", type: .nfc, rawValue: "b", groupID: groupA)
+        let inB = Key(name: "inB", type: .nfc, rawValue: "c", groupID: groupB)
+        let result = Key.scoped([global, inA, inB], toGroup: groupA)
+        #expect(Set(result.map(\.name)) == ["global", "inA"])
+    }
+
+    @Test func canDeleteEnforcesAtLeastOneGlobalKey() {
+        let groupA = UUID()
+        let global1 = Key(name: "g1", type: .nfc, rawValue: "a")
+        let global2 = Key(name: "g2", type: .nfc, rawValue: "b")
+        let group1 = Key(name: "grp1", type: .nfc, rawValue: "c", groupID: groupA)
+        let group2 = Key(name: "grp2", type: .nfc, rawValue: "d", groupID: groupA)
+
+        // With 2 globals, either global is deletable; the last global is not.
+        let all = [global1, global2, group1, group2]
+        #expect(Key.canDelete(global1, in: all))
+        #expect(!Key.canDelete(global1, in: [global1, group1, group2]))
+
+        // Group keys are always deletable, even when they are the only keys left.
+        #expect(Key.canDelete(group1, in: all))
+        #expect(Key.canDelete(group1, in: [group1]))
+    }
+
+    @Test func hasGlobalKeyIgnoresGroupKeys() {
+        let groupA = UUID()
+        #expect(!Key.hasGlobalKey(in: []))
+        #expect(!Key.hasGlobalKey(in: [Key(name: "g", type: .qr, rawValue: "a", groupID: groupA)]))
+        #expect(Key.hasGlobalKey(in: [
+            Key(name: "global", type: .qr, rawValue: "b"),
+            Key(name: "g", type: .qr, rawValue: "a", groupID: groupA),
+        ]))
+    }
+
+    @Test func groupKeyMatchesOnlyWithinItsScope() {
+        let groupA = UUID()
+        let groupKey = Key(name: "g", type: .qr, rawValue: "secret", groupID: groupA)
+        let allKeys = [Key(name: "global", type: .qr, rawValue: "other"), groupKey]
+
+        #expect(!Key.matchingKeyExists(keys: Key.scoped(allKeys, toGroup: nil), unhashedId: "secret"))
+        #expect(Key.matchingKeyExists(keys: Key.scoped(allKeys, toGroup: groupA), unhashedId: "secret"))
+        #expect(!Key.matchingKeyExists(keys: Key.scoped(allKeys, toGroup: UUID()), unhashedId: "secret"))
+    }
 }

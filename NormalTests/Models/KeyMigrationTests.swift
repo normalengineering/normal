@@ -91,6 +91,26 @@ struct KeyMigrationTests {
         #expect(byName["Ordered"]?.sortIndex == 5)
     }
 
+    @Test func groupIDDefaultsNilAndPersistsAcrossReopen() throws {
+        let url = storeURL()
+        defer { removeStore(at: url) }
+
+        let groupA = UUID()
+        do {
+            let container = try makeContainer(at: url)
+            container.mainContext.insert(Key(name: "Legacy", type: .qr, rawValue: "a"))
+            container.mainContext.insert(Key(name: "Grouped", type: .nfc, rawValue: "b", groupID: groupA))
+            try container.mainContext.save()
+        }
+
+        let reopened = try makeContainer(at: url)
+        let byName = try reopened.mainContext.fetch(FetchDescriptor<Key>())
+            .reduce(into: [String: Key]()) { $0[$1.name] = $1 }
+
+        #expect(byName["Legacy"]?.groupID == nil)
+        #expect(byName["Grouped"]?.groupID == groupA)
+    }
+
     @Test func mixedLegacyAndNewKeysCoexistAfterReopen() throws {
         let url = storeURL()
         defer { removeStore(at: url) }

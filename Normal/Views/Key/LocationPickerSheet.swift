@@ -10,6 +10,7 @@ struct LocationPickerSheet: View {
     @Query private var keys: [Key]
 
     let kind: LocationRadiusKind
+    var groupID: UUID?
     let onSave: (Double, Double, Double) -> Void
     @State private var pin: CLLocationCoordinate2D?
     @State private var radiusMeters: Double = 400
@@ -22,7 +23,8 @@ struct LocationPickerSheet: View {
     static let maxRadius: Double = 5000
 
     private var existingZones: [Key] {
-        keys.filter { $0.type == .location && $0.radiusKind == kind && $0.coordinate != nil }
+        Key.scoped(keys, toGroup: groupID)
+            .filter { $0.type == .location && $0.radiusKind == kind && $0.coordinate != nil }
     }
 
     private var saveDisabled: Bool { pin == nil }
@@ -51,7 +53,7 @@ struct LocationPickerSheet: View {
                 LocationKeyInfoSheet(
                     key: key,
                     currentLocation: currentLocation,
-                    canDelete: keys.count > 1,
+                    canDelete: Key.canDelete(key, in: keys),
                     onDelete: { delete(key) }
                 )
                 .presentationDetents([.height(280)])
@@ -263,7 +265,7 @@ struct LocationPickerSheet: View {
     }
 
     private func delete(_ key: Key) {
-        guard keys.count > 1 else { return }
+        guard Key.canDelete(key, in: keys) else { return }
         modelContext.delete(key)
         inspectedKey = nil
     }

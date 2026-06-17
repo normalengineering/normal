@@ -17,6 +17,7 @@ struct KeyFormSheet: View {
     @Query private var keys: [Key]
 
     let existing: Key?
+    var groupID: UUID?
 
     @State private var name: String
     @State private var keyType: KeyType
@@ -32,10 +33,12 @@ struct KeyFormSheet: View {
 
     private var isNew: Bool { existing == nil }
 
-    /// Existing keys can't be modified while apps are blocked — the sheet becomes read-only.
     private var isReadOnly: Bool { !isNew && screenTimeService.activeShieldCount() > 0 }
 
-    private var isLastKey: Bool { keys.count <= 1 }
+    private var isLastKey: Bool {
+        guard let existing else { return false }
+        return !Key.canDelete(existing, in: keys)
+    }
 
     private var navigationTitle: String {
         if isNew { return "New Key" }
@@ -55,8 +58,9 @@ struct KeyFormSheet: View {
         return isNew ? isCaptured : true
     }
 
-    init(existing: Key? = nil) {
+    init(existing: Key? = nil, groupID: UUID? = nil) {
         self.existing = existing
+        self.groupID = groupID
         _name = State(initialValue: existing?.name ?? "")
         _keyType = State(initialValue: existing?.type ?? KeyType.availableOnDevice.first ?? .qr)
         _scannedKeyId = State(initialValue: nil)
@@ -161,7 +165,7 @@ struct KeyFormSheet: View {
                     }
             }
             .sheet(isPresented: $showLocationPicker) {
-                LocationPickerSheet(kind: radiusKind) { latitude, longitude, radius in
+                LocationPickerSheet(kind: radiusKind, groupID: groupID) { latitude, longitude, radius in
                     withAnimation(.spring()) {
                         capturedLocation = CapturedLocation(
                             latitude: latitude,
@@ -212,7 +216,8 @@ struct KeyFormSheet: View {
         if let existing {
             existing.name = trimmed
         } else {
-            let nextIndex = SortIndexing.nextIndex(after: keys, sortIndex: \.sortIndex)
+            let peers = keys.filter { $0.groupID == groupID }
+            let nextIndex = SortIndexing.nextIndex(after: peers, sortIndex: \.sortIndex)
             switch keyType {
             case .nfc, .qr:
                 guard let rawValue = scannedKeyId else { return }
@@ -221,7 +226,8 @@ struct KeyFormSheet: View {
                     type: keyType,
                     rawValue: rawValue,
                     scanKind: scannedKind,
-                    sortIndex: nextIndex
+                    sortIndex: nextIndex,
+                    groupID: groupID
                 ))
             case .location:
                 guard let captured = capturedLocation else { return }
@@ -231,7 +237,8 @@ struct KeyFormSheet: View {
                     longitude: captured.longitude,
                     radiusMeters: captured.radiusMeters,
                     radiusKind: captured.kind,
-                    sortIndex: nextIndex
+                    sortIndex: nextIndex,
+                    groupID: groupID
                 ))
             }
         }

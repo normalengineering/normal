@@ -11,6 +11,7 @@ struct GroupFormSheet: View {
     @Query private var allGroups: [AppGroup]
     @Query private var allSettings: [Settings]
     @Query private var selectedApps: [SelectedApps]
+    @Query(sort: [SortDescriptor(\Key.sortIndex)]) private var allKeys: [Key]
 
     let existing: AppGroup?
 
@@ -18,9 +19,19 @@ struct GroupFormSheet: View {
     @State private var selection: FamilyActivitySelection
     @State private var customDomains: [String]
     @State private var isShowingAppSelectSheet = false
+    @State private var showAddKey = false
     @State private var showDeleteConfirmation = false
 
+    private var groupKeys: [Key] {
+        guard let existing else { return [] }
+        return allKeys.filter { $0.groupID == existing.id }
+    }
+
     private var isNew: Bool { existing == nil }
+
+    /// While apps are blocked an existing group is shown read-only (like the Keys
+    /// tab) — you can review its details but not edit them.
+    private var isReadOnly: Bool { !isNew && screenTimeService.activeShieldCount() > 0 }
 
     private var customDomainsEnabled: Bool {
         allSettings.first?.enableCustomDomains ?? false
@@ -54,20 +65,34 @@ struct GroupFormSheet: View {
         NavigationStack {
             Form {
                 Section("Name") {
-                    TextField("Group Name", text: $name)
+                    if isReadOnly {
+                        Text(name)
+                    } else {
+                        TextField("Group Name", text: $name)
+                    }
                 }
 
                 Section("Apps to Block") {
-                    Button(action: presentPicker) {
-                        CountChevronRow(title: "Select Apps", count: selection.count)
+                    if isReadOnly {
+                        appsReadOnlyRow
+                    } else {
+                        Button(action: presentPicker) {
+                            CountChevronRow(title: "Select Apps", count: selection.count)
+                        }
                     }
                 }
 
                 if customDomainsEnabled {
-                    CustomDomainsSubsetSection(available: availableDomains, selected: $customDomains)
+                    if isReadOnly {
+                        customDomainsReadOnlySection
+                    } else {
+                        CustomDomainsSubsetSection(available: availableDomains, selected: $customDomains)
+                    }
                 }
 
-                if !isNew {
+                if !isNew, !groupKeys.isEmpty || !isReadOnly { groupKeysSection }
+
+                if !isNew, !isReadOnly {
                     Section {
                         Button(role: .destructive) { showDeleteConfirmation = true } label: {
                             Text("Delete Group")
@@ -76,20 +101,29 @@ struct GroupFormSheet: View {
                     }
                 }
             }
-            .navigationTitle(isNew ? "New Group" : "Edit Group")
+            .navigationTitle(isReadOnly ? "Group" : (isNew ? "New Group" : "Edit Group"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Save" : "Update", action: save)
-                        .fontWeight(.semibold)
-                        .disabled(!canSave)
+                if isReadOnly {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }.fontWeight(.semibold)
+                    }
+                } else {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(isNew ? "Save" : "Update", action: save)
+                            .fontWeight(.semibold)
+                            .disabled(!canSave)
+                    }
                 }
             }
             .sheet(isPresented: $isShowingAppSelectSheet) {
                 SelectAppsForGroupSheet(selection: $selection)
+            }
+            .sheet(isPresented: $showAddKey) {
+                if let existing { KeyFormSheet(groupID: existing.id) }
             }
             .deleteConfirmation(
                 title: "Delete Group?",
@@ -100,9 +134,59 @@ struct GroupFormSheet: View {
         }
     }
 
+    private var appsReadOnlyRow: some View {
+        HStack(spacing: DS.Spacing.md) {
+            Text("Apps")
+            Spacer()
+            if selection.count > 0 {
+                SelectionIconsView(tokens: selection.allTokens, limit: 5)
+            } else {
+                Text("None").foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var customDomainsReadOnlySection: some View {
+        Section("Custom Domains") {
+            if effectiveCustomDomains.isEmpty {
+                Text("None").foregroundStyle(.secondary)
+            } else {
+                ForEach(effectiveCustomDomains, id: \.self) { domain in
+                    Label(domain, systemImage: "globe").lineLimit(1)
+                }
+            }
+        }
+    }
+
+    private var groupKeyDeleteAction: ((IndexSet) -> Void)? {
+        guard !isReadOnly else { return nil }
+        return { offsets in
+            for index in offsets { modelContext.delete(groupKeys[index]) }
+        }
+    }
+
+    private var groupKeysSection: some View {
+        Section {
+            ForEach(groupKeys) { key in
+                GroupKeyRow(key: key)
+            }
+            .onDelete(perform: groupKeyDeleteAction)
+            if !isReadOnly {
+                Button { showAddKey = true } label: {
+                    Label("Add Key", systemImage: "plus")
+                }
+            }
+        } header: {
+            Text("Group Keys (Optional)")
+        } footer: {
+            Text("Your global keys added in the Keys tab will still work to unblock this group. Keys added here only unblock this group.")
+        }
+    }
+
     private func deleteGroup() {
         guard let existing else { return }
-        modelContext.delete(existing)
+        existing.deleteCascading(keys: allKeys, from: modelContext)
         dismiss()
     }
 

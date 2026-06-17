@@ -19,4 +19,11 @@ final class AppGroup: Identifiable {
         self.sortIndex = sortIndex
         self.customDomains = customDomains
     }
+
+    func deleteCascading(keys: [Key], from context: ModelContext) {
+        for key in keys where key.groupID == id {
+            context.delete(key)
+        }
+        context.delete(self)
+    }
 }
