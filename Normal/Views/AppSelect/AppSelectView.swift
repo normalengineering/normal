@@ -64,9 +64,14 @@ struct AppSelectView: View {
                 if customDomainsEnabled {
                     Section(footer: Text("Select websites to block in web browsers and apps that show web content.")) {
                         NavigationLink {
-                            CustomDomainsEditor(domains: $customDomains, otherItemCount: selection.count)
+                            CustomDomainsEditor(
+                                domains: $customDomains,
+                                otherItemCount: selection.count,
+                                isEditable: !isBlocked
+                            )
                         } label: {
                             CountChevronRow(title: "Custom Domains", count: customDomains.count)
+                                .opacity(isBlocked ? DS.Opacity.dim : 1)
                         }
                         .accessibilityIdentifier("appSelect.customDomainsLink")
                     }

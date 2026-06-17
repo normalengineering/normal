@@ -4,6 +4,7 @@ struct CustomDomainsEditor: View {
     @Binding var domains: [String]
 
     var otherItemCount: Int = 0
+    var isEditable: Bool = true
 
     @State private var input = ""
     @State private var message: FieldMessage?
@@ -18,51 +19,8 @@ struct CustomDomainsEditor: View {
 
     var body: some View {
         Form {
-            Section {
-                HStack {
-                    TextField("example.com", text: $input)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .submitLabel(.done)
-                        .onSubmit(add)
-                        .accessibilityIdentifier("customDomains.field")
-                    Button("Add", action: add)
-                        .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
-                        .accessibilityIdentifier("customDomains.addButton")
-                }
-            } footer: {
-                if let message {
-                    Text(message.text)
-                        .foregroundStyle(message.isError ? Color.red : .secondary)
-                }
-            }
-
-            if !domains.isEmpty {
-                Section {
-                    ForEach(domains, id: \.self) { domain in
-                        HStack {
-                            Label(domain, systemImage: "globe")
-                                .lineLimit(1)
-                            Spacer()
-                            Button(role: .destructive) {
-                                remove(domain)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(.red)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Delete \(domain)")
-                            .accessibilityIdentifier("customDomains.delete.\(domain)")
-                        }
-                    }
-                    .onDelete { offsets in
-                        domains.remove(atOffsets: offsets)
-                        show(nil)
-                    }
-                }
-            }
+            if isEditable { inputSection }
+            if !domains.isEmpty { domainsSection }
         }
         .navigationTitle("Custom Domains")
         .navigationBarTitleDisplayMode(.inline)
@@ -75,6 +33,61 @@ struct CustomDomainsEditor: View {
             guard !Task.isCancelled else { return }
             message = nil
         }
+    }
+
+    private var inputSection: some View {
+        Section {
+            HStack {
+                TextField("example.com", text: $input)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitLabel(.done)
+                    .onSubmit(add)
+                    .accessibilityIdentifier("customDomains.field")
+                Button("Add", action: add)
+                    .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .accessibilityIdentifier("customDomains.addButton")
+            }
+        } footer: {
+            if let message {
+                Text(message.text)
+                    .foregroundStyle(message.isError ? Color.red : .secondary)
+            }
+        }
+    }
+
+    private var domainsSection: some View {
+        Section {
+            ForEach(domains, id: \.self) { domain in
+                HStack {
+                    Label(domain, systemImage: "globe")
+                        .lineLimit(1)
+                    if isEditable {
+                        Spacer()
+                        deleteButton(domain)
+                    }
+                }
+            }
+            .onDelete(perform: deleteAction)
+        } footer: {
+            if !isEditable {
+                Text("Unblock all apps to edit custom domains.")
+            }
+        }
+    }
+
+    private func deleteButton(_ domain: String) -> some View {
+        Button(role: .destructive) {
+            remove(domain)
+        } label: {
+            Image(systemName: "minus.circle.fill")
+                .font(.title3)
+                .foregroundStyle(.red)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Delete \(domain)")
+        .accessibilityIdentifier("customDomains.delete.\(domain)")
     }
 
     private func show(_ newMessage: FieldMessage?) {
@@ -100,7 +113,14 @@ struct CustomDomainsEditor: View {
 
     private func remove(_ domain: String) {
         domains.removeAll { $0 == domain }
-        // Same soft tap as a clean add (and dismisses any showing notice).
         show(nil)
+    }
+
+    private var deleteAction: ((IndexSet) -> Void)? {
+        guard isEditable else { return nil }
+        return { offsets in
+            domains.remove(atOffsets: offsets)
+            show(nil)
+        }
     }
 }

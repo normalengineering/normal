@@ -158,4 +158,23 @@ final class NormalUITests: XCTestCase {
 
         require(app.staticTexts["reddit.com"], "Added domain should appear in the list")
     }
+
+    @MainActor
+    func testCustomDomainsEditorIsReadOnlyWhileBlocked() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains", "-uiTestStartBlocked"])
+
+        let appSelectTab = app.tabBars.buttons["App Select"]
+        require(appSelectTab, "App Select tab should be reachable")
+        appSelectTab.tap()
+
+        let link = app.buttons["appSelect.customDomainsLink"]
+        require(link, "Custom Domains row should remain visible while blocked")
+        link.tap()
+
+        XCTAssertFalse(
+            app.textFields["customDomains.field"].waitForExistence(timeout: 3),
+            "Add field should be hidden while apps are blocked"
+        )
+        XCTAssertFalse(app.buttons["customDomains.addButton"].exists, "Add button should be hidden while blocked")
+    }
 }
