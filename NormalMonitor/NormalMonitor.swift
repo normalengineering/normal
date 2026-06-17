@@ -28,14 +28,17 @@ final class NormalMonitor: DeviceActivityMonitor {
               let selection = try? FamilyActivitySelection.fromData(dto.selectionData)
         else { return }
 
+        let domains = gatedDomains(dto.customDomains)
         if dto.isGroupUnblock {
             guard !sharedStore.isMainTimedUnblockActive() else {
                 sharedStore.removeTimedUnblock(id: dto.id)
                 return
             }
             store.unionShields(with: selection)
+            store.unionFilterDomains(domains)
         } else {
             store.replaceShields(with: selection)
+            store.replaceFilterDomains(domains)
             if dto.blockAllPreventsAppDelete == true {
                 store.application.denyAppRemoval = true
             }
@@ -51,10 +54,13 @@ final class NormalMonitor: DeviceActivityMonitor {
 
         guard sharedStore.resolveScheduleStart() == .apply else { return }
 
+        let domains = gatedDomains(schedule.customDomains)
         if schedule.shouldBlock {
             store.unionShields(with: selection)
+            store.unionFilterDomains(domains)
         } else {
             store.subtractShields(with: selection)
+            store.subtractFilterDomains(domains)
         }
     }
 
@@ -65,11 +71,18 @@ final class NormalMonitor: DeviceActivityMonitor {
               let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return }
 
+        let domains = gatedDomains(schedule.customDomains)
         if schedule.shouldBlock {
             store.subtractShields(with: selection)
+            store.subtractFilterDomains(domains)
         } else {
             store.unionShields(with: selection)
+            store.unionFilterDomains(domains)
         }
+    }
+
+    private func gatedDomains(_ domains: [String]) -> [String] {
+        sharedStore.isCustomDomainsEnabled() ? domains : []
     }
 
     private func findSchedule(activityName: String) -> ScheduleDTO? {

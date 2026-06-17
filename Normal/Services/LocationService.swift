@@ -91,14 +91,18 @@ final class LocationService: NSObject, LocationProviding {
     private func flushLocation(_ result: Result<CLLocation, Error>) {
         let pending = locationContinuations
         locationContinuations.removeAll()
-        for c in pending { c.resume(with: result) }
+        for c in pending {
+            c.resume(with: result)
+        }
     }
 
     private func flushAuth(_ status: CLAuthorizationStatus) {
         guard status != .notDetermined else { return }
         let pending = authContinuations
         authContinuations.removeAll()
-        for c in pending { c.resume(returning: status) }
+        for c in pending {
+            c.resume(returning: status)
+        }
     }
 }
 

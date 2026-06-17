@@ -21,8 +21,12 @@ struct GroupListCardView: View {
 
     private var settings: Settings { allSettings.unwrapped }
 
+    private var customDomains: [String] {
+        settings.enableCustomDomains ? appGroup.customDomains : []
+    }
+
     private var blockStatus: BlockStatus {
-        screenTimeService.blockStatus(selection: appGroup.selection)
+        screenTimeService.blockStatus(selection: appGroup.selection, customDomains: customDomains)
     }
 
     private var isTimedUnblockActive: Bool {
@@ -38,8 +42,11 @@ struct GroupListCardView: View {
     }
 
     private var needsSync: Bool {
-        guard let mainSelection = selectedApps.first?.selection else { return false }
-        return !appGroup.selection.isSubset(of: mainSelection)
+        guard let main = selectedApps.first else { return false }
+        if !appGroup.selection.isSubset(of: main.selection) { return true }
+        if settings.enableCustomDomains,
+           CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains) { return true }
+        return false
     }
 
     var body: some View {
@@ -62,7 +69,7 @@ struct GroupListCardView: View {
             GroupFormSheet(existing: appGroup)
         }
         .sheet(isPresented: $isReselecting) {
-            SelectAppsForGroupSheet(selection: reselectionBinding)
+            SelectAppsForGroupSheet(selection: reselectionBinding, customDomains: reselectionDomainsBinding)
         }
         .sheet(isPresented: $showTimedUnblockSheet) { GroupTimedUnblockSheet(group: appGroup) }
         .deleteConfirmation(
@@ -96,7 +103,11 @@ struct GroupListCardView: View {
 
     private var tokenStrip: some View {
         HStack(spacing: DS.Spacing.sm) {
-            SelectionIconsView(tokens: appGroup.selection.allTokens, limit: 6)
+            SelectionIconsView(
+                tokens: appGroup.selection.allTokens,
+                customDomains: customDomains,
+                limit: 6
+            )
         }
     }
 
@@ -106,13 +117,32 @@ struct GroupListCardView: View {
             set: { newValue in
                 appGroup.selection = newValue
                 appGroup.lastUpdated = .now
-                timedUnblockService.updateGroupSelection(groupId: appGroup.id, selection: newValue)
+                timedUnblockService.updateGroupSelection(
+                    groupId: appGroup.id,
+                    selection: newValue,
+                    customDomains: customDomains
+                )
+            }
+        )
+    }
+
+    private var reselectionDomainsBinding: Binding<[String]> {
+        Binding(
+            get: { appGroup.customDomains },
+            set: { newValue in
+                appGroup.customDomains = newValue
+                appGroup.lastUpdated = .now
+                timedUnblockService.updateGroupSelection(
+                    groupId: appGroup.id,
+                    selection: appGroup.selection,
+                    customDomains: settings.enableCustomDomains ? newValue : []
+                )
             }
         )
     }
 
     private var syncWarningText: some View {
-        Text("App selection changed. Please re-select apps in this group.")
+        Text("Your selection changed. Please re-select apps or domains in this group.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }
@@ -130,6 +160,7 @@ struct GroupListCardView: View {
                     timedUnblockService.cancelGroup(
                         groupId: appGroup.id,
                         selection: appGroup.selection,
+                        customDomains: customDomains,
                         screenTimeService: screenTimeService
                     )
                 }
@@ -161,7 +192,7 @@ struct GroupListCardView: View {
         ) {
             allowBypass = true
             authAction = {
-                screenTimeService.addToShields(selection: appGroup.selection)
+                screenTimeService.addToShields(selection: appGroup.selection, customDomains: customDomains)
             }
         }
     }
@@ -179,6 +210,7 @@ struct GroupListCardView: View {
                         duration: duration,
                         groupId: appGroup.id,
                         selection: appGroup.selection,
+                        customDomains: customDomains,
                         screenTimeService: screenTimeService
                     )
                 } else {

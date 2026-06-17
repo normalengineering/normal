@@ -13,5 +13,7 @@ enum UITestSupport {
 
     static let startBlocked = arguments.contains("-uiTestStartBlocked")
 
+    static let customDomains = arguments.contains("-uiTestCustomDomains")
+
     static let stubScanValue = "UITEST-SCAN-VALUE"
 }

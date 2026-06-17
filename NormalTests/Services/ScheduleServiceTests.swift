@@ -288,4 +288,52 @@ struct ScheduleServiceTests {
         #expect(!s.isActive(at: date(weekday: 4, hour: 22, minute: 0), calendar: Self.utc),
                 "Inactive before the start")
     }
+
+    private func activeDomainSchedule() -> BlockSchedule {
+        let schedule = activeNowSchedule(shouldBlock: true)
+        schedule.customDomains = ["reddit.com"]
+        return schedule
+    }
+
+    @Test func activeScheduleOmitsDomainsWhenFeatureDisabled() throws {
+        let (service, _, _) = makeService() // FakeSharedStore defaults customDomainsEnabled = false
+        let screenTime = FakeScreenTimeService()
+
+        try service.sync(activeDomainSchedule(), screenTimeService: screenTime)
+
+        #expect(screenTime.addToShieldsCalled)
+        #expect(screenTime.addToShieldsCustomDomains == [], "Domains must not enforce while the setting is off")
+    }
+
+    @Test func activeScheduleAppliesDomainsWhenFeatureEnabled() throws {
+        let (service, _, store) = makeService()
+        store.setCustomDomainsEnabled(true)
+        let screenTime = FakeScreenTimeService()
+
+        try service.sync(activeDomainSchedule(), screenTimeService: screenTime)
+
+        #expect(screenTime.addToShieldsCustomDomains == ["reddit.com"])
+    }
+
+    @Test func disabledBlockingScheduleOmitsDomainsWhenFeatureDisabled() throws {
+        let (service, _, _) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let schedule = activeDomainSchedule()
+        schedule.isEnabled = false
+
+        try service.sync(schedule, screenTimeService: screenTime)
+
+        #expect(screenTime.removeFromShieldsCalled)
+        #expect(screenTime.removeFromShieldsCustomDomains == [])
+    }
+
+    @Test func mirrorCustomDomainsEnabledWritesFlag() {
+        let (service, _, store) = makeService()
+
+        service.mirrorCustomDomainsEnabled(true)
+        #expect(store.isCustomDomainsEnabled())
+
+        service.mirrorCustomDomainsEnabled(false)
+        #expect(!store.isCustomDomainsEnabled())
+    }
 }

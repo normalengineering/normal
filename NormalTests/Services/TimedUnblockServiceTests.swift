@@ -525,6 +525,89 @@ struct TimedUnblockServiceTests {
 
         #expect(service.groupUnblockEndDate(groupId: groupB) == endBBefore)
     }
+
+    // MARK: - Custom domains
+
+    @Test func startMainPersistsCustomDomainsInDTO() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+
+        try service.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            customDomains: ["reddit.com"],
+            screenTimeService: screenTime
+        )
+
+        #expect(store.timedUnblocks.first?.customDomains == ["reddit.com"])
+    }
+
+    @Test func reapplyShieldUsesPersistedCustomDomainsForGroup() {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupId = UUID()
+
+        // Seed an already-expired group unblock carrying custom domains.
+        store.timedUnblocks = [
+            TimedUnblockDTO(
+                id: groupId.uuidString,
+                selectionData: (try? FamilyActivitySelection().toData()) ?? Data(),
+                endDate: .now.addingTimeInterval(-60),
+                activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
+                isGroupUnblock: true,
+                customDomains: ["x.com"]
+            ),
+        ]
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(screenTime.addToShieldsCalled)
+        #expect(screenTime.addToShieldsCustomDomains == ["x.com"])
+    }
+
+    @Test func editingGroupDomainsDuringUnblockUpdatesReblockPayload() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let groupId = UUID()
+
+        // Group timed-unblock starts while the group blocks reddit.com.
+        try service.startGroup(
+            duration: .fifteenMinutes,
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            customDomains: ["reddit.com"],
+            screenTimeService: screenTime
+        )
+        let endDate = service.groupUnblockEndDate(groupId: groupId)
+
+        // User edits the group mid-unblock and removes the domain.
+        service.updateGroupSelection(groupId: groupId, selection: FamilyActivitySelection(), customDomains: [])
+
+        let dto = store.timedUnblocks.first { $0.id == groupId.uuidString }
+        #expect(dto?.customDomains == [], "Reblock payload reflects the removed domain")
+        #expect(dto?.endDate == endDate, "Editing must not disturb the unblock's expiry")
+    }
+
+    @Test func reapplyShieldUsesPersistedCustomDomainsForMain() {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+
+        store.timedUnblocks = [
+            TimedUnblockDTO(
+                id: TimedUnblockService.mainID,
+                selectionData: (try? FamilyActivitySelection().toData()) ?? Data(),
+                endDate: .now.addingTimeInterval(-60),
+                activityName: SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: false,
+                customDomains: ["reddit.com"]
+            ),
+        ]
+
+        service.reconcile(screenTimeService: screenTime)
+
+        #expect(screenTime.applyShieldOnAllCalled)
+        #expect(screenTime.applyShieldOnAllCustomDomains == ["reddit.com"])
+    }
 }
 
 @MainActor

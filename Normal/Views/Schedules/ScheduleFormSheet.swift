@@ -9,6 +9,8 @@ struct ScheduleFormSheet: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
 
     @Query private var allSchedules: [BlockSchedule]
+    @Query private var allSettings: [Settings]
+    @Query private var selectedApps: [SelectedApps]
 
     let existing: BlockSchedule?
 
@@ -20,6 +22,7 @@ struct ScheduleFormSheet: View {
     @State private var shouldBlock: Bool
     @State private var isTimed: Bool
     @State private var isEnabled: Bool
+    @State private var customDomains: [String]
     @State private var isShowingAppSelect = false
     @State private var error: Error?
     @State private var showDeleteConfirmation = false
@@ -32,9 +35,25 @@ struct ScheduleFormSheet: View {
         isTimed && computedDurationMinutes < Self.minimumDurationMinutes
     }
 
+    private var customDomainsEnabled: Bool {
+        allSettings.first?.enableCustomDomains ?? false
+    }
+
+    private var availableDomains: [String] {
+        selectedApps.first?.customDomains ?? []
+    }
+
+    private var storedCustomDomains: [String] {
+        CustomDomains.subset(customDomains, of: availableDomains)
+    }
+
+    private var effectiveCustomDomains: [String] {
+        customDomainsEnabled ? storedCustomDomains : []
+    }
+
     private var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
-            && selection.count > 0
+            && (selection.count > 0 || !effectiveCustomDomains.isEmpty)
             && !selectedWeekdays.isEmpty
             && !isDurationTooShort
     }
@@ -56,6 +75,7 @@ struct ScheduleFormSheet: View {
         _shouldBlock = State(initialValue: existing?.shouldBlock ?? false)
         _isTimed = State(initialValue: existing?.isTimed ?? true)
         _isEnabled = State(initialValue: existing?.isEnabled ?? false)
+        _customDomains = State(initialValue: existing?.customDomains ?? [])
 
         var startComponents = DateComponents()
         startComponents.hour = existing?.startHour ?? 9
@@ -78,6 +98,9 @@ struct ScheduleFormSheet: View {
                 timingSection
                 timeSection
                 weekdaySection
+                if customDomainsEnabled {
+                    CustomDomainsSubsetSection(available: availableDomains, selected: $customDomains)
+                }
                 errorSection
                 if !isNew { deleteSection }
             }
@@ -244,6 +267,7 @@ struct ScheduleFormSheet: View {
             existing.shouldBlock = shouldBlock
             existing.isTimed = isTimed
             existing.isEnabled = isEnabled
+            existing.customDomains = storedCustomDomains
             schedule = existing
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allSchedules, sortIndex: \.sortIndex)
@@ -257,7 +281,8 @@ struct ScheduleFormSheet: View {
                 shouldBlock: shouldBlock,
                 isTimed: isTimed,
                 isEnabled: isEnabled,
-                sortIndex: nextIndex
+                sortIndex: nextIndex,
+                customDomains: storedCustomDomains
             )
             modelContext.insert(schedule)
         }

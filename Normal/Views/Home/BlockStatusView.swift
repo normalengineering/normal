@@ -1,12 +1,22 @@
+import SwiftData
 import SwiftUI
 
 struct BlockStatusView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Query private var allSettings: [Settings]
 
     let mainSelection: SelectedApps
 
+    private var customDomains: [String] {
+        (allSettings.first?.enableCustomDomains ?? false) ? mainSelection.customDomains : []
+    }
+
     private var status: BlockStatus {
-        screenTimeService.blockStatus(selection: mainSelection.selection)
+        screenTimeService.blockStatus(selection: mainSelection.selection, customDomains: customDomains)
+    }
+
+    private var totalCount: Int {
+        mainSelection.selection.count + customDomains.count
     }
 
     var body: some View {
@@ -29,7 +39,7 @@ struct BlockStatusView: View {
             VStack(alignment: .leading) {
                 Text(status.title)
                     .font(.headline)
-                Text("\(screenTimeService.activeShieldCount()) of \(mainSelection.selection.count) Blocked")
+                Text("\(screenTimeService.activeShieldCount()) of \(totalCount) Blocked")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

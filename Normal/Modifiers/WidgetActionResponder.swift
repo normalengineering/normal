@@ -21,6 +21,14 @@ private struct WidgetActionResponder: ViewModifier {
         KeyType.selectable(registered: keys.map(\.type))
     }
 
+    private var customDomainsEnabled: Bool {
+        allSettings.first?.enableCustomDomains ?? false
+    }
+
+    private func customDomains(for group: AppGroup) -> [String] {
+        customDomainsEnabled ? group.customDomains : []
+    }
+
     func body(content: Content) -> some View {
         content
             .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: keyType)
@@ -37,7 +45,13 @@ private struct WidgetActionResponder: ViewModifier {
 
     private func syncWidget() {
         let blockStatuses = Dictionary(uniqueKeysWithValues: groups.map { group in
-            (group.id.uuidString, screenTimeService.blockStatus(selection: group.selection).widget.rawValue)
+            (
+                group.id.uuidString,
+                screenTimeService.blockStatus(
+                    selection: group.selection,
+                    customDomains: customDomains(for: group)
+                ).widget.rawValue
+            )
         })
         WidgetSync.sync(
             groups: groups,
@@ -77,6 +91,7 @@ private struct WidgetActionResponder: ViewModifier {
                 duration: duration,
                 groupId: group.id,
                 selection: group.selection,
+                customDomains: customDomains(for: group),
                 screenTimeService: screenTimeService
             )
         } else {
@@ -89,10 +104,11 @@ private struct WidgetActionResponder: ViewModifier {
             timedUnblockService.cancelGroup(
                 groupId: group.id,
                 selection: group.selection,
+                customDomains: customDomains(for: group),
                 screenTimeService: screenTimeService
             )
         } else {
-            screenTimeService.addToShields(selection: group.selection)
+            screenTimeService.addToShields(selection: group.selection, customDomains: customDomains(for: group))
         }
     }
 }

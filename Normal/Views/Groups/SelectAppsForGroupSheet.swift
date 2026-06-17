@@ -6,9 +6,13 @@ import SwiftUI
 struct SelectAppsForGroupSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var selectedApps: [SelectedApps]
+    @Query private var allSettings: [Settings]
 
     @Binding var selection: FamilyActivitySelection
+    var customDomains: Binding<[String]>?
+
     @State private var workingSelection = FamilyActivitySelection()
+    @State private var workingDomains: [String] = []
     @State private var sortedCategories: [ActivityCategoryToken] = []
     @State private var sortedApps: [ApplicationToken] = []
     @State private var sortedDomains: [WebDomainToken] = []
@@ -17,8 +21,18 @@ struct SelectAppsForGroupSheet: View {
         selectedApps.first?.selection
     }
 
+    private var mainDomains: [String] {
+        selectedApps.first?.customDomains ?? []
+    }
+
+    private var showsDomains: Bool {
+        customDomains != nil
+            && (allSettings.first?.enableCustomDomains ?? false)
+            && !mainDomains.isEmpty
+    }
+
     private var hasContent: Bool {
-        !sortedCategories.isEmpty || !sortedApps.isEmpty || !sortedDomains.isEmpty
+        !sortedCategories.isEmpty || !sortedApps.isEmpty || !sortedDomains.isEmpty || showsDomains
     }
 
     var body: some View {
@@ -33,6 +47,7 @@ struct SelectAppsForGroupSheet: View {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Done") {
                             selection = workingSelection
+                            customDomains?.wrappedValue = workingDomains
                             dismiss()
                         }
                         .fontWeight(.semibold)
@@ -49,6 +64,9 @@ struct SelectAppsForGroupSheet: View {
                 tokenSection(title: "Categories", tokens: sortedCategories)
                 tokenSection(title: "Apps", tokens: sortedApps)
                 tokenSection(title: "Websites", tokens: sortedDomains)
+                if showsDomains {
+                    CustomDomainsSubsetSection(available: mainDomains, selected: $workingDomains)
+                }
             }
             .listStyle(.insetGrouped)
         } else {
@@ -98,6 +116,7 @@ struct SelectAppsForGroupSheet: View {
             sortedApps = mainSelection.applicationTokens.sortedStably
             sortedDomains = mainSelection.webDomainTokens.sortedStably
         }
+        workingDomains = CustomDomains.subset(customDomains?.wrappedValue ?? [], of: mainDomains)
     }
 
     private func isSelected(_ token: some Hashable) -> Bool {

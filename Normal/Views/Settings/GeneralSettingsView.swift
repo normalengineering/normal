@@ -12,8 +12,24 @@ struct GeneralSettingsView: View {
         List {
             unblockingSection
             blockingSection
+            customDomainsSection
             appearanceSection
             aboutSection
+        }
+    }
+
+    // MARK: - Custom Domains
+
+    private var customDomainsSection: some View {
+        Section {
+            Toggle(
+                "Block Custom Websites",
+                isOn: Bindable(settings).enableCustomDomains
+            )
+        } header: {
+            Text("Custom Domains")
+        } footer: {
+            Text("Adds a section to App Select, allowing you to type custom website domains to block in web browsers and apps that show web content.")
         }
     }
 

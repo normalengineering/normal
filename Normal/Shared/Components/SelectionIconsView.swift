@@ -4,17 +4,34 @@ import SwiftUI
 
 struct SelectionIconsView: View {
     let tokens: [AnyHashable]
+    var customDomains: [String] = []
     var limit: Int?
 
-    var body: some View {
-        let sorted = tokens.sortedStably
-        let shown = limit.map { Array(sorted.prefix($0)) } ?? sorted
-        let overflow = sorted.count - shown.count
+    private enum Item: Hashable {
+        case token(AnyHashable)
+        case domain(String)
+    }
 
-        ForEach(shown, id: \.self) { token in
+    var body: some View {
+        let items = tokens.sortedStably.map(Item.token) + customDomains.map(Item.domain)
+        let shown = limit.map { Array(items.prefix($0)) } ?? items
+        let overflow = items.count - shown.count
+
+        ForEach(shown, id: \.self) { item in
             Group {
-                if let kind = SelectedTokenKind(token) {
-                    SelectionTokenLabel(kind: kind)
+                switch item {
+                case let .token(token):
+                    if let kind = SelectedTokenKind(token) {
+                        SelectionTokenLabel(kind: kind)
+                    }
+                case let .domain(domain):
+                    Image(systemName: "globe")
+                        .foregroundStyle(.secondary)
+                        .overlay {
+                            Text(domain.prefix(1).lowercased())
+                                .font(.system(size: 8, weight: .heavy))
+                                .foregroundStyle(.primary)
+                        }
                 }
             }
             .labelStyle(.iconOnly)

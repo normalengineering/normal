@@ -10,8 +10,13 @@ struct ScheduleCardView: View {
     @Query private var allSchedules: [BlockSchedule]
     @Query private var keys: [Key]
     @Query private var selectedApps: [SelectedApps]
+    @Query private var allSettings: [Settings]
 
     let schedule: BlockSchedule
+
+    private var customDomains: [String] {
+        (allSettings.first?.enableCustomDomains ?? false) ? schedule.customDomains : []
+    }
 
     @State private var isEditing = false
     @State private var isReselecting = false
@@ -26,8 +31,11 @@ struct ScheduleCardView: View {
     private var hasKeys: Bool { !keys.isEmpty }
 
     private var needsSync: Bool {
-        guard let mainSelection = selectedApps.first?.selection else { return false }
-        return !schedule.selection.isSubset(of: mainSelection)
+        guard let main = selectedApps.first else { return false }
+        if !schedule.selection.isSubset(of: main.selection) { return true }
+        if allSettings.first?.enableCustomDomains ?? false,
+           CustomDomains.needsResync(schedule.customDomains, main: main.customDomains) { return true }
+        return false
     }
 
     private var isLocked: Bool { isBlocked || !hasKeys || needsSync }
@@ -55,7 +63,7 @@ struct ScheduleCardView: View {
             ScheduleFormSheet(existing: schedule)
         }
         .sheet(isPresented: $isReselecting) {
-            SelectAppsForGroupSheet(selection: reselectionBinding)
+            SelectAppsForGroupSheet(selection: reselectionBinding, customDomains: reselectionDomainsBinding)
         }
         .alert(
             schedule.isEnabled ? "Disable Schedule?" : "Enable Schedule?",
@@ -159,15 +167,19 @@ struct ScheduleCardView: View {
 
     @ViewBuilder
     private var tokenStrip: some View {
-        if !schedule.selection.allTokens.isEmpty {
+        if !schedule.selection.allTokens.isEmpty || !customDomains.isEmpty {
             HStack(spacing: DS.Spacing.sm) {
-                SelectionIconsView(tokens: schedule.selection.allTokens, limit: 6)
+                SelectionIconsView(
+                    tokens: schedule.selection.allTokens,
+                    customDomains: customDomains,
+                    limit: 6
+                )
             }
         }
     }
 
     private var syncWarningText: some View {
-        Text("App selection changed. Please re-select apps in this schedule.")
+        Text("Your selection changed. Please re-select apps or domains in this schedule.")
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }
@@ -177,6 +189,20 @@ struct ScheduleCardView: View {
             get: { schedule.selection },
             set: { newValue in
                 schedule.selection = newValue
+                try? scheduleService.syncAndPersist(
+                    schedule,
+                    allSchedules: allSchedules,
+                    screenTimeService: screenTimeService
+                )
+            }
+        )
+    }
+
+    private var reselectionDomainsBinding: Binding<[String]> {
+        Binding(
+            get: { schedule.customDomains },
+            set: { newValue in
+                schedule.customDomains = newValue
                 try? scheduleService.syncAndPersist(
                     schedule,
                     allSchedules: allSchedules,

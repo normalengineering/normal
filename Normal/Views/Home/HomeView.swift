@@ -11,7 +11,10 @@ struct HomeView: View {
         NavigationStack {
             List {
                 if let mainSelection, !mainSelection.selection.isEmpty || UITestSupport.isActive {
-                    TimedUnblockBannerView(selection: mainSelection.selection)
+                    TimedUnblockBannerView(
+                        selection: mainSelection.selection,
+                        customDomains: mainSelection.customDomains
+                    )
                     MainBlockButtonView(mainSelection: mainSelection)
                     BlockStatusView(mainSelection: mainSelection)
                     AppDeleteToggleView()

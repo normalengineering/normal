@@ -11,6 +11,8 @@ nonisolated protocol SharedStoreProviding: Sendable {
     func loadSchedules() -> [ScheduleDTO]
     func isScheduleOverrideActive() -> Bool
     func setScheduleOverrideActive(_ active: Bool)
+    func isCustomDomainsEnabled() -> Bool
+    func setCustomDomainsEnabled(_ enabled: Bool)
 }
 
 enum ScheduleStartDecision: Equatable {

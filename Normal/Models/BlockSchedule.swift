@@ -16,6 +16,7 @@ final class BlockSchedule: Identifiable {
     var isTimed: Bool
     var isEnabled: Bool
     var sortIndex: Int = 0
+    var customDomains: [String] = []
 
     var formattedStartTime: String {
         var components = DateComponents()
@@ -64,7 +65,8 @@ final class BlockSchedule: Identifiable {
         shouldBlock: Bool = false,
         isTimed: Bool = true,
         isEnabled: Bool = false,
-        sortIndex: Int = 0
+        sortIndex: Int = 0,
+        customDomains: [String] = []
     ) {
         id = UUID()
         self.name = name
@@ -77,6 +79,7 @@ final class BlockSchedule: Identifiable {
         self.isTimed = isTimed
         self.isEnabled = isEnabled
         self.sortIndex = sortIndex
+        self.customDomains = customDomains
     }
 
     func isActive(at now: Date, calendar: Calendar = .current) -> Bool {
@@ -110,7 +113,8 @@ final class BlockSchedule: Identifiable {
             durationMinutes: durationMinutes,
             weekdays: weekdays,
             shouldBlock: shouldBlock,
-            isTimed: isTimed
+            isTimed: isTimed,
+            customDomains: customDomains
         )
     }
 }

@@ -5,6 +5,7 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var timedUnblocks: [TimedUnblockDTO] = []
     var schedules: [ScheduleDTO] = []
     var scheduleOverrideActive = false
+    var customDomainsEnabled = false
 
     func loadTimedUnblocks() -> [TimedUnblockDTO] { timedUnblocks }
     func saveTimedUnblocks(_ unblocks: [TimedUnblockDTO]) { timedUnblocks = unblocks }
@@ -32,4 +33,7 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
 
     func isScheduleOverrideActive() -> Bool { scheduleOverrideActive }
     func setScheduleOverrideActive(_ active: Bool) { scheduleOverrideActive = active }
+
+    func isCustomDomainsEnabled() -> Bool { customDomainsEnabled }
+    func setCustomDomainsEnabled(_ enabled: Bool) { customDomainsEnabled = enabled }
 }

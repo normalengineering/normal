@@ -19,7 +19,7 @@ struct LocationPickerSheet: View {
     @State private var inspectedKey: Key?
 
     static let minRadius: Double = 50
-    static let maxRadius: Double = 5_000
+    static let maxRadius: Double = 5000
 
     private var existingZones: [Key] {
         keys.filter { $0.type == .location && $0.radiusKind == kind && $0.coordinate != nil }
@@ -275,8 +275,8 @@ struct LocationPickerSheet: View {
     }
 
     static func formatted(meters: Double) -> String {
-        if meters < 1_000 { return "\(Int(meters)) m" }
-        return String(format: "%.1f km", meters / 1_000)
+        if meters < 1000 { return "\(Int(meters)) m" }
+        return String(format: "%.1f km", meters / 1000)
     }
 }
 

@@ -35,7 +35,11 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         checkInvariant()
     }
 
-    func applyShieldOnAll(selection _: FamilyActivitySelection, blockAllPreventsAppDelete: Bool) {
+    func applyShieldOnAll(
+        selection _: FamilyActivitySelection,
+        customDomains _: [String] = [],
+        blockAllPreventsAppDelete: Bool
+    ) {
         shieldActive = true
         if blockAllPreventsAppDelete { appDeleteDisabled = true }
         checkInvariant()
@@ -47,17 +51,19 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         checkInvariant()
     }
 
-    func addToShields(selection _: FamilyActivitySelection) {
+    func addToShields(selection _: FamilyActivitySelection, customDomains _: [String] = []) {
         shieldActive = true
         checkInvariant()
     }
 
-    func removeFromShields(selection _: FamilyActivitySelection) {
+    func removeFromShields(selection _: FamilyActivitySelection, customDomains _: [String] = []) {
         checkInvariant()
     }
 
+    func clearCustomDomainFilter() {}
+
     func activeShieldCount() -> Int { shieldActive ? 1 : 0 }
-    func blockStatus(selection _: FamilyActivitySelection?) -> BlockStatus {
+    func blockStatus(selection _: FamilyActivitySelection?, customDomains _: [String]? = nil) -> BlockStatus {
         shieldActive ? .all : .none
     }
 }

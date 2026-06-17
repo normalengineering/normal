@@ -64,4 +64,12 @@ struct SharedStore: SharedStoreProviding, Sendable {
     func setScheduleOverrideActive(_ active: Bool) {
         defaults.set(active, forKey: SharedConstants.DefaultsKey.scheduleOverride)
     }
+
+    func isCustomDomainsEnabled() -> Bool {
+        defaults.bool(forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
+    }
+
+    func setCustomDomainsEnabled(_ enabled: Bool) {
+        defaults.set(enabled, forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
+    }
 }

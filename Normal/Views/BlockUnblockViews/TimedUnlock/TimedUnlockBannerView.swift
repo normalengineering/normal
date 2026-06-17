@@ -8,10 +8,15 @@ struct TimedUnblockBannerView: View {
     @Query private var allSettings: [Settings]
 
     let selection: FamilyActivitySelection
+    var customDomains: [String] = []
 
     @State private var authAction: (@MainActor () -> Void)?
 
     private var settings: Settings { allSettings.unwrapped }
+
+    private var effectiveCustomDomains: [String] {
+        settings.enableCustomDomains ? customDomains : []
+    }
 
     var body: some View {
         if let endDate = timedUnblockService.mainUnblockEndDate, endDate > .now {
@@ -38,6 +43,7 @@ struct TimedUnblockBannerView: View {
                         authAction = {
                             timedUnblockService.cancelMain(
                                 selection: selection,
+                                customDomains: effectiveCustomDomains,
                                 screenTimeService: screenTimeService,
                                 blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                             )

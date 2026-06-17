@@ -1,10 +1,16 @@
+import SwiftData
 import SwiftUI
 
 struct GroupTimedUnblockSheet: View {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Query private var allSettings: [Settings]
 
     let group: AppGroup
+
+    private var customDomains: [String] {
+        (allSettings.first?.enableCustomDomains ?? false) ? group.customDomains : []
+    }
 
     var body: some View {
         TimedUnblockSheet(
@@ -14,11 +20,12 @@ struct GroupTimedUnblockSheet: View {
                     duration: duration,
                     groupId: group.id,
                     selection: group.selection,
+                    customDomains: customDomains,
                     screenTimeService: screenTimeService
                 )
             },
             onPermanentUnblock: {
-                screenTimeService.removeFromShields(selection: group.selection)
+                screenTimeService.removeFromShields(selection: group.selection, customDomains: customDomains)
             }
         )
     }

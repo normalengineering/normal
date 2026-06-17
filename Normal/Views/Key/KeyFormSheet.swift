@@ -122,8 +122,7 @@ struct KeyFormSheet: View {
                     }
 
                     if isReadOnly {
-                        Section {
-                        } footer: {
+                        Section {} footer: {
                             Text("Unblock all apps to edit or delete keys.")
                                 .frame(maxWidth: .infinity, alignment: .center)
                         }

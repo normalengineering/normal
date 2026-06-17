@@ -2,6 +2,10 @@ import FamilyControls
 import Foundation
 import ManagedSettings
 
+enum ScreenTimeLimits {
+    static let maxBlockedItems = 50
+}
+
 extension FamilyActivitySelection {
     var allTokens: [AnyHashable] {
         applicationTokens.asHashableArray

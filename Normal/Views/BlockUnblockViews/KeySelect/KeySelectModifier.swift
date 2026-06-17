@@ -129,10 +129,10 @@ struct KeySelectModifier: ViewModifier {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: keys)
         case .qr: QRKeyMethod(qrService: qrService, keys: keys)
         case .location: LocationKeyMethod(
-            locationProvider: locationService,
-            keys: keys,
-            onError: { locationError = $0 }
-        )
+                locationProvider: locationService,
+                keys: keys,
+                onError: { locationError = $0 }
+            )
         }
         _ = await keyManager.performWithKeyCheck(using: method) { pendingAction() }
         showKeySelect = false

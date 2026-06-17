@@ -76,8 +76,12 @@ final class ScreenTimeService: ScreenTimeProviding {
         notifyUpdate()
     }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection, blockAllPreventsAppDelete: Bool) {
-        shield.replace(with: selection)
+    func applyShieldOnAll(
+        selection: FamilyActivitySelection,
+        customDomains: [String] = [],
+        blockAllPreventsAppDelete: Bool
+    ) {
+        shield.replace(with: selection, customDomains: customDomains)
         if blockAllPreventsAppDelete {
             shield.denyAppRemoval = true
         }
@@ -92,13 +96,18 @@ final class ScreenTimeService: ScreenTimeProviding {
         notifyUpdate()
     }
 
-    func addToShields(selection: FamilyActivitySelection) {
-        shield.union(with: selection)
+    func addToShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
+        shield.union(with: selection, customDomains: customDomains)
         notifyUpdate()
     }
 
-    func removeFromShields(selection: FamilyActivitySelection) {
-        shield.subtract(with: selection)
+    func removeFromShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
+        shield.subtract(with: selection, customDomains: customDomains)
+        notifyUpdate()
+    }
+
+    func clearCustomDomainFilter() {
+        shield.clearCustomDomainFilter()
         notifyUpdate()
     }
 
@@ -107,9 +116,9 @@ final class ScreenTimeService: ScreenTimeProviding {
         return shield.shieldedCount()
     }
 
-    func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus {
+    func blockStatus(selection: FamilyActivitySelection?, customDomains: [String]? = nil) -> BlockStatus {
         _ = lastUpdate
-        return shield.status(for: selection)
+        return shield.status(for: selection, customDomains: customDomains)
     }
 
     func isShielded(_ token: SelectedTokenKind) -> Bool {

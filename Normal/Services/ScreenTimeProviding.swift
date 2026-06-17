@@ -13,12 +13,17 @@ protocol ScreenTimeProviding: AnyObject {
     func ensureAuthorized() async -> Bool
     func enablePreventAppDelete()
     func disablePreventAppDelete()
-    func applyShieldOnAll(selection: FamilyActivitySelection, blockAllPreventsAppDelete: Bool)
+    func applyShieldOnAll(
+        selection: FamilyActivitySelection,
+        customDomains: [String],
+        blockAllPreventsAppDelete: Bool
+    )
     func removeShieldOnAll(blockAllPreventsAppDelete: Bool)
-    func addToShields(selection: FamilyActivitySelection)
-    func removeFromShields(selection: FamilyActivitySelection)
+    func addToShields(selection: FamilyActivitySelection, customDomains: [String])
+    func removeFromShields(selection: FamilyActivitySelection, customDomains: [String])
+    func clearCustomDomainFilter()
     func activeShieldCount() -> Int
-    func blockStatus(selection: FamilyActivitySelection?) -> BlockStatus
+    func blockStatus(selection: FamilyActivitySelection?, customDomains: [String]?) -> BlockStatus
 }
 
 extension ScreenTimeProviding {

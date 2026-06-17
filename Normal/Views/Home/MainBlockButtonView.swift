@@ -18,8 +18,12 @@ struct MainBlockButtonView: View {
 
     private var settings: Settings { allSettings.unwrapped }
 
+    private var customDomains: [String] {
+        settings.enableCustomDomains ? mainSelection.customDomains : []
+    }
+
     private var blockStatus: BlockStatus {
-        screenTimeService.blockStatus(selection: mainSelection.selection)
+        screenTimeService.blockStatus(selection: mainSelection.selection, customDomains: customDomains)
     }
 
     private var canShowBlock: Bool {
@@ -45,6 +49,7 @@ struct MainBlockButtonView: View {
             authAction = {
                 screenTimeService.applyShieldOnAll(
                     selection: mainSelection.selection,
+                    customDomains: customDomains,
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )
                 timedUnblockService.clearAll()
@@ -97,6 +102,7 @@ struct MainBlockButtonView: View {
                 try timedUnblockService.startMain(
                     duration: duration,
                     selection: mainSelection.selection,
+                    customDomains: customDomains,
                     screenTimeService: screenTimeService,
                     blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
                 )

@@ -25,6 +25,7 @@ struct NormalApp: App {
         if (try? context.fetchCount(descriptor)) == 0 {
             let settings = Settings()
             settings.hasCompletedOnboarding = UITestSupport.skipOnboarding
+            settings.enableCustomDomains = UITestSupport.customDomains
             context.insert(settings)
         }
 

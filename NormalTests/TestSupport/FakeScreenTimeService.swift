@@ -11,13 +11,16 @@ final class FakeScreenTimeService: ScreenTimeProviding {
 
     var applyShieldOnAllCalled = false
     var applyShieldOnAllSelection: FamilyActivitySelection?
+    var applyShieldOnAllCustomDomains: [String]?
     var applyShieldOnAllBlockAllPreventsAppDelete: Bool?
     var removeShieldOnAllCalled = false
     var removeShieldOnAllBlockAllPreventsAppDelete: Bool?
     var addToShieldsCalled = false
     var addToShieldsSelection: FamilyActivitySelection?
+    var addToShieldsCustomDomains: [String]?
     var removeFromShieldsCalled = false
     var removeFromShieldsSelection: FamilyActivitySelection?
+    var removeFromShieldsCustomDomains: [String]?
     var enablePreventAppDeleteCalled = false
     var disablePreventAppDeleteCalled = false
     var notifyUpdateCallCount = 0
@@ -48,9 +51,14 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     func enablePreventAppDelete() { enablePreventAppDeleteCalled = true }
     func disablePreventAppDelete() { disablePreventAppDeleteCalled = true }
 
-    func applyShieldOnAll(selection: FamilyActivitySelection, blockAllPreventsAppDelete: Bool) {
+    func applyShieldOnAll(
+        selection: FamilyActivitySelection,
+        customDomains: [String] = [],
+        blockAllPreventsAppDelete: Bool
+    ) {
         applyShieldOnAllCalled = true
         applyShieldOnAllSelection = selection
+        applyShieldOnAllCustomDomains = customDomains
         applyShieldOnAllBlockAllPreventsAppDelete = blockAllPreventsAppDelete
         if blockAllPreventsAppDelete { enablePreventAppDelete() }
     }
@@ -61,16 +69,22 @@ final class FakeScreenTimeService: ScreenTimeProviding {
         if blockAllPreventsAppDelete { disablePreventAppDelete() }
     }
 
-    func addToShields(selection: FamilyActivitySelection) {
+    func addToShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
         addToShieldsCalled = true
         addToShieldsSelection = selection
+        addToShieldsCustomDomains = customDomains
     }
 
-    func removeFromShields(selection: FamilyActivitySelection) {
+    func removeFromShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
         removeFromShieldsCalled = true
         removeFromShieldsSelection = selection
+        removeFromShieldsCustomDomains = customDomains
     }
 
+    func clearCustomDomainFilter() {}
+
     func activeShieldCount() -> Int { stubActiveShieldCount }
-    func blockStatus(selection _: FamilyActivitySelection?) -> BlockStatus { stubBlockStatus }
+    func blockStatus(selection _: FamilyActivitySelection?, customDomains _: [String]? = nil) -> BlockStatus {
+        stubBlockStatus
+    }
 }

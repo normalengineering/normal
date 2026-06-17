@@ -71,7 +71,9 @@
 		2F4718A12F556F340013F94D /* Exceptions for "Shared" folder in "NormalMonitor" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CustomDomainFilter.swift,
 				DataExtension.swift,
+				DomainNormalizer.swift,
 				ManagedSettingsUtil.swift,
 				SharedConstants.swift,
 				SharedDTO.swift,

@@ -120,4 +120,42 @@ final class NormalUITests: XCTestCase {
 
         require(app.staticTexts["Office"], "Saved location key should appear in the keys list")
     }
+
+    @MainActor
+    func testCustomDomainsEditorHiddenWhenToggleOff() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+
+        let appSelectTab = app.tabBars.buttons["App Select"]
+        require(appSelectTab, "App Select tab should be reachable")
+        appSelectTab.tap()
+
+        XCTAssertFalse(
+            app.buttons["appSelect.customDomainsLink"].waitForExistence(timeout: 3),
+            "Custom Domains entry should be hidden while the setting is off"
+        )
+    }
+
+    @MainActor
+    func testCustomDomainsEditorAddsDomainWhenToggleOn() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains"])
+
+        let appSelectTab = app.tabBars.buttons["App Select"]
+        require(appSelectTab, "App Select tab should be reachable")
+        appSelectTab.tap()
+
+        let link = app.buttons["appSelect.customDomainsLink"]
+        require(link, "Custom Domains entry should appear when the setting is on")
+        link.tap()
+
+        let field = app.textFields["customDomains.field"]
+        require(field, "Custom Domains field should appear on the editor page")
+        field.tap()
+        field.typeText("reddit.com")
+
+        let addButton = app.buttons["customDomains.addButton"]
+        require(addButton, "Add button should exist")
+        addButton.tap()
+
+        require(app.staticTexts["reddit.com"], "Added domain should appear in the list")
+    }
 }

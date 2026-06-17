@@ -45,6 +45,7 @@ final class TimedUnblockService {
     func startMain(
         duration: UnblockDuration,
         selection: FamilyActivitySelection,
+        customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding,
         blockAllPreventsAppDelete: Bool = false
     ) throws {
@@ -61,6 +62,7 @@ final class TimedUnblockService {
         try persist(
             id: Self.mainID,
             selection: selection,
+            customDomains: customDomains,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: false,
@@ -72,6 +74,7 @@ final class TimedUnblockService {
         duration: UnblockDuration,
         groupId: UUID,
         selection: FamilyActivitySelection,
+        customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding
     ) throws {
         let id = groupId.uuidString
@@ -80,12 +83,13 @@ final class TimedUnblockService {
 
         let start = Date.now
         let endDate = start.addingTimeInterval(duration.timeInterval)
-        screenTimeService.removeFromShields(selection: selection)
+        screenTimeService.removeFromShields(selection: selection, customDomains: customDomains)
         try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
             id: id,
             selection: selection,
+            customDomains: customDomains,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: true
@@ -94,12 +98,14 @@ final class TimedUnblockService {
 
     func cancelMain(
         selection: FamilyActivitySelection,
+        customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding,
         blockAllPreventsAppDelete: Bool = false
     ) {
         cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
         screenTimeService.applyShieldOnAll(
             selection: selection,
+            customDomains: customDomains,
             blockAllPreventsAppDelete: blockAllPreventsAppDelete
         )
         cancelAllGroupUnblocks()
@@ -109,11 +115,12 @@ final class TimedUnblockService {
     func cancelGroup(
         groupId: UUID,
         selection: FamilyActivitySelection,
+        customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding
     ) {
         let id = groupId.uuidString
         cancelMonitoring(activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId))
-        screenTimeService.addToShields(selection: selection)
+        screenTimeService.addToShields(selection: selection, customDomains: customDomains)
         forget(id: id)
     }
 
@@ -128,7 +135,7 @@ final class TimedUnblockService {
         }
     }
 
-    func updateMainSelection(_ selection: FamilyActivitySelection) {
+    func updateMainSelection(_ selection: FamilyActivitySelection, customDomains: [String] = []) {
         guard let endDate = activeUnblocks[Self.mainID] else { return }
         let activityName = SharedConstants.mainTimedUnblockActivityName
         let preventAppDelete = sharedStore
@@ -136,6 +143,7 @@ final class TimedUnblockService {
         try? persist(
             id: Self.mainID,
             selection: selection,
+            customDomains: customDomains,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: false,
@@ -144,12 +152,13 @@ final class TimedUnblockService {
         )
     }
 
-    func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection) {
+    func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection, customDomains: [String] = []) {
         let id = groupId.uuidString
         guard let endDate = activeUnblocks[id] else { return }
         try? persist(
             id: id,
             selection: selection,
+            customDomains: customDomains,
             endDate: endDate,
             activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
             isGroupUnblock: true,
@@ -160,6 +169,7 @@ final class TimedUnblockService {
     private func persist(
         id: String,
         selection: FamilyActivitySelection,
+        customDomains: [String],
         endDate: Date,
         activityName: String,
         isGroupUnblock: Bool,
@@ -172,7 +182,8 @@ final class TimedUnblockService {
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: isGroupUnblock,
-            blockAllPreventsAppDelete: blockAllPreventsAppDelete
+            blockAllPreventsAppDelete: blockAllPreventsAppDelete,
+            customDomains: customDomains
         )
         sharedStore.upsertTimedUnblock(dto)
 
@@ -269,10 +280,11 @@ final class TimedUnblockService {
 
         if unblock.isGroupUnblock {
             guard !sharedStore.isMainTimedUnblockActive() else { return }
-            screenTimeService.addToShields(selection: selection)
+            screenTimeService.addToShields(selection: selection, customDomains: unblock.customDomains)
         } else {
             screenTimeService.applyShieldOnAll(
                 selection: selection,
+                customDomains: unblock.customDomains,
                 blockAllPreventsAppDelete: unblock.blockAllPreventsAppDelete ?? false
             )
         }

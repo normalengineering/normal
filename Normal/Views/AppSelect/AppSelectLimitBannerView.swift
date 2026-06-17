@@ -3,11 +3,23 @@ import SwiftUI
 
 struct AppSelectLimitBannerView: View {
     let selection: FamilyActivitySelection
+    var customDomains: [String] = []
+    var customDomainsEnabled = false
 
-    static let warningThreshold = 50
+    static let warningThreshold = ScreenTimeLimits.maxBlockedItems
+
+    private var itemCount: Int {
+        selection.count + customDomains.count
+    }
+
+    private var exampleText: String {
+        customDomainsEnabled
+            ? "5 Apps + 1 Category + 5 Websites + 10 Custom Domains = 21 items"
+            : "5 Apps + 1 Category + 5 Websites = 11 items"
+    }
 
     var body: some View {
-        if selection.count >= Self.warningThreshold {
+        if itemCount >= Self.warningThreshold {
             Section {
                 VStack(alignment: .leading, spacing: DS.Spacing.md) {
                     HStack(spacing: DS.Spacing.md) {
@@ -17,19 +29,23 @@ struct AppSelectLimitBannerView: View {
                             .foregroundStyle(.orange)
                         VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
                             Text("Too many items selected.").font(.headline)
-                            Text("\(selection.count) items selected")
+                            Text("\(itemCount) items selected")
                                 .font(.subheadline.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
                     }
 
-                    Text("Apple's Screen Time framework caps how many items can be blocked at once. 50+ items can't be blocked. Each app, website, and category counts as one item.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Text(
+                        customDomainsEnabled
+                            ? "Apple's Screen Time framework caps how many items can be blocked at once. 50+ items can't be blocked. Each app, website, category, and custom domain counts as one item."
+                            : "Apple's Screen Time framework caps how many items can be blocked at once. 50+ items can't be blocked. Each app, website, and category counts as one item."
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
 
                     VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                         Text("Example").font(.caption.weight(.semibold))
-                        Text("30 Apps  +  5 Websites  +  2 Categories  =  37 items")
+                        Text(exampleText)
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }

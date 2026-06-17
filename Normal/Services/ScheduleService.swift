@@ -44,6 +44,10 @@ final class ScheduleService {
         }
     }
 
+    func mirrorCustomDomainsEnabled(_ enabled: Bool) {
+        sharedStore.setCustomDomainsEnabled(enabled)
+    }
+
     func remove(
         _ schedule: BlockSchedule,
         screenTimeService: any ScreenTimeProviding
@@ -99,11 +103,12 @@ final class ScheduleService {
         screenTimeService: any ScreenTimeProviding
     ) {
         guard schedule.isActive(at: .now) else { return }
+        let domains = effectiveDomains(schedule)
         if schedule.shouldBlock {
             guard !sharedStore.isUnblockAllInEffect() else { return }
-            screenTimeService.addToShields(selection: schedule.selection)
+            screenTimeService.addToShields(selection: schedule.selection, customDomains: domains)
         } else {
-            screenTimeService.removeFromShields(selection: schedule.selection)
+            screenTimeService.removeFromShields(selection: schedule.selection, customDomains: domains)
         }
     }
 
@@ -112,7 +117,11 @@ final class ScheduleService {
         screenTimeService: any ScreenTimeProviding
     ) {
         guard schedule.shouldBlock else { return }
-        screenTimeService.removeFromShields(selection: schedule.selection)
+        screenTimeService.removeFromShields(selection: schedule.selection, customDomains: effectiveDomains(schedule))
+    }
+
+    private func effectiveDomains(_ schedule: BlockSchedule) -> [String] {
+        sharedStore.isCustomDomainsEnabled() ? schedule.customDomains : []
     }
 
     private func makeDeviceSchedule(for schedule: BlockSchedule) -> DeviceActivitySchedule {

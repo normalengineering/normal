@@ -9,12 +9,22 @@ struct AppSelectView: View {
 
     @Query private var selectedApps: [SelectedApps]
     @Query private var appGroups: [AppGroup]
+    @Query private var allSettings: [Settings]
 
     @State private var showSelectionChangeAlert = false
     @State private var isFamilyActivityPickerPresented = false
     @State private var selection = FamilyActivitySelection()
+    @State private var customDomains: [String] = []
 
     private var mainSelection: SelectedApps? { selectedApps.first }
+
+    private var customDomainsEnabled: Bool {
+        allSettings.first?.enableCustomDomains ?? false
+    }
+
+    private var effectiveCustomDomains: [String] {
+        customDomainsEnabled ? customDomains : []
+    }
 
     private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
     private var isAuthorized: Bool { screenTimeService.authorizationState == .authorized }
@@ -38,7 +48,11 @@ struct AppSelectView: View {
     var body: some View {
         NavigationStack {
             List {
-                AppSelectLimitBannerView(selection: selection)
+                AppSelectLimitBannerView(
+                    selection: selection,
+                    customDomains: effectiveCustomDomains,
+                    customDomainsEnabled: customDomainsEnabled
+                )
                 Section(header: Text("Selection"), footer: footerText) {
                     Button(buttonTitle, action: onUpdateSelectionButton)
                         .disabled(isBlocked)
@@ -46,6 +60,16 @@ struct AppSelectView: View {
                     Text(verbatim: selection.selectedTokenCounts)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+                if customDomainsEnabled {
+                    Section(footer: Text("Select websites to block in web browsers and apps that show web content.")) {
+                        NavigationLink {
+                            CustomDomainsEditor(domains: $customDomains, otherItemCount: selection.count)
+                        } label: {
+                            CountChevronRow(title: "Custom Domains", count: customDomains.count)
+                        }
+                        .accessibilityIdentifier("appSelect.customDomainsLink")
+                    }
                 }
                 SelectionListView(selection: selection)
             }
@@ -61,9 +85,13 @@ struct AppSelectView: View {
             }
             .familyActivityPicker(isPresented: $isFamilyActivityPickerPresented, selection: $selection)
             .onAppear {
-                if let mainSelection { selection = mainSelection.selection }
+                if let mainSelection {
+                    selection = mainSelection.selection
+                    customDomains = mainSelection.customDomains
+                }
             }
             .onChange(of: selection, persistSelection)
+            .onChange(of: customDomains) { _, _ in persistCustomDomains() }
         }
     }
 
@@ -82,8 +110,18 @@ struct AppSelectView: View {
             existing.selection = new
             existing.lastUpdated = .now
         } else {
-            modelContext.insert(SelectedApps(selection: new))
+            modelContext.insert(SelectedApps(selection: new, customDomains: customDomains))
         }
-        timedUnblockService.updateMainSelection(new)
+        timedUnblockService.updateMainSelection(new, customDomains: effectiveCustomDomains)
+    }
+
+    private func persistCustomDomains() {
+        if let existing = mainSelection {
+            existing.customDomains = customDomains
+            existing.lastUpdated = .now
+        } else {
+            modelContext.insert(SelectedApps(selection: selection, customDomains: customDomains))
+        }
+        timedUnblockService.updateMainSelection(selection, customDomains: effectiveCustomDomains)
     }
 }
