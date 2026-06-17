@@ -15,6 +15,7 @@ struct GeneralSettingsView: View {
             customDomainsSection
             appearanceSection
             aboutSection
+            contactSection
         }
     }
 
@@ -124,6 +125,18 @@ struct GeneralSettingsView: View {
             }
         } footer: {
             Text("If Normal has helped you, please consider leaving a review.")
+        }
+    }
+
+    // MARK: - Contact
+
+    private var contactSection: some View {
+        Section {
+            NavigationLink {
+                ContactUsView()
+            } label: {
+                Label("Contact Us", systemImage: "envelope")
+            }
         }
     }
 }
