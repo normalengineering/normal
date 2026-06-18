@@ -108,11 +108,13 @@ struct KeySelectModifier: ViewModifier {
     private func handleSelection(_ choice: KeyType) {
         switch choice {
         case .nfc:
+            let pending = action
             showKeySelect = false
-            Task { await authenticate(with: .nfc) }
+            Task { await authenticate(with: .nfc, action: pending) }
         case .qr:
+            let pending = action
             showQRScanner = true
-            Task { await authenticate(with: .qr) }
+            Task { await authenticate(with: .qr, action: pending) }
         case .location:
             pendingLocationAction = action
             if showKeySelect {
@@ -129,14 +131,14 @@ struct KeySelectModifier: ViewModifier {
         showKeySelect = false
     }
 
-    private func authenticate(with choice: KeyType) async {
-        guard let pendingAction = action else { return }
+    private func authenticate(with choice: KeyType, action pending: (@MainActor () -> Void)?) async {
+        guard let pending else { return }
         let method: KeyMethod = switch choice {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: scopedKeys)
         case .qr: QRKeyMethod(qrService: qrService, keys: scopedKeys)
         case .location: preconditionFailure("location uses its own popup")
         }
-        _ = await keyManager.performWithKeyCheck(using: method) { pendingAction() }
+        _ = await keyManager.performWithKeyCheck(using: method) { pending() }
         showKeySelect = false
         action = nil
     }
