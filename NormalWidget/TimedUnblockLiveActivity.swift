@@ -8,7 +8,6 @@ struct TimedUnblockLiveActivity: Widget {
 
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TimedUnblockActivityAttributes.self) { context in
-            // Lock Screen / banner.
             atEnd(context) { finished in
                 HStack(spacing: 12) {
                     leadingInfo(context, finished: finished)

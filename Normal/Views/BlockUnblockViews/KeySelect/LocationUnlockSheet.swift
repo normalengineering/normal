@@ -65,8 +65,6 @@ struct LocationUnlockSheet: View {
         .mapStyle(.standard(pointsOfInterest: .excludingAll))
         .overlay(kind.fieldColor.opacity(0.10).allowsHitTesting(false))
         .onChange(of: model.hasValidLocation) { _, valid in
-            // Once we have a real fix, recenter to frame the dot and the zones —
-            // not just the zones.
             guard valid, let coordinate = model.location?.coordinate else { return }
             withAnimation(.easeInOut(duration: 0.45)) {
                 cameraPosition = .region(regionFitting(user: coordinate))

@@ -1,7 +1,5 @@
 name: UI Tests
 
-# Manual / ad-hoc only — never runs on push or PR. Trigger from the Actions tab
-# ("Run workflow") or with: gh workflow run ui-tests.yml [-f only=...]
 on:
   workflow_dispatch:
     inputs:

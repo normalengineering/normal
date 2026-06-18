@@ -9,6 +9,8 @@ struct NumberedRow: View {
             Text("\(number).")
                 .foregroundStyle(.secondary)
             Text(text)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

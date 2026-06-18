@@ -37,7 +37,6 @@ struct CustomDomainMigrationTests {
 
         do {
             let container = try makeContainer(at: url)
-            // Inserted without custom domains — mirrors rows written before the column existed.
             container.mainContext.insert(SelectedApps(selection: FamilyActivitySelection()))
             container.mainContext.insert(AppGroup(name: "Social", selection: FamilyActivitySelection()))
             try container.mainContext.save()

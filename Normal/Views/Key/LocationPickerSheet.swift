@@ -20,7 +20,6 @@ struct LocationPickerSheet: View {
     @State private var permissionDenied = false
     @State private var inspectedKey: Key?
 
-    /// Existing zones in scope (global + this group's) of the same radius kind.
     private var existingZones: [Key] {
         Key.scoped(keys, toGroup: groupID)
             .filter { $0.type == .location && $0.radiusKind == kind && $0.coordinate != nil }
@@ -82,8 +81,6 @@ struct LocationPickerSheet: View {
         }
         return "Drag the slider to size the area, then Save."
     }
-
-    // MARK: - Actions
 
     private func centerOnCurrent() {
         guard let currentLocation else { return }

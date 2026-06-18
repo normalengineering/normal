@@ -41,8 +41,6 @@ struct SettingsBypassGuide: View {
         )
     }
 
-    // MARK: - Method 1: Shortcuts automation
-
     private var method1Content: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
             Text("Use Apple's Shortcuts app to automatically bounce you out of Settings before you can reach the Screen Time toggle.")
@@ -129,8 +127,6 @@ struct SettingsBypassGuide: View {
         .cornerRadius(DS.Radius.md)
     }
 
-    // MARK: - Method 2: Screen Time passcode
-
     private var method2Content: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
             Text("Lock Screen Time behind a passcode and Apple ID you don't know. Without them, the Screen Time toggle can't be reached at all.")
@@ -200,12 +196,13 @@ struct SettingsBypassGuide: View {
         }
     }
 
-    // Inline markdown link — Text literal init renders [label](url) as a tappable link.
     private var passcodeStep3: some View {
         HStack(alignment: .top, spacing: DS.Spacing.sm) {
             Text("3.")
                 .foregroundStyle(.secondary)
             Text("Set a Screen Time passcode (have a friend enter it, use [password-locker](https://password-locker.com/), or type a random PIN yourself)")
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

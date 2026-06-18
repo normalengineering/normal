@@ -1,8 +1,6 @@
 import SwiftData
 import SwiftUI
 
-/// Read-only overview of every group-only key, grouped by the group it unlocks.
-/// Keys are added in each group's edit screen; here you can only review and delete.
 struct GroupKeysViewer: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScreenTimeService.self) private var screenTimeService

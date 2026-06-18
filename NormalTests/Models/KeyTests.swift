@@ -62,8 +62,6 @@ struct KeyTests {
         #expect(nfc.displayTypeLabel == "NFC Tag")
     }
 
-    // MARK: - Location keys
-
     private static let cupertino = CLLocationCoordinate2D(latitude: 37.3349, longitude: -122.0090)
 
     private static func locationKey(

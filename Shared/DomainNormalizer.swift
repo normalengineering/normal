@@ -1,8 +1,5 @@
 import Foundation
 
-/// Cleans and validates user-typed website domains so they can be matched by
-/// the web content filter. Custom domains are stored normalized, and the
-/// enforcement layer re-normalizes defensively before building `WebDomain`s.
 nonisolated enum DomainNormalizer {
     static func normalize(_ raw: String) -> String? {
         var host = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -56,7 +53,6 @@ nonisolated enum DomainNormalizer {
             else { return false }
         }
 
-        // The TLD must be alphabetic (e.g. "com", not "123").
         guard let tld = labels.last, tld.allSatisfy(\.isLetter) else { return false }
         return true
     }

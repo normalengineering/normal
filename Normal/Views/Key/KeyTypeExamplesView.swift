@@ -23,7 +23,7 @@ struct KeyTypeExamplesView: View {
     private var qrCard: some View {
         card {
             cardTitle("QR code or barcode examples", systemImage: "qrcode")
-            FeatureRow(systemImage: "doc.fill", text: "Any QR code or barcode works — even a product barcode off a snack wrapper. Print one on paper, put it on a sticker, or show it on a second device's screen.")
+            FeatureRow(systemImage: "doc.fill", text: "Any QR code or barcode works, even a product barcode off a snack wrapper. Print one on paper, put it on a sticker, or show it on a second device's screen.")
             FeatureRow(systemImage: "arrow.triangle.2.circlepath", text: "Normal reads the value inside the QR code or barcode. Use something you can recreate later if you lose it, or make it random so it's hard to reproduce.")
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Getting one").font(.subheadline.weight(.semibold))

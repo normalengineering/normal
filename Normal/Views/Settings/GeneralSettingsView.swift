@@ -18,8 +18,6 @@ struct GeneralSettingsView: View {
         }
     }
 
-    // MARK: - Custom Domains
-
     private var customDomainsSection: some View {
         Section {
             Toggle(
@@ -32,8 +30,6 @@ struct GeneralSettingsView: View {
             Text("Adds a section to App Select, allowing you to type custom website domains to block.")
         }
     }
-
-    // MARK: - Unblocking
 
     private var unblockingSection: some View {
         Section {
@@ -73,8 +69,6 @@ struct GeneralSettingsView: View {
         }
     }
 
-    // MARK: - Blocking
-
     private var blockingSection: some View {
         Section {
             Toggle(
@@ -87,8 +81,6 @@ struct GeneralSettingsView: View {
             Text("When enabled 'Block All' and prevent app deletion are linked.")
         }
     }
-
-    // MARK: - Appearance
 
     private var appearanceSection: some View {
         Section {

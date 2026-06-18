@@ -9,6 +9,8 @@ struct BulletRow: View {
             Text("\u{2022}")
                 .foregroundStyle(.secondary)
             Text(text)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.leading, indent)
     }

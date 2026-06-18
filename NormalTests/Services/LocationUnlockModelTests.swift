@@ -73,7 +73,7 @@ struct LocationUnlockModelTests {
 
     @Test func runReturnsOnceVerified() async {
         let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: FakeLocationProvider(at: Self.cupertino))
-        await model.run() // returns immediately on verification — no hang
+        await model.run()
         #expect(model.phase == .verified)
     }
 
