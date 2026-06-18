@@ -83,4 +83,102 @@ struct LocationUnlockModelTests {
         await model.run()
         #expect(model.phase == .permissionDenied)
     }
+
+    private func cachedLocation(at coordinate: CLLocationCoordinate2D, secondsAgo: TimeInterval = 0) -> CLLocation {
+        CLLocation(
+            coordinate: coordinate,
+            altitude: 0,
+            horizontalAccuracy: 10,
+            verticalAccuracy: 10,
+            timestamp: Date(timeIntervalSinceNow: -secondsAgo)
+        )
+    }
+
+    @Test func verifiesInstantlyFromFreshInZoneCache() {
+        let provider = FakeLocationProvider(outcome: .throwGeneric, cachedLocation: cachedLocation(at: Self.cupertino))
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: provider)
+        #expect(model.verifyFromCache())
+        #expect(model.phase == .verified)
+    }
+
+    @Test func ignoresStaleCache() {
+        let provider = FakeLocationProvider(
+            outcome: .throwGeneric,
+            cachedLocation: cachedLocation(at: Self.cupertino, secondsAgo: 120)
+        )
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: provider)
+        #expect(!model.verifyFromCache())
+        #expect(model.phase == .checking)
+    }
+
+    @Test func ignoresCacheOutOfZone() {
+        let provider = FakeLocationProvider(outcome: .throwGeneric, cachedLocation: cachedLocation(at: Self.london))
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: provider)
+        #expect(!model.verifyFromCache())
+    }
+
+    @Test func ignoresMissingCache() {
+        let provider = FakeLocationProvider(outcome: .throwGeneric, cachedLocation: nil)
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: provider)
+        #expect(!model.verifyFromCache())
+    }
+
+    @Test func runVerifiesFromFreshCacheWithoutGPSWait() async {
+        let provider = FakeLocationProvider(outcome: .throwGeneric, cachedLocation: cachedLocation(at: Self.cupertino))
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: provider)
+        await model.run()
+        #expect(model.phase == .verified)
+    }
+
+    @Test func noValidLocationBeforeAnyFix() {
+        let model = LocationUnlockModel(keys: [locationKey()], provider: FakeLocationProvider(at: Self.cupertino))
+        #expect(!model.hasValidLocation)
+    }
+
+    @Test func freshCacheMarksLocationValidEvenWhenOutOfZone() {
+        let provider = FakeLocationProvider(outcome: .throwGeneric, cachedLocation: cachedLocation(at: Self.london))
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: provider)
+        #expect(!model.verifyFromCache())
+        #expect(model.hasValidLocation)
+    }
+
+    @Test func staleCacheDoesNotMarkLocationValid() {
+        let provider = FakeLocationProvider(
+            outcome: .throwGeneric,
+            cachedLocation: cachedLocation(at: Self.cupertino, secondsAgo: 120)
+        )
+        let model = LocationUnlockModel(keys: [locationKey()], provider: provider)
+        _ = model.verifyFromCache()
+        #expect(!model.hasValidLocation)
+    }
+
+    @Test func gatheredFixMarksLocationValid() async {
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: FakeLocationProvider(at: Self.london))
+        await model.checkOnce()
+        #expect(model.hasValidLocation)
+    }
+
+    @Test func deniedPermissionLeavesLocationInvalid() async {
+        let provider = FakeLocationProvider(outcome: .throwKeyError(.denied))
+        let model = LocationUnlockModel(keys: [locationKey()], provider: provider)
+        await model.checkOnce()
+        #expect(!model.hasValidLocation)
+    }
+
+    @Test func gatheredFixIsExposedForTheDot() async {
+        let model = LocationUnlockModel(keys: [locationKey(kind: .unblock)], provider: FakeLocationProvider(at: Self.cupertino))
+        await model.checkOnce()
+        #expect(model.location?.coordinate.latitude == Self.cupertino.latitude)
+    }
+
+    @Test func runSeedsStaleCacheAsGreyDotLocation() async {
+        let provider = FakeLocationProvider(
+            outcome: .throwKeyError(.denied),
+            cachedLocation: cachedLocation(at: Self.cupertino, secondsAgo: 600)
+        )
+        let model = LocationUnlockModel(keys: [locationKey()], provider: provider)
+        await model.run()
+        #expect(model.location?.coordinate.latitude == Self.cupertino.latitude)
+        #expect(!model.hasValidLocation)
+    }
 }

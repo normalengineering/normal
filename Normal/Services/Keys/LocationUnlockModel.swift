@@ -14,12 +14,16 @@ final class LocationUnlockModel {
     }
 
     private(set) var phase: Phase = .checking
+    private(set) var location: CLLocation?
+    private(set) var hasValidLocation = false
 
     let locationKeys: [Key]
     let kind: LocationRadiusKind
 
     private let provider: any LocationProviding
     private let pollInterval: Duration
+
+    private static let maxCacheAge: TimeInterval = 30
 
     init(keys: [Key], provider: any LocationProviding, pollInterval: Duration = .seconds(2)) {
         let locationKeys = Key.locationKeys(in: keys)
@@ -30,6 +34,9 @@ final class LocationUnlockModel {
     }
 
     func run() async {
+        location = provider.cachedLocation
+        if verifyFromCache() { return }
+
         while !Task.isCancelled {
             await checkOnce()
             switch phase {
@@ -41,10 +48,23 @@ final class LocationUnlockModel {
         }
     }
 
+    func verifyFromCache() -> Bool {
+        guard let cached = provider.cachedLocation,
+              cached.timestamp.timeIntervalSinceNow > -Self.maxCacheAge
+        else { return false }
+        location = cached
+        hasValidLocation = true
+        guard Key.locationKeyVerifies(keys: locationKeys, location: cached) else { return false }
+        phase = .verified
+        return true
+    }
+
     func checkOnce() async {
         do {
-            let location = try await provider.currentLocation()
-            phase = Key.locationKeyVerifies(keys: locationKeys, location: location) ? .verified : .outOfRange
+            let fix = try await provider.currentLocation()
+            location = fix
+            hasValidLocation = true
+            phase = Key.locationKeyVerifies(keys: locationKeys, location: fix) ? .verified : .outOfRange
         } catch LocationKeyError.denied, LocationKeyError.restricted {
             phase = .permissionDenied
         } catch {
