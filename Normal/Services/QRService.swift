@@ -18,7 +18,7 @@ final class QRService {
     private var continuation: CheckedContinuation<String, Error>?
     private var validator: ((String) -> Bool)?
 
-    private static let badgeDisplayDelay: Duration = .seconds(0.8)
+    private static let badgeDisplayDelay: Duration = .seconds(0.6)
 
     private init() {}
 
