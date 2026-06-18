@@ -16,7 +16,7 @@ enum DonationCadence: String, CaseIterable, Identifiable {
     var productKeyword: String {
         switch self {
         case .oneTime: "onetime"
-        case .monthly: "monthly"
+        case .monthly: "monthlyv2"
         }
     }
 }
