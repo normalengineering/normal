@@ -131,7 +131,7 @@ struct LocationUnlockSheet: View {
             .symbolEffect(.pulse, options: .repeating)
         case .outOfRange:
             statusRow(
-                icon: "location.slash.fill", tint: .orange, working: true,
+                icon: "location.slash.fill", tint: .orange, working: false,
                 title: outOfRangeTitle, subtitle: outOfRangeSubtitle
             )
         case .unavailable:
