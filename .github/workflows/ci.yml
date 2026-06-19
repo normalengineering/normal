@@ -42,12 +42,17 @@ jobs:
             -destination "platform=iOS Simulator,name=$SIMULATOR" \
             -only-testing:NormalTests \
             -resultBundlePath TestResults.xcresult \
+            -enableCodeCoverage YES \
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify --renderer github-actions --report junit
 
       - name: Summarize results
         if: ${{ !cancelled() }}
         run: python3 .github/scripts/junit-summary.py build/reports/junit.xml >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        run: python3 .github/scripts/coverage-summary.py TestResults.xcresult "Unit test coverage" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload result bundle
         if: ${{ !cancelled() }}

@@ -44,6 +44,7 @@ jobs:
             -destination "platform=iOS Simulator,name=$SIMULATOR" \
             -only-testing:"$ONLY" \
             -resultBundlePath UITestResults.xcresult \
+            -enableCodeCoverage YES \
             -retry-tests-on-failure \
             -test-iterations 3 \
             CODE_SIGNING_ALLOWED=NO \
@@ -52,6 +53,10 @@ jobs:
       - name: Summarize results
         if: ${{ !cancelled() }}
         run: python3 .github/scripts/junit-summary.py build/reports/junit.xml >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        run: python3 .github/scripts/coverage-summary.py UITestResults.xcresult "UI test coverage" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload result bundle
         if: ${{ !cancelled() }}
