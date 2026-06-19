@@ -49,6 +49,8 @@ struct GroupKeysViewer: View {
     }
 
     private func delete(_ offsets: IndexSet, in keys: [Key]) {
-        for index in offsets { modelContext.delete(keys[index]) }
+        for index in offsets {
+            modelContext.delete(keys[index])
+        }
     }
 }

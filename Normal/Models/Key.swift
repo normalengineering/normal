@@ -14,7 +14,7 @@ final class Key: Identifiable {
     var radiusMeters: Double?
     var radiusKind: LocationRadiusKind?
     var sortIndex: Int = 0
-    var groupID: UUID? = nil
+    var groupID: UUID?
     private(set) var hashedValue: String
     private(set) var salt: String
 

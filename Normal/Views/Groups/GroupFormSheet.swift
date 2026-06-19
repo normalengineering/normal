@@ -150,7 +150,9 @@ struct GroupFormSheet: View {
     private var groupKeyDeleteAction: ((IndexSet) -> Void)? {
         guard !isReadOnly else { return nil }
         return { offsets in
-            for index in offsets { modelContext.delete(groupKeys[index]) }
+            for index in offsets {
+                modelContext.delete(groupKeys[index])
+            }
         }
     }
 
