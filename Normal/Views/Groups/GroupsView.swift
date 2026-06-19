@@ -8,7 +8,13 @@ struct GroupsView: View {
     private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
     @Query private var keys: [Key]
+    @Query private var allSettings: [Settings]
     @State private var isShowingSheet = false
+
+    @State private var authAction: (@MainActor () -> Void)?
+    @State private var allowBypass = false
+    @State private var pendingGroupID: UUID?
+    @State private var pendingDurationGroup: AppGroup?
 
     private var hasSelection: Bool {
         selectedApps.first?.selection.isEmpty == false
@@ -45,7 +51,13 @@ struct GroupsView: View {
             emptyState
         } else {
             ReorderableListView(items: appGroups, rowContent: { group in
-                GroupListCardView(appGroup: group)
+                GroupListCardView(
+                    appGroup: group,
+                    authAction: $authAction,
+                    allowBypass: $allowBypass,
+                    pendingGroupID: $pendingGroupID,
+                    pendingDurationGroup: $pendingDurationGroup
+                )
             }, onMove: move)
                 .safeAreaInset(edge: .bottom) {
                     if isBlocked {
@@ -53,6 +65,17 @@ struct GroupsView: View {
                     } else if !hasGlobalKey {
                         FooterMessage(text: "Add a key in the Keys tab before blocking groups.")
                     }
+                }
+                // Host the key prompt on the stable list, scoped to whichever card
+                // triggered it, instead of on the card row.
+                .protectedAction(
+                    $authAction,
+                    allowBypass: allowBypass,
+                    defaultKeyType: allSettings.unwrapped.defaultKeyType,
+                    keyGroupID: pendingGroupID
+                )
+                .sheet(item: $pendingDurationGroup) { group in
+                    GroupTimedUnblockSheet(group: group)
                 }
         }
     }

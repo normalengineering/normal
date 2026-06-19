@@ -1,21 +1,17 @@
-import StoreKit
 import SwiftData
 import SwiftUI
 
 struct MainBlockButtonView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
-    @Environment(ScheduleService.self) private var scheduleService
-    @Environment(AppReviewService.self) private var appReviewService
-    @Environment(\.requestReview) private var requestReview
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
 
     let mainSelection: SelectedApps
-
-    @State private var authAction: (@MainActor () -> Void)?
-    @State private var allowBypass: Bool = false
-    @State private var showTimedUnblockSheet = false
+    @Binding var authAction: (@MainActor () -> Void)?
+    @Binding var allowBypass: Bool
+    let onBlock: @MainActor () -> Void
+    let onUnblock: @MainActor () -> Void
 
     private var settings: Settings { allSettings.unwrapped }
 
@@ -46,22 +42,12 @@ struct MainBlockButtonView: View {
                 Text("Add a key in the Keys tab before blocking apps.")
             }
         }
-        .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
-        .sheet(isPresented: $showTimedUnblockSheet) { timedUnblockSheet }
     }
 
     private var blockRow: some View {
         Button {
             allowBypass = true
-            authAction = {
-                screenTimeService.applyShieldOnAll(
-                    selection: mainSelection.selection,
-                    customDomains: customDomains,
-                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                )
-                timedUnblockService.clearAll()
-                scheduleService.setScheduleOverride(false)
-            }
+            authAction = onBlock
         } label: {
             HStack {
                 Label("Block All", systemImage: "lock.fill")
@@ -77,21 +63,7 @@ struct MainBlockButtonView: View {
     private var unblockRow: some View {
         Button {
             allowBypass = false
-            authAction = {
-                if let duration = settings.defaultUnblockDuration {
-                    do {
-                        try timedUnblockService.startMain(
-                            duration: duration,
-                            selection: mainSelection.selection,
-                            screenTimeService: screenTimeService,
-                            blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                        )
-                        recordUnblockForReview()
-                    } catch {}
-                } else {
-                    showTimedUnblockSheet = true
-                }
-            }
+            authAction = onUnblock
         } label: {
             HStack {
                 Label("Unblock All", systemImage: "lock.open.fill")
@@ -101,32 +73,5 @@ struct MainBlockButtonView: View {
         }
         .accessibilityIdentifier("home.unblockAll")
         .padding(.vertical, DS.Spacing.sm)
-    }
-
-    private var timedUnblockSheet: some View {
-        TimedUnblockSheet(
-            title: "Unblock All",
-            onTimedUnblock: { duration in
-                try timedUnblockService.startMain(
-                    duration: duration,
-                    selection: mainSelection.selection,
-                    customDomains: customDomains,
-                    screenTimeService: screenTimeService,
-                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                )
-                recordUnblockForReview()
-            },
-            onPermanentUnblock: {
-                screenTimeService.removeShieldOnAll(
-                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                )
-                scheduleService.setScheduleOverride(true)
-                recordUnblockForReview()
-            }
-        )
-    }
-
-    private func recordUnblockForReview() {
-        appReviewService.recordUnblockEvent { requestReview() }
     }
 }

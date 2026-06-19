@@ -13,12 +13,15 @@ struct KeySelectModifier: ViewModifier {
     var defaultKeyType: KeyType?
     var keyGroupID: UUID?
 
-    @State private var showKeySelect = false
+    @State private var keySelectToken: PresentationToken?
+    @State private var locationToken: PresentationToken?
     @State private var showQRScanner = false
     @State private var showNoKeysAlert = false
-    @State private var actionTrigger = false
-    @State private var showLocationUnlock = false
     @State private var pendingLocationAction: (@MainActor () -> Void)?
+
+    private struct PresentationToken: Identifiable {
+        let id = UUID()
+    }
 
     private var scopedKeys: [Key] {
         Key.scoped(keys, toGroup: keyGroupID)
@@ -30,12 +33,8 @@ struct KeySelectModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onChange(of: actionTrigger) { _, _ in
-                guard action != nil else { return }
-                applyDecision()
-            }
             .onChange(of: action != nil) { _, hasAction in
-                if hasAction { actionTrigger.toggle() }
+                if hasAction { applyDecision() }
             }
             .alert("No Keys Available", isPresented: $showNoKeysAlert) {
                 Button("OK", role: .cancel) { action = nil }
@@ -46,10 +45,10 @@ struct KeySelectModifier: ViewModifier {
                         : "None of your registered keys are supported on this device. Add a QR code or barcode key to use on iPad."
                 )
             }
-            .sheet(isPresented: $showKeySelect, onDismiss: onSheetDismiss) {
+            .sheet(item: $keySelectToken, onDismiss: onSheetDismiss) { _ in
                 keySelectSheet
             }
-            .sheet(isPresented: $showLocationUnlock, onDismiss: finishLocation) {
+            .sheet(item: $locationToken, onDismiss: finishLocation) { _ in
                 LocationUnlockSheet(
                     keys: scopedKeys,
                     provider: locationService,
@@ -73,14 +72,14 @@ struct KeySelectModifier: ViewModifier {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Cancel") {
                                 qrService.cancel()
-                                showKeySelect = false
+                                keySelectToken = nil
                             }
                         }
                     }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showKeySelect = false }
+                    Button("Cancel") { keySelectToken = nil }
                 }
             }
         }
@@ -101,7 +100,7 @@ struct KeySelectModifier: ViewModifier {
             handleSelection(keyType)
         case .showSheet:
             showQRScanner = false
-            showKeySelect = true
+            keySelectToken = PresentationToken()
         }
     }
 
@@ -109,7 +108,7 @@ struct KeySelectModifier: ViewModifier {
         switch choice {
         case .nfc:
             let pending = action
-            showKeySelect = false
+            keySelectToken = nil
             Task { await authenticate(with: .nfc, action: pending) }
         case .qr:
             let pending = action
@@ -117,10 +116,10 @@ struct KeySelectModifier: ViewModifier {
             Task { await authenticate(with: .qr, action: pending) }
         case .location:
             pendingLocationAction = action
-            if showKeySelect {
-                showKeySelect = false
+            if keySelectToken != nil {
+                keySelectToken = nil
             } else {
-                showLocationUnlock = true
+                locationToken = PresentationToken()
             }
         }
     }
@@ -128,7 +127,7 @@ struct KeySelectModifier: ViewModifier {
     private func bypassNow() {
         action?()
         action = nil
-        showKeySelect = false
+        keySelectToken = nil
     }
 
     private func authenticate(with choice: KeyType, action pending: (@MainActor () -> Void)?) async {
@@ -139,7 +138,7 @@ struct KeySelectModifier: ViewModifier {
         case .location: preconditionFailure("location uses its own popup")
         }
         _ = await keyManager.performWithKeyCheck(using: method) { pending() }
-        showKeySelect = false
+        keySelectToken = nil
         action = nil
     }
 
@@ -147,7 +146,7 @@ struct KeySelectModifier: ViewModifier {
         if qrService.isScanning { qrService.cancel() }
 
         if pendingLocationAction != nil {
-            showLocationUnlock = true
+            locationToken = PresentationToken()
             return
         }
         action = nil

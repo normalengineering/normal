@@ -87,7 +87,7 @@ struct DonationView: View {
         .buttonStyle(.plain)
         .foregroundStyle(.pink)
         .disabled(isDisabled(option))
-        .accessibilityIdentifier("donation.\(option.cadence.productKeyword).\(option.amount)")
+        .accessibilityIdentifier("donation.\(option.cadence.slug).\(option.amount)")
     }
 
     private func isDisabled(_ option: DonationOption) -> Bool {

@@ -62,7 +62,7 @@ final class BlockingUITests: XCTestCase {
 
         app.tabBars.buttons["Keys"].tap()
         require(
-            app.staticTexts["Unblock all apps to manage keys."],
+            app.staticTexts["Unblock all apps to add or delete keys."],
             "Keys tab should show the locked footer while blocked"
         )
         XCTAssertFalse(app.buttons["keys.addButton"].isEnabled, "Add Key should be disabled while blocked")
@@ -106,6 +106,38 @@ final class BlockingUITests: XCTestCase {
 
         require(app.staticTexts["All Selected Apps Blocked"], "Block All Now should re-block")
         XCTAssertFalse(app.staticTexts["Timed Unblock Active"].exists, "Banner should be gone")
+    }
+
+    func testGroupBlockThenUnblockRepresentsKeyAndDurationSheets() {
+        let app = launch(["-uiTestSeedGroupKey"])
+        app.tabBars.buttons["Groups"].tap()
+
+        let blockButton = app.buttons["group.blockButton"]
+        require(blockButton, "Group block button should render")
+        blockButton.tap()
+
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Group block should offer bypass")
+        bypass.tap()
+        app.alerts.buttons["Block without key"].tap()
+
+        // Re-presenting the key sheet for the group unblock is the regression: hosted on
+        // the card row it wedged and never reappeared.
+        let unblockButton = app.buttons["group.unblockButton"]
+        require(unblockButton, "Group unblock button should render after blocking")
+        unblockButton.tap()
+
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblocking the group must re-present the key sheet")
+        keyRow.tap()
+
+        // After the key scan the duration picker (also hoisted off the card) must present.
+        let permanent = app.buttons["timedUnblock.permanent"]
+        require(permanent, "Group unblock duration sheet should appear after key scan")
+        permanent.tap()
+        app.buttons["timedUnblock.confirm"].tap()
+
+        require(app.buttons["group.blockButton"], "Group should be unblocked again")
     }
 
     func testSeededScheduleAppears() {

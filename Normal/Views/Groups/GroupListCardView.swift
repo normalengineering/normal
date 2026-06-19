@@ -12,13 +12,16 @@ struct GroupListCardView: View {
     @Query private var allKeys: [Key]
 
     let appGroup: AppGroup
+    // Hosted on the stable GroupsView list rather than this card: a sheet attached to
+    // a card row whose block/unblock buttons swap gets wedged and won't re-present.
+    @Binding var authAction: (@MainActor () -> Void)?
+    @Binding var allowBypass: Bool
+    @Binding var pendingGroupID: UUID?
+    @Binding var pendingDurationGroup: AppGroup?
 
-    @State private var authAction: (@MainActor () -> Void)?
-    @State private var allowBypass = false
     @State private var isEditing = false
     @State private var isReselecting = false
     @State private var showDeleteConfirmation = false
-    @State private var showTimedUnblockSheet = false
 
     private var settings: Settings { allSettings.unwrapped }
 
@@ -81,7 +84,6 @@ struct GroupListCardView: View {
         .sheet(isPresented: $isReselecting) {
             SelectAppsForGroupSheet(selection: reselectionBinding, customDomains: reselectionDomainsBinding)
         }
-        .sheet(isPresented: $showTimedUnblockSheet) { GroupTimedUnblockSheet(group: appGroup) }
         .deleteConfirmation(
             title: "Delete Group?",
             itemName: appGroup.name,
@@ -90,12 +92,12 @@ struct GroupListCardView: View {
                 appGroup.deleteCascading(keys: allKeys, from: modelContext)
             }
         )
-        .protectedAction(
-            $authAction,
-            allowBypass: allowBypass,
-            defaultKeyType: settings.defaultKeyType,
-            keyGroupID: appGroup.id
-        )
+    }
+
+    private func requestAction(allowBypass: Bool, _ action: @escaping @MainActor () -> Void) {
+        pendingGroupID = appGroup.id
+        self.allowBypass = allowBypass
+        authAction = action
     }
 
     private var header: some View {
@@ -172,8 +174,7 @@ struct GroupListCardView: View {
                 .foregroundStyle(.secondary)
             Spacer()
             Button {
-                allowBypass = true
-                authAction = {
+                requestAction(allowBypass: true) {
                     timedUnblockService.cancelGroup(
                         groupId: appGroup.id,
                         selection: appGroup.selection,
@@ -207,11 +208,11 @@ struct GroupListCardView: View {
             prominent: true,
             tint: .blue
         ) {
-            allowBypass = true
-            authAction = {
+            requestAction(allowBypass: true) {
                 screenTimeService.addToShields(selection: appGroup.selection, customDomains: customDomains)
             }
         }
+        .accessibilityIdentifier("group.blockButton")
         .disabled(!hasGlobalKey)
     }
 
@@ -221,8 +222,7 @@ struct GroupListCardView: View {
             systemImage: "lock.open.fill",
             prominent: false
         ) {
-            allowBypass = false
-            authAction = {
+            requestAction(allowBypass: false) {
                 if let duration = settings.defaultUnblockDuration {
                     try? timedUnblockService.startGroup(
                         duration: duration,
@@ -232,9 +232,10 @@ struct GroupListCardView: View {
                         screenTimeService: screenTimeService
                     )
                 } else {
-                    showTimedUnblockSheet = true
+                    pendingDurationGroup = appGroup
                 }
             }
         }
+        .accessibilityIdentifier("group.unblockButton")
     }
 }

@@ -19,6 +19,13 @@ enum DonationCadence: String, CaseIterable, Identifiable {
         case .monthly: "monthlyv2"
         }
     }
+
+    var slug: String {
+        switch self {
+        case .oneTime: "onetime"
+        case .monthly: "monthly"
+        }
+    }
 }
 
 struct DonationOption: Identifiable, Equatable {

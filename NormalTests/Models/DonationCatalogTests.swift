@@ -25,7 +25,7 @@ struct DonationCatalogTests {
         )
         #expect(
             DonationOption(amount: 10, cadence: .monthly).productID
-                == "org.normalengineering.Normal.donation.monthly.10"
+                == "org.normalengineering.Normal.donation.monthlyv2.10"
         )
     }
 

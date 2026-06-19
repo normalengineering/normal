@@ -9,8 +9,8 @@ struct TimedUnblockBannerView: View {
 
     let selection: FamilyActivitySelection
     var customDomains: [String] = []
-
-    @State private var authAction: (@MainActor () -> Void)?
+    @Binding var authAction: (@MainActor () -> Void)?
+    @Binding var allowBypass: Bool
 
     private var settings: Settings { allSettings.unwrapped }
 
@@ -40,6 +40,7 @@ struct TimedUnblockBannerView: View {
                         prominent: false,
                         tint: .orange
                     ) {
+                        allowBypass = true
                         authAction = {
                             timedUnblockService.cancelMain(
                                 selection: selection,
@@ -52,7 +53,6 @@ struct TimedUnblockBannerView: View {
                     .accessibilityIdentifier("home.blockAllNow")
                 }
             }
-            .keySelect(action: $authAction, allowBypass: true)
         }
     }
 }
