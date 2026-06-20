@@ -12,12 +12,21 @@ final class DonationService {
     var errorMessage: String?
 
     private var updatesTask: Task<Void, Never>?
+    private var storefrontTask: Task<Void, Never>?
 
     init() {
         updatesTask = Task {
             for await update in Transaction.updates {
                 guard case let .verified(transaction) = update else { continue }
                 await transaction.finish()
+            }
+        }
+
+        storefrontTask = Task { [weak self] in
+            for await _ in Storefront.updates {
+                guard let self else { return }
+                self.products = [:]
+                await self.loadProducts()
             }
         }
     }
