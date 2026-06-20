@@ -60,13 +60,14 @@ struct DonationView: View {
     }
 
     private func amountButton(_ option: DonationOption) -> some View {
-        Button {
+        let state = donationService.priceState(for: option)
+        let isPurchasing = donationService.purchasingProductID == option.productID
+
+        return Button {
             Task { await donationService.purchase(option) }
         } label: {
             VStack(spacing: 2) {
-                Text(donationService.displayPrice(for: option))
-                    .font(.headline)
-                    .monospacedDigit()
+                priceLabel(for: state)
                 Text(option.cadence == .monthly ? "per month" : "once")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -78,21 +79,52 @@ struct DonationView: View {
                 in: RoundedRectangle(cornerRadius: DS.Radius.md)
             )
             .overlay {
-                if donationService.purchasingProductID == option.productID {
+                if isPurchasing {
                     ProgressView()
                 }
             }
+            .opacity(state == .unavailable ? DS.Opacity.muted : 1)
             .contentShape(RoundedRectangle(cornerRadius: DS.Radius.md))
         }
         .buttonStyle(.plain)
         .foregroundStyle(.pink)
-        .disabled(isDisabled(option))
+        .disabled(!isPurchasable(state))
         .accessibilityIdentifier("donation.\(option.cadence.slug).\(option.amount)")
+        .accessibilityLabel(accessibilityLabel(for: option, state: state))
     }
 
-    private func isDisabled(_ option: DonationOption) -> Bool {
-        if donationService.purchasingProductID != nil { return true }
-        return donationService.hasLoadedProducts && donationService.product(for: option) == nil
+    private func isPurchasable(_ state: DonationService.PriceState) -> Bool {
+        guard donationService.purchasingProductID == nil else { return false }
+        if case .available = state { return true }
+        return false
+    }
+
+    @ViewBuilder
+    private func priceLabel(for state: DonationService.PriceState) -> some View {
+        switch state {
+        case .loading:
+            Text(verbatim: "$00")
+                .font(.headline)
+                .monospacedDigit()
+                .redacted(reason: .placeholder)
+        case let .available(displayPrice):
+            Text(displayPrice)
+                .font(.headline)
+                .monospacedDigit()
+        case .unavailable:
+            Text(verbatim: "—")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func accessibilityLabel(for option: DonationOption, state: DonationService.PriceState) -> String {
+        let cadence = option.cadence == .monthly ? "per month" : "one-time"
+        switch state {
+        case .loading: return "Loading price, \(cadence)"
+        case let .available(displayPrice): return "\(displayPrice) \(cadence)"
+        case .unavailable: return "Currently unavailable, \(cadence)"
+        }
     }
 
     private var errorBinding: Binding<Bool> {

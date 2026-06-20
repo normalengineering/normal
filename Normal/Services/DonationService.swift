@@ -7,12 +7,11 @@ final class DonationService {
     private(set) var products: [String: Product] = [:]
     private(set) var isLoading = false
     private(set) var purchasingProductID: String?
+    private(set) var didAttemptLoad = false
     var showThankYou = false
     var errorMessage: String?
 
     private var updatesTask: Task<Void, Never>?
-
-    var hasLoadedProducts: Bool { !products.isEmpty }
 
     init() {
         updatesTask = Task {
@@ -24,11 +23,13 @@ final class DonationService {
     }
 
     func loadProducts() async {
-        guard products.isEmpty else { return }
+        guard products.isEmpty, !isLoading else { return }
         isLoading = true
+        didAttemptLoad = true
         defer { isLoading = false }
+        let requested = DonationCatalog.allProductIDs
         do {
-            let loaded = try await Product.products(for: DonationCatalog.allProductIDs)
+            let loaded = try await Product.products(for: requested)
             products = Dictionary(loaded.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         } catch {
             products = [:]
@@ -39,8 +40,17 @@ final class DonationService {
         products[option.productID]
     }
 
-    func displayPrice(for option: DonationOption) -> String {
-        product(for: option)?.displayPrice ?? option.displayAmount
+    enum PriceState: Equatable {
+        case loading
+        case available(displayPrice: String)
+        case unavailable
+    }
+
+    func priceState(for option: DonationOption) -> PriceState {
+        if let product = product(for: option) {
+            return .available(displayPrice: product.displayPrice)
+        }
+        return didAttemptLoad && !isLoading ? .unavailable : .loading
     }
 
     func purchase(_ option: DonationOption) async {
