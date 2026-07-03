@@ -24,6 +24,11 @@ struct CustomDomainsEditor: View {
         }
         .navigationTitle("Custom Domains")
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .bottom) {
+            if !isEditable {
+                FooterMessage(text: BlockedMessage.customDomains)
+            }
+        }
         .sensoryFeedback(trigger: messageVersion) { _, _ in
             message == nil ? .impact(weight: .medium) : .warning
         }
@@ -70,10 +75,6 @@ struct CustomDomainsEditor: View {
                 }
             }
             .onDelete(perform: deleteAction)
-        } footer: {
-            if !isEditable {
-                Text(BlockedMessage.customDomains)
-            }
         }
     }
 

@@ -11,8 +11,8 @@ final class AppGroup: Identifiable {
     var sortIndex: Int = 0
     var customDomains: [String] = []
 
-    init(name: String, selection: FamilyActivitySelection, sortIndex: Int = 0, customDomains: [String] = []) {
-        id = UUID()
+    init(id: UUID = UUID(), name: String, selection: FamilyActivitySelection, sortIndex: Int = 0, customDomains: [String] = []) {
+        self.id = id
         self.name = name
         self.selection = selection
         lastUpdated = .now

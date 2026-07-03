@@ -15,16 +15,17 @@ struct GroupFormSheet: View {
 
     let existing: AppGroup?
 
+    @State private var groupID: UUID
     @State private var name: String
     @State private var selection: FamilyActivitySelection
     @State private var customDomains: [String]
     @State private var isShowingAppSelectSheet = false
     @State private var showAddKey = false
     @State private var showDeleteConfirmation = false
+    @State private var didSave = false
 
     private var groupKeys: [Key] {
-        guard let existing else { return [] }
-        return allKeys.filter { $0.groupID == existing.id }
+        allKeys.filter { $0.groupID == groupID }
     }
 
     private var isNew: Bool { existing == nil }
@@ -54,6 +55,7 @@ struct GroupFormSheet: View {
 
     init(existing: AppGroup? = nil) {
         self.existing = existing
+        _groupID = State(initialValue: existing?.id ?? UUID())
         _name = State(initialValue: existing?.name ?? "")
         _selection = State(initialValue: existing?.selection ?? FamilyActivitySelection())
         _customDomains = State(initialValue: existing?.customDomains ?? [])
@@ -90,7 +92,7 @@ struct GroupFormSheet: View {
                     }
                 }
 
-                if !isNew, !groupKeys.isEmpty || !isReadOnly { groupKeysSection }
+                if !groupKeys.isEmpty || !isReadOnly { groupKeysSection }
 
                 if !isNew, !isReadOnly {
                     Section {
@@ -128,8 +130,9 @@ struct GroupFormSheet: View {
                 SelectAppsForGroupSheet(selection: $selection)
             }
             .sheet(isPresented: $showAddKey) {
-                if let existing { KeyFormSheet(groupID: existing.id) }
+                KeyFormSheet(groupID: groupID)
             }
+            .onDisappear(perform: discardStagedKeysIfNeeded)
             .deleteConfirmation(
                 title: "Delete Group?",
                 itemName: existing?.name ?? name,
@@ -180,6 +183,13 @@ struct GroupFormSheet: View {
         dismiss()
     }
 
+    private func discardStagedKeysIfNeeded() {
+        guard isNew, !didSave else { return }
+        for key in groupKeys {
+            modelContext.delete(key)
+        }
+    }
+
     private func presentPicker() {
         screenTimeService.ifAuthorized { isShowingAppSelectSheet = true }
     }
@@ -187,6 +197,8 @@ struct GroupFormSheet: View {
     private func save() {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
+
+        didSave = true
 
         if let existing {
             existing.name = trimmed
@@ -201,6 +213,7 @@ struct GroupFormSheet: View {
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allGroups, sortIndex: \.sortIndex)
             modelContext.insert(AppGroup(
+                id: groupID,
                 name: trimmed,
                 selection: selection,
                 sortIndex: nextIndex,
