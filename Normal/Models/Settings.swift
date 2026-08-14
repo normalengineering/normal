@@ -12,6 +12,7 @@ final class Settings {
     var blockAllPreventsAppDelete: Bool = true
     var defaultTab: AppTab?
     var hideDonateButton: Bool = false
+    var hideBlockedApps: Bool = false
     var showTimedUnblockLiveActivity: Bool = false
     var enableCustomDomains: Bool = false
 
