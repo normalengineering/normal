@@ -23,12 +23,41 @@ struct StatusDetailView: View {
         ScheduleSummary(schedules: schedules)
     }
 
+    private var visibility: BlockedItemVisibility {
+        BlockedItemVisibility(hideBlocked: allSettings.first?.hideBlockedApps ?? false)
+    }
+
+    private var appKinds: [SelectedTokenKind] {
+        selection.applicationTokens.sortedStably.map(SelectedTokenKind.application)
+    }
+
+    private var websiteKinds: [SelectedTokenKind] {
+        selection.webDomainTokens.sortedStably.map(SelectedTokenKind.webDomain)
+    }
+
+    private var categoryKinds: [SelectedTokenKind] {
+        selection.categoryTokens.sortedStably.map(SelectedTokenKind.category)
+    }
+
+    // Custom domains are filtered as a group: the shield store tracks them as one
+    // filter list, so they follow the overall status like their rows already do.
+    private var areCustomDomainsBlocked: Bool { overallStatus != .none }
+
+    private var visibleCustomDomains: [String] {
+        visibility.visible(customDomains) { _ in areCustomDomainsBlocked }
+    }
+
+    private var hiddenCount: Int {
+        visibility.hiddenCount(appKinds + websiteKinds + categoryKinds) { screenTimeService.isShielded($0) }
+            + visibility.hiddenCount(customDomains) { _ in areCustomDomainsBlocked }
+    }
+
     var body: some View {
         List {
             overallSection
-            tokenSection("Apps", kinds: selection.applicationTokens.sortedStably.map(SelectedTokenKind.application))
-            tokenSection("Websites", kinds: selection.webDomainTokens.sortedStably.map(SelectedTokenKind.webDomain))
-            tokenSection("Categories", kinds: selection.categoryTokens.sortedStably.map(SelectedTokenKind.category))
+            tokenSection("Apps", kinds: appKinds)
+            tokenSection("Websites", kinds: websiteKinds)
+            tokenSection("Categories", kinds: categoryKinds)
             customDomainsSection
             if !schedules.isEmpty { schedulesSection }
         }
@@ -50,14 +79,30 @@ struct StatusDetailView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            if hiddenCount > 0 { hiddenNote }
         }
+    }
+
+    private var hiddenNote: some View {
+        Label {
+            if hiddenCount == 1 {
+                Text("1 blocked item hidden")
+            } else {
+                Text("\(hiddenCount) blocked items hidden")
+            }
+        } icon: {
+            Image(systemName: "eye.slash")
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .accessibilityIdentifier("status.hiddenNote")
     }
 
     @ViewBuilder
     private var customDomainsSection: some View {
-        if !customDomains.isEmpty {
+        if !visibleCustomDomains.isEmpty {
             Section("Custom Domains") {
-                ForEach(customDomains, id: \.self) { domain in
+                ForEach(visibleCustomDomains, id: \.self) { domain in
                     HStack {
                         Label(domain, systemImage: "globe")
                             .labelStyle(.titleAndIcon)
@@ -77,9 +122,10 @@ struct StatusDetailView: View {
 
     @ViewBuilder
     private func tokenSection(_ title: LocalizedStringKey, kinds: [SelectedTokenKind]) -> some View {
-        if !kinds.isEmpty {
+        let shown = visibility.visible(kinds) { screenTimeService.isShielded($0) }
+        if !shown.isEmpty {
             Section(title) {
-                ForEach(kinds, id: \.self, content: tokenRow)
+                ForEach(shown, id: \.self, content: tokenRow)
             }
         }
     }

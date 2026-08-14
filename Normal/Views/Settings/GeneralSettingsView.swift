@@ -100,10 +100,16 @@ struct GeneralSettingsView: View {
                 "Hide Donate Button",
                 isOn: Bindable(settings).hideDonateButton
             )
+
+            Toggle(
+                "Hide Blocked Apps",
+                isOn: Bindable(settings).hideBlockedApps
+            )
+            .accessibilityIdentifier("settings.hideBlockedAppsToggle")
         } header: {
             Text("Navigation & Appearance")
         } footer: {
-            Text("Default Page opens when you launch the app. Hiding the Donate button hides it from the main toolbar.")
+            Text("Default Page opens when you launch the app. Hiding the Donate button hides it from the main toolbar. Hiding blocked apps keeps apps, websites and categories out of the Status list while they are blocked.")
         }
     }
 

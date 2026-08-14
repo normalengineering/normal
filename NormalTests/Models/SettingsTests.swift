@@ -51,5 +51,6 @@ struct SettingsTests {
         #expect(s.blockAllPreventsAppDelete == true)
         #expect(s.hasCompletedOnboarding == false)
         #expect(s.defaultTab == nil)
+        #expect(s.hideBlockedApps == false)
     }
 }
