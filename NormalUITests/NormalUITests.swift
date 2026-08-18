@@ -120,6 +120,33 @@ final class NormalUITests: XCTestCase {
     }
 
     @MainActor
+    func testLocationPickerShowsMapAndCurrentLocationControl() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+
+        let keysTab = app.tabBars.buttons["Keys"]
+        require(keysTab, "Keys tab should be reachable when onboarding is skipped")
+        keysTab.tap()
+
+        let addButton = app.buttons["keys.addButton"]
+        require(addButton, "Add Key button should exist")
+        addButton.tap()
+
+        let locationSegment = app.buttons["Location"]
+        require(locationSegment, "Location key type should be selectable")
+        locationSegment.tap()
+
+        let setLocation = app.buttons["key.locationButton"]
+        require(setLocation, "Set Location button should appear for a location key")
+        setLocation.tap()
+
+        require(app.otherElements["locationPicker.map"], "Location picker should show the map")
+        require(
+            app.buttons["locationPicker.useCurrentButton"],
+            "Location picker should offer a current-location control"
+        )
+    }
+
+    @MainActor
     func testCustomDomainsEditorHiddenWhenToggleOff() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 

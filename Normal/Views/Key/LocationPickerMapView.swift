@@ -10,21 +10,23 @@ struct LocationPickerMapView: View {
     let radiusMeters: Double
     let onInspect: (Key) -> Void
 
+    @Namespace private var mapScope
+
     var body: some View {
         MapReader { proxy in
-            Map(position: $position) {
+            Map(position: $position, scope: mapScope) {
                 zoneOverlays
                 pinOverlay
                 UserAnnotation()
             }
-            .mapStyle(.standard(pointsOfInterest: .excludingAll))
-            .overlay(kind.fieldColor.opacity(0.10).allowsHitTesting(false))
+            .locationMapChrome(kind: kind, scope: mapScope)
             .overlay(alignment: .top) { tapHint }
             .onTapGesture { point in
                 guard let coordinate = proxy.convert(point, from: .local) else { return }
                 handleTap(at: coordinate)
             }
         }
+        .mapScope(mapScope)
         .accessibilityIdentifier("locationPicker.map")
     }
 

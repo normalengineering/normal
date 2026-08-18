@@ -5,6 +5,7 @@ struct LocationUnlockSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var model: LocationUnlockModel
     @State private var cameraPosition: MapCameraPosition = .automatic
+    @Namespace private var mapScope
     private let onVerified: () -> Void
 
     init(keys: [Key], provider: any LocationProviding, onVerified: @escaping () -> Void) {
@@ -22,6 +23,7 @@ struct LocationUnlockSheet: View {
             }
             .navigationTitle("Location Key")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button { dismiss() } label: {
@@ -47,7 +49,7 @@ struct LocationUnlockSheet: View {
     }
 
     private var map: some View {
-        Map(position: $cameraPosition) {
+        Map(position: $cameraPosition, scope: mapScope) {
             ForEach(model.locationKeys) { key in
                 if let coordinate = key.coordinate, let radius = key.radiusMeters {
                     MapCircle(center: coordinate, radius: radius)
@@ -62,14 +64,14 @@ struct LocationUnlockSheet: View {
                     .annotationTitles(.hidden)
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
-        .overlay(kind.fieldColor.opacity(0.10).allowsHitTesting(false))
+        .locationMapChrome(kind: kind, scope: mapScope)
         .onChange(of: model.hasValidLocation) { _, valid in
             guard valid, let coordinate = model.location?.coordinate else { return }
             withAnimation(.easeInOut(duration: 0.45)) {
-                cameraPosition = .region(regionFitting(user: coordinate))
+                cameraPosition = .region(LocationCamera.boundingRegion(user: coordinate, keys: model.locationKeys))
             }
         }
+        .mapScope(mapScope)
     }
 
     private var zoneDot: some View {
@@ -89,27 +91,6 @@ struct LocationUnlockSheet: View {
             .shadow(radius: 2)
             .animation(.easeInOut, value: model.hasValidLocation)
             .allowsHitTesting(false)
-    }
-
-    private func regionFitting(user: CLLocationCoordinate2D) -> MKCoordinateRegion {
-        var minLat = user.latitude, maxLat = user.latitude
-        var minLon = user.longitude, maxLon = user.longitude
-        for key in model.locationKeys {
-            guard let center = key.coordinate, let radius = key.radiusMeters else { continue }
-            let latPad = radius / 111_000
-            let lonPad = radius / (111_000 * max(0.01, cos(center.latitude * .pi / 180)))
-            minLat = min(minLat, center.latitude - latPad)
-            maxLat = max(maxLat, center.latitude + latPad)
-            minLon = min(minLon, center.longitude - lonPad)
-            maxLon = max(maxLon, center.longitude + lonPad)
-        }
-        return MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLon + maxLon) / 2),
-            span: MKCoordinateSpan(
-                latitudeDelta: (maxLat - minLat) * 1.4 + 0.003,
-                longitudeDelta: (maxLon - minLon) * 1.4 + 0.003
-            )
-        )
     }
 
     private var statusBar: some View {
