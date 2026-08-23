@@ -7,6 +7,7 @@ struct KeySelectModifier: ViewModifier {
     @Environment(QRService.self) private var qrService
     @Environment(LocationService.self) private var locationService
     @Query private var keys: [Key]
+    @Query private var allSettings: [Settings]
 
     @Binding var action: (@MainActor () -> Void)?
     var allowBypass: Bool
@@ -22,6 +23,8 @@ struct KeySelectModifier: ViewModifier {
     private struct PresentationToken: Identifiable {
         let id = UUID()
     }
+
+    private var settings: Settings { allSettings.unwrapped }
 
     private var scopedKeys: [Key] {
         Key.scoped(keys, toGroup: keyGroupID)
@@ -62,6 +65,7 @@ struct KeySelectModifier: ViewModifier {
             KeySelectView(
                 availableKeyTypes: availableKeyTypes,
                 allowBypass: allowBypass,
+                skipBypassConfirmation: Bindable(settings).skipBlockWithoutKeyConfirmation,
                 onSelect: handleSelection,
                 onBypass: bypassNow
             )

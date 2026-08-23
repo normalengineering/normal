@@ -2,10 +2,11 @@ import SwiftUI
 
 struct PrimaryActionButton: View {
     let title: LocalizedStringKey
+    var role: ButtonRole?
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(role: role, action: action) {
             Text(title)
                 .font(.headline)
                 .frame(maxWidth: .infinity)

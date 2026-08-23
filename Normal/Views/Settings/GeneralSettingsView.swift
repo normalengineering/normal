@@ -62,6 +62,11 @@ struct GeneralSettingsView: View {
                 "Live Activity",
                 isOn: Bindable(settings).showTimedUnblockLiveActivity
             )
+
+            Toggle(
+                "Skip Block Without Key Confirmation",
+                isOn: Bindable(settings).skipBlockWithoutKeyConfirmation
+            )
         } header: {
             Text("Unblocking")
         } footer: {

@@ -3,10 +3,12 @@ import SwiftUI
 struct KeySelectView: View {
     let availableKeyTypes: [KeyType]
     let allowBypass: Bool
+    @Binding var skipBypassConfirmation: Bool
     let onSelect: (KeyType) -> Void
     let onBypass: () -> Void
 
     @State private var showBypassWarning = false
+    @State private var bypassConfirmed = false
 
     var body: some View {
         List {
@@ -24,11 +26,15 @@ struct KeySelectView: View {
             if allowBypass {
                 Section {
                     Button {
-                        showBypassWarning = true
+                        if skipBypassConfirmation {
+                            onBypass()
+                        } else {
+                            showBypassWarning = true
+                        }
                     } label: {
                         Text("Block without key")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
                             .frame(maxWidth: .infinity)
                     }
                     .accessibilityIdentifier("keySelect.blockWithoutKey")
@@ -37,12 +43,22 @@ struct KeySelectView: View {
         }
         .navigationTitle("Choose Key")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Are you sure?", isPresented: $showBypassWarning) {
-            Button("Block without key", role: .destructive, action: onBypass)
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("You'll need to scan a key to unblock later. Make sure you have a valid key or you may be permanently locked out.")
+        .sheet(isPresented: $showBypassWarning, onDismiss: runConfirmedBypass) {
+            BypassConfirmSheet(
+                onConfirm: { skipFuture in
+                    if skipFuture { skipBypassConfirmation = true }
+                    bypassConfirmed = true
+                    showBypassWarning = false
+                },
+                onCancel: { showBypassWarning = false }
+            )
         }
+    }
+
+    private func runConfirmedBypass() {
+        guard bypassConfirmed else { return }
+        bypassConfirmed = false
+        onBypass()
     }
 }
 

@@ -17,5 +17,7 @@ enum UITestSupport {
 
     static let seedGroupKey = arguments.contains("-uiTestSeedGroupKey")
 
+    static let skipBypassConfirm = arguments.contains("-uiTestSkipBypassConfirm")
+
     static let stubScanValue = "UITEST-SCAN-VALUE"
 }

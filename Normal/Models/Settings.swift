@@ -14,6 +14,7 @@ final class Settings {
     var hideDonateButton: Bool = false
     var showTimedUnblockLiveActivity: Bool = false
     var enableCustomDomains: Bool = false
+    var skipBlockWithoutKeyConfirmation: Bool = false
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180

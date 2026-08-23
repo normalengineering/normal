@@ -18,6 +18,12 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), message)
     }
 
+    private func confirmBypass(_ app: XCUIApplication) {
+        let button = app.buttons["keySelect.confirmBlockWithoutKey"]
+        require(button, "Bypass confirmation sheet should appear")
+        button.tap()
+    }
+
     private func blockViaBypass(_ app: XCUIApplication) {
         app.buttons["home.blockAll"].tap()
 
@@ -25,9 +31,7 @@ final class BlockingUITests: XCTestCase {
         require(bypass, "Choose-key sheet with bypass should appear")
         bypass.tap()
 
-        let confirm = app.alerts.buttons["Block without key"]
-        require(confirm, "Bypass confirmation alert should appear")
-        confirm.tap()
+        confirmBypass(app)
 
         require(app.staticTexts["All Selected Apps Blocked"], "Apps should be blocked after bypass")
     }
@@ -102,7 +106,7 @@ final class BlockingUITests: XCTestCase {
         let bypass = app.buttons["keySelect.blockWithoutKey"]
         require(bypass, "Block All Now should allow bypass")
         bypass.tap()
-        app.alerts.buttons["Block without key"].tap()
+        confirmBypass(app)
 
         require(app.staticTexts["All Selected Apps Blocked"], "Block All Now should re-block")
         XCTAssertFalse(app.staticTexts["Timed Unblock Active"].exists, "Banner should be gone")
@@ -119,7 +123,7 @@ final class BlockingUITests: XCTestCase {
         let bypass = app.buttons["keySelect.blockWithoutKey"]
         require(bypass, "Group block should offer bypass")
         bypass.tap()
-        app.alerts.buttons["Block without key"].tap()
+        confirmBypass(app)
 
         // Re-presenting the key sheet for the group unblock is the regression: hosted on
         // the card row it wedged and never reappeared.
@@ -146,5 +150,44 @@ final class BlockingUITests: XCTestCase {
         app.tabBars.buttons["Schedules"].tap()
         require(app.staticTexts["Test Schedule"], "Seeded schedule card should render")
         XCTAssertTrue(app.switches["schedule.enabledToggle"].exists, "Schedule enable toggle should exist")
+    }
+
+    func testBypassConfirmationSkippedWhenSettingIsOn() {
+        let app = launch(["-uiTestSkipBypassConfirm"])
+
+        app.buttons["home.blockAll"].tap()
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Choose-key sheet with bypass should appear")
+        bypass.tap()
+
+        require(app.staticTexts["All Selected Apps Blocked"], "Bypass should block without confirming")
+        XCTAssertFalse(
+            app.buttons["keySelect.confirmBlockWithoutKey"].exists,
+            "Confirmation sheet should be skipped"
+        )
+    }
+
+    func testDontShowAgainTurnsOnTheSettingsToggle() {
+        let app = launch()
+
+        app.buttons["home.blockAll"].tap()
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Choose-key sheet with bypass should appear")
+        bypass.tap()
+
+        let dontShowAgain = app.switches["keySelect.dontShowAgain"]
+        require(dontShowAgain, "Confirmation sheet should offer 'Don't show this again'")
+        dontShowAgain.tap()
+        confirmBypass(app)
+
+        require(app.staticTexts["All Selected Apps Blocked"], "Apps should be blocked after bypass")
+
+        let settings = app.buttons["nav.settings"]
+        require(settings, "Settings button should exist")
+        settings.tap()
+
+        let toggle = app.switches["Skip Block Without Key Confirmation"]
+        require(toggle, "Settings should expose the linked toggle")
+        XCTAssertEqual(toggle.value as? String, "1", "Ticking the box should turn the setting on")
     }
 }

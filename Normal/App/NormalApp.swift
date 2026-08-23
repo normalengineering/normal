@@ -26,6 +26,7 @@ struct NormalApp: App {
             let settings = Settings()
             settings.hasCompletedOnboarding = UITestSupport.skipOnboarding
             settings.enableCustomDomains = UITestSupport.customDomains
+            settings.skipBlockWithoutKeyConfirmation = UITestSupport.skipBypassConfirm
             context.insert(settings)
         }
 
