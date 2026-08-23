@@ -17,6 +17,7 @@ final class Settings {
     var showTimedUnblockLiveActivity: Bool = false
     var enableCustomDomains: Bool = false
     var skipBlockWithoutKeyConfirmation: Bool = false
+    var dailyLimitResetMinutes: Int = 0
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180
@@ -37,6 +38,13 @@ final class Settings {
 
     func recordEmergencyUnblock() {
         emergencyUnblockDates.append(.now)
+    }
+
+    var usageLimitConfig: UsageLimitConfig {
+        UsageLimitConfig(
+            resetMinutes: dailyLimitResetMinutes,
+            preventsAppDelete: blockAllPreventsAppDelete
+        )
     }
 }
 

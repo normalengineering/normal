@@ -99,6 +99,11 @@ final class ScreenTimeService: ScreenTimeProviding {
         notifyUpdate()
     }
 
+    func removeAllRestrictions() {
+        shield.clearAllSettings()
+        notifyUpdate()
+    }
+
     func addToShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
         shield.union(with: selection, customDomains: customDomains)
         notifyUpdate()

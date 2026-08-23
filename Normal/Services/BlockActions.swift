@@ -36,6 +36,20 @@ enum BlockActions {
         }
     }
 
+    static func emergencyUnblock(
+        schedules: [BlockSchedule],
+        screenTimeService: any ScreenTimeProviding,
+        timedUnblockService: TimedUnblockService,
+        scheduleService: ScheduleService,
+        usageLimitService: UsageLimitService
+    ) {
+        timedUnblockService.discardAll()
+        scheduleService.disableAll(schedules, screenTimeService: screenTimeService)
+        scheduleService.setScheduleOverride(false)
+        usageLimitService.overrideToday()
+        screenTimeService.removeAllRestrictions()
+    }
+
     static func validate(isAuthorized: Bool, hasCompletedOnboarding: Bool, keys: [Key]) throws {
         guard hasCompletedOnboarding else { throw BlockIntentError.setupIncomplete }
         guard isAuthorized else { throw BlockIntentError.screenTimeNotAuthorized }

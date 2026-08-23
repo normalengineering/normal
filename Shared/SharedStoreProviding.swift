@@ -13,6 +13,16 @@ nonisolated protocol SharedStoreProviding: Sendable {
     func setScheduleOverrideActive(_ active: Bool)
     func isCustomDomainsEnabled() -> Bool
     func setCustomDomainsEnabled(_ enabled: Bool)
+    func saveUsageLimits(_ limits: [UsageLimitDTO])
+    func loadUsageLimits() -> [UsageLimitDTO]
+    func saveUsageDayState(_ state: UsageDayStateDTO)
+    func loadUsageDayState() -> UsageDayStateDTO
+    func saveUsageRegistration(_ fingerprint: String?)
+    func loadUsageRegistration() -> String?
+    func saveUsageLimitsIntervalStart(_ date: Date)
+    func loadUsageLimitsIntervalStart() -> Date?
+    func saveUsageLimitConfig(_ config: UsageLimitConfig)
+    func loadUsageLimitConfig() -> UsageLimitConfig
 }
 
 enum ScheduleStartDecision: Equatable {
@@ -29,5 +39,59 @@ extension SharedStoreProviding {
         if isMainTimedUnblockActive() { return .skip }
         if isScheduleOverrideActive() { setScheduleOverrideActive(false) }
         return .apply
+    }
+
+    var usagePeriod: UsagePeriod { loadUsageLimitConfig().period }
+
+    func usageState(for id: UUID, on date: Date = .now) -> UsageLimitState {
+        loadUsageDayState().state(for: id, on: date, period: usagePeriod)
+    }
+
+    func usageStates(for ids: [UUID], on date: Date = .now) -> [UUID: UsageLimitState] {
+        let dayState = loadUsageDayState()
+        let period = usagePeriod
+        return Dictionary(
+            ids.map { ($0, dayState.state(for: $0, on: date, period: period)) },
+            uniquingKeysWith: { first, _ in first }
+        )
+    }
+
+    func recordUsageState(_ state: UsageLimitState, for id: UUID, on date: Date = .now) {
+        let period = usagePeriod
+        mutateUsageDayState { $0.recording(state, for: id, on: date, period: period) }
+    }
+
+    func clearUsageState(for id: UUID, on date: Date = .now) {
+        let period = usagePeriod
+        mutateUsageDayState { $0.clearing(id, on: date, period: period) }
+    }
+
+    func resetUsageDayIfStale(on date: Date = .now) {
+        let period = usagePeriod
+        guard loadUsageDayState().isStale(on: date, period: period) else { return }
+        saveUsageDayState(.fresh(on: date, period: period))
+    }
+
+    func overrideUsageDay(on date: Date = .now) {
+        saveUsageDayState(loadUsageDayState().overriding(on: date, period: usagePeriod))
+    }
+
+    func isUsageDayOverridden(on date: Date = .now) -> Bool {
+        let current = loadUsageDayState()
+        return !current.isStale(on: date, period: usagePeriod) && current.isOverridden
+    }
+
+    func reachedUsageLimits(on date: Date = .now) -> [UsageLimitDTO] {
+        guard !isUsageDayOverridden(on: date) else { return [] }
+        let limits = loadUsageLimits()
+        let states = usageStates(for: limits.map(\.id), on: date)
+        return limits.filter { states[$0.id] == .reached }
+    }
+
+    private func mutateUsageDayState(_ transform: (UsageDayStateDTO) -> UsageDayStateDTO) {
+        let current = loadUsageDayState()
+        let updated = transform(current)
+        guard updated != current else { return }
+        saveUsageDayState(updated)
     }
 }

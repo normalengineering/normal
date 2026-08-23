@@ -13,6 +13,7 @@ struct GeneralSettingsView: View {
         List {
             unblockingSection
             blockingSection
+            UsageSummaryView()
             customDomainsSection
             appearanceSection
             aboutSection

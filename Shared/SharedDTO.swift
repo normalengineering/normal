@@ -98,4 +98,12 @@ extension FamilyActivitySelection {
     static func fromData(_ data: Data) throws -> FamilyActivitySelection {
         try PropertyListDecoder().decode(FamilyActivitySelection.self, from: data)
     }
+
+    func union(_ other: FamilyActivitySelection) -> FamilyActivitySelection {
+        var merged = self
+        merged.applicationTokens.formUnion(other.applicationTokens)
+        merged.webDomainTokens.formUnion(other.webDomainTokens)
+        merged.categoryTokens.formUnion(other.categoryTokens)
+        return merged
+    }
 }
