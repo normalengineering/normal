@@ -42,6 +42,7 @@ struct HomeView: View {
                         onUnblock: { unblockMain(mainSelection) }
                     )
                     BlockStatusView(mainSelection: mainSelection)
+                    UsageSummaryView()
                     AppDeleteToggleView()
                 } else {
                     Section {

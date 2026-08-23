@@ -6,6 +6,9 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var schedules: [ScheduleDTO] = []
     var scheduleOverrideActive = false
     var customDomainsEnabled = false
+    var usageLimits: [UsageLimitDTO] = []
+    var usageDayState: UsageDayStateDTO = .empty
+    var usageRegistration: String?
 
     func loadTimedUnblocks() -> [TimedUnblockDTO] { timedUnblocks }
     func saveTimedUnblocks(_ unblocks: [TimedUnblockDTO]) { timedUnblocks = unblocks }
@@ -36,4 +39,17 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
 
     func isCustomDomainsEnabled() -> Bool { customDomainsEnabled }
     func setCustomDomainsEnabled(_ enabled: Bool) { customDomainsEnabled = enabled }
+
+    func saveUsageLimits(_ limits: [UsageLimitDTO]) { usageLimits = limits }
+    func loadUsageLimits() -> [UsageLimitDTO] { usageLimits }
+
+    func saveUsageDayState(_ state: UsageDayStateDTO) { usageDayState = state }
+    func loadUsageDayState() -> UsageDayStateDTO { usageDayState }
+
+    func saveUsageRegistration(_ fingerprint: String?) { usageRegistration = fingerprint }
+    func loadUsageRegistration() -> String? { usageRegistration }
+
+    var usageLimitsIntervalStart: Date?
+    func saveUsageLimitsIntervalStart(_ date: Date) { usageLimitsIntervalStart = date }
+    func loadUsageLimitsIntervalStart() -> Date? { usageLimitsIntervalStart }
 }

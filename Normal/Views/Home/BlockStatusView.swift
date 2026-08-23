@@ -31,18 +31,11 @@ struct BlockStatusView: View {
     }
 
     private var statusRow: some View {
-        HStack(spacing: DS.Spacing.lg - 1) {
-            Image(systemName: status.icon)
-                .font(.title)
-                .foregroundStyle(status.color)
-
-            VStack(alignment: .leading) {
-                Text(status.title)
-                    .font(.headline)
-                Text("\(screenTimeService.activeShieldCount()) of \(totalCount) Blocked")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        SummaryRow(
+            systemImage: status.icon,
+            tint: status.color,
+            title: LocalizedStringKey(status.title),
+            subtitle: String(localized: "\(screenTimeService.activeShieldCount()) of \(totalCount) Blocked")
+        )
     }
 }

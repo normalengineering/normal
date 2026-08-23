@@ -23,6 +23,27 @@ struct SharedConstantsTests {
         #expect(name.contains(id.uuidString))
     }
 
+    /// Renaming these orphans activities and defaults blobs already written on
+    /// device, so they are pinned like the rest.
+    @Test func usageLimitsActivityNameIsStable() {
+        #expect(SharedConstants.usageLimitsActivityName == "usageLimits_daily")
+    }
+
+    @Test func usageDefaultsKeysAreStable() {
+        #expect(SharedConstants.DefaultsKey.usageLimits == "usageLimits_v1")
+        #expect(SharedConstants.DefaultsKey.usageDayState == "usageDayState_v1")
+        #expect(SharedConstants.DefaultsKey.usageRegistration == "usageRegistration_v1")
+        #expect(SharedConstants.DefaultsKey.usageLimitsIntervalStart == "usageLimitsIntervalStart_v1")
+    }
+
+    @Test func usageLimitEventNamesRoundTrip() {
+        let id = UUID()
+
+        #expect(SharedConstants.usageLimitID(fromEventName: SharedConstants.usageLimitEventName(for: id)) == id)
+        #expect(SharedConstants.usageLimitID(fromEventName: "schedule_\(id.uuidString)") == nil)
+        #expect(SharedConstants.usageLimitID(fromEventName: "usage_not-a-uuid") == nil)
+    }
+
     @Test func scheduleActivityNameIsPrefixed() {
         let id = UUID()
         let name = SharedConstants.scheduleActivityName(for: id)

@@ -18,3 +18,7 @@ enum BlockedMessage {
     static let keys: LocalizedStringKey = "Unblock all apps to add or delete keys."
     static let customDomains: LocalizedStringKey = "Unblock all apps to edit custom domains."
 }
+
+enum UsageLimitMessage {
+    static let weeklyChange: LocalizedStringKey = "Limits can only be changed every 7 days."
+}

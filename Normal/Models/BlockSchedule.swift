@@ -40,11 +40,7 @@ final class BlockSchedule: Identifiable {
     }
 
     var formattedDuration: String {
-        let hours = durationMinutes / 60
-        let minutes = durationMinutes % 60
-        if hours == 0 { return "\(minutes)m" }
-        if minutes == 0 { return "\(hours)h" }
-        return "\(hours)h \(minutes)m"
+        DurationFormat.compact(minutes: durationMinutes)
     }
 
     var weekdayLabels: [String] {

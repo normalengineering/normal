@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
+    @Environment(UsageLimitService.self) private var usageLimitService
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
     @Query private var schedules: [BlockSchedule]
@@ -75,6 +76,9 @@ struct SettingsView: View {
 
     private func performEmergencyUnblock() {
         emergencyUnblockService.record(into: settings)
+        // Outranks the daily usage cap — otherwise the usage floor would
+        // immediately re-shield anything that had run out today.
+        usageLimitService.overrideToday()
         screenTimeService.removeShieldOnAll(blockAllPreventsAppDelete: true)
         scheduleService.disableAll(schedules, screenTimeService: screenTimeService)
         showSuccessAlert = true

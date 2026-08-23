@@ -7,9 +7,14 @@ final class NormalMonitor: DeviceActivityMonitor {
     private let sharedStore = SharedStore()
     private let store = ManagedSettingsStore()
 
+    private static let thresholdGraceSeconds: TimeInterval = 10
+
     override func intervalDidStart(for activity: DeviceActivityName) {
         let name = activity.rawValue
-        if name.hasPrefix("schedule_") {
+        if name == SharedConstants.usageLimitsActivityName {
+            sharedStore.resetUsageDayIfStale()
+            sharedStore.saveUsageLimitsIntervalStart(.now)
+        } else if name.hasPrefix("schedule_") {
             handleScheduleIntervalStart(activityName: name)
         }
     }
@@ -21,6 +26,45 @@ final class NormalMonitor: DeviceActivityMonitor {
         } else if name.hasPrefix("schedule_") {
             handleScheduleIntervalEnd(activityName: name)
         }
+    }
+
+    override func eventDidReachThreshold(
+        _ event: DeviceActivityEvent.Name,
+        activity _: DeviceActivityName
+    ) {
+        guard !sharedStore.isUsageDayOverridden(),
+              let limit = findUsageLimit(eventName: event.rawValue)
+        else { return }
+
+        if let start = sharedStore.loadUsageLimitsIntervalStart(),
+           Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds {
+            return
+        }
+
+        sharedStore.recordUsageState(.reached, for: limit.id)
+        enforce(limit)
+    }
+
+    override func eventWillReachThresholdWarning(
+        _ event: DeviceActivityEvent.Name,
+        activity _: DeviceActivityName
+    ) {
+        guard !sharedStore.isUsageDayOverridden(),
+              let limit = findUsageLimit(eventName: event.rawValue)
+        else { return }
+        sharedStore.recordUsageState(.warning, for: limit.id)
+    }
+
+    /// Re-shields a limit's apps the moment its daily allowance runs out,
+    /// leaving everything else exactly as it was.
+    private func enforce(_ limit: UsageLimitDTO) {
+        guard let selection = try? FamilyActivitySelection.fromData(limit.selectionData) else { return }
+        store.unionShields(with: selection)
+    }
+
+    private func findUsageLimit(eventName: String) -> UsageLimitDTO? {
+        guard let id = SharedConstants.usageLimitID(fromEventName: eventName) else { return nil }
+        return sharedStore.loadUsageLimits().first { $0.id == id }
     }
 
     private func handleTimedUnblockExpired(activityName: String) {
@@ -61,6 +105,7 @@ final class NormalMonitor: DeviceActivityMonitor {
         } else {
             store.subtractShields(with: selection)
             store.subtractFilterDomains(domains)
+            applyUsageFloor()
         }
     }
 
@@ -75,9 +120,22 @@ final class NormalMonitor: DeviceActivityMonitor {
         if schedule.shouldBlock {
             store.subtractShields(with: selection)
             store.subtractFilterDomains(domains)
+            applyUsageFloor()
         } else {
             store.unionShields(with: selection)
             store.unionFilterDomains(domains)
+        }
+    }
+
+    /// Shields never drop below the limits already spent today.
+    ///
+    /// Scheduled unblocks fire in this process rather than through
+    /// `ScreenTimeService`, so its floor does not cover them — without this a
+    /// scheduled unblock window would hand back an allowance already used up.
+    private func applyUsageFloor() {
+        for limit in sharedStore.reachedUsageLimits() {
+            guard let selection = try? FamilyActivitySelection.fromData(limit.selectionData) else { continue }
+            store.unionShields(with: selection)
         }
     }
 

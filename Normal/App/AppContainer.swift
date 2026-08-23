@@ -14,16 +14,21 @@ struct AppContainer: View {
     @State private var appReviewService: AppReviewService
     @State private var emergencyUnblockService: EmergencyUnblockService
     @State private var donationService = DonationService()
+    @State private var usageLimitService: UsageLimitService
 
     init() {
-        let screenTime = ScreenTimeService()
-        _screenTimeService = State(initialValue: screenTime)
-
         if UITestSupport.isActive {
             let center = UITestDeviceActivityCenter()
             let store = SharedStore(
                 defaults: UserDefaults(suiteName: "uitest-\(UUID().uuidString)")
             )
+            let screenTime = ScreenTimeService(sharedStore: store)
+            _screenTimeService = State(initialValue: screenTime)
+            _usageLimitService = State(initialValue: UsageLimitService(
+                activityCenter: center,
+                sharedStore: store,
+                ledger: InMemoryUsageLimitLedger()
+            ))
             _timedUnblockService = State(initialValue: TimedUnblockService(
                 activityCenter: center,
                 sharedStore: store,
@@ -40,6 +45,9 @@ struct AppContainer: View {
                 ledger: InMemoryEmergencyUnblockLedger()
             ))
         } else {
+            let screenTime = ScreenTimeService()
+            _screenTimeService = State(initialValue: screenTime)
+            _usageLimitService = State(initialValue: UsageLimitService())
             _timedUnblockService = State(initialValue: TimedUnblockService(
                 onExpiration: { screenTime.notifyUpdate() }
             ))
@@ -64,6 +72,7 @@ struct AppContainer: View {
             .environment(appReviewService)
             .environment(emergencyUnblockService)
             .environment(donationService)
+            .environment(usageLimitService)
             .task { mirrorCustomDomainsEnabled() }
             .onChange(of: allSettings.first?.enableCustomDomains ?? false) { _, enabled in
                 scheduleService.mirrorCustomDomainsEnabled(enabled)

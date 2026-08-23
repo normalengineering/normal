@@ -79,6 +79,7 @@
 				SharedDTO.swift,
 				SharedStore.swift,
 				SharedStoreProviding.swift,
+				UsageDTO.swift,
 			);
 			target = 2F4718642F5569C90013F94D /* NormalMonitor */;
 		};

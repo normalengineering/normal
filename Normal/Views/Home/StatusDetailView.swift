@@ -38,18 +38,14 @@ struct StatusDetailView: View {
 
     private var overallSection: some View {
         Section("Status") {
-            HStack(spacing: DS.Spacing.lg - 1) {
-                Image(systemName: overallStatus.icon)
-                    .font(.title)
-                    .foregroundStyle(overallStatus.color)
-                VStack(alignment: .leading) {
-                    Text(overallStatus.title)
-                        .font(.headline)
-                    Text("\(screenTimeService.activeShieldCount()) of \(selection.count + customDomains.count) blocked")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            SummaryRow(
+                systemImage: overallStatus.icon,
+                tint: overallStatus.color,
+                title: LocalizedStringKey(overallStatus.title),
+                subtitle: String(
+                    localized: "\(screenTimeService.activeShieldCount()) of \(selection.count + customDomains.count) blocked"
+                )
+            )
         }
     }
 

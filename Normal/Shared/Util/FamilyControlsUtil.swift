@@ -60,6 +60,17 @@ extension FamilyActivitySelection {
         }
     }
 
+    /// A selection holding exactly one picked item — the inverse of
+    /// `SelectedTokenKind.init(_:)`.
+    init(_ kind: SelectedTokenKind) {
+        self.init()
+        switch kind {
+        case let .application(token): applicationTokens = [token]
+        case let .webDomain(token): webDomainTokens = [token]
+        case let .category(token): categoryTokens = [token]
+        }
+    }
+
     func isSubset(of other: FamilyActivitySelection) -> Bool {
         applicationTokens.isSubset(of: other.applicationTokens)
             && webDomainTokens.isSubset(of: other.webDomainTokens)
@@ -72,7 +83,7 @@ enum SelectedTokenKind: Hashable {
     case webDomain(WebDomainToken)
     case category(ActivityCategoryToken)
 
-    init?(_ hashable: AnyHashable) {
+    nonisolated init?(_ hashable: AnyHashable) {
         let base = hashable.base
         if let token = base as? ApplicationToken { self = .application(token); return }
         if let token = base as? WebDomainToken { self = .webDomain(token); return }

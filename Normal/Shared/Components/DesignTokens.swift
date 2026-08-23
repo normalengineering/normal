@@ -9,6 +9,9 @@ enum DS {
         static let xl: CGFloat = 20
         static let xxl: CGFloat = 24
         static let xxxl: CGFloat = 32
+
+        /// Gap between a summary row's icon well and its text.
+        static let summaryIcon: CGFloat = 15
     }
 
     enum Radius {

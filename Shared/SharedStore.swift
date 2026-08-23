@@ -72,4 +72,45 @@ struct SharedStore: SharedStoreProviding, Sendable {
     func setCustomDomainsEnabled(_ enabled: Bool) {
         defaults.set(enabled, forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
     }
+
+    func saveUsageLimits(_ limits: [UsageLimitDTO]) {
+        let data = try? PropertyListEncoder().encode(limits)
+        defaults.set(data, forKey: SharedConstants.DefaultsKey.usageLimits)
+    }
+
+    func loadUsageLimits() -> [UsageLimitDTO] {
+        guard let data = defaults.data(forKey: SharedConstants.DefaultsKey.usageLimits) else {
+            return []
+        }
+        return (try? PropertyListDecoder().decode([UsageLimitDTO].self, from: data)) ?? []
+    }
+
+    func saveUsageDayState(_ state: UsageDayStateDTO) {
+        let data = try? PropertyListEncoder().encode(state)
+        defaults.set(data, forKey: SharedConstants.DefaultsKey.usageDayState)
+    }
+
+    func loadUsageDayState() -> UsageDayStateDTO {
+        guard let data = defaults.data(forKey: SharedConstants.DefaultsKey.usageDayState) else {
+            return .empty
+        }
+        return (try? PropertyListDecoder().decode(UsageDayStateDTO.self, from: data)) ?? .empty
+    }
+
+    func saveUsageRegistration(_ fingerprint: String?) {
+        defaults.set(fingerprint, forKey: SharedConstants.DefaultsKey.usageRegistration)
+    }
+
+    func loadUsageRegistration() -> String? {
+        defaults.string(forKey: SharedConstants.DefaultsKey.usageRegistration)
+    }
+
+    func saveUsageLimitsIntervalStart(_ date: Date) {
+        defaults.set(date.timeIntervalSinceReferenceDate, forKey: SharedConstants.DefaultsKey.usageLimitsIntervalStart)
+    }
+
+    func loadUsageLimitsIntervalStart() -> Date? {
+        let value = defaults.double(forKey: SharedConstants.DefaultsKey.usageLimitsIntervalStart)
+        return value == 0 ? nil : Date(timeIntervalSinceReferenceDate: value)
+    }
 }

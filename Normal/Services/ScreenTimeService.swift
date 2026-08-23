@@ -12,12 +12,18 @@ final class ScreenTimeService: ScreenTimeProviding {
     private let shield: ShieldStoring
     private let authCenter = AuthorizationCenter.shared
     private let defaults: UserDefaults
+    private let sharedStore: any SharedStoreProviding
     private let logger = Logger(subsystem: "com.normalengineering.normal", category: "ScreenTime")
 
     private static let authorizedKey = "hasAuthorizedFamilyControls"
 
-    init(defaults: UserDefaults = .standard, shield: ShieldStoring? = nil) {
+    init(
+        defaults: UserDefaults = .standard,
+        shield: ShieldStoring? = nil,
+        sharedStore: any SharedStoreProviding = SharedStore()
+    ) {
         self.defaults = defaults
+        self.sharedStore = sharedStore
         self.shield = shield
             ?? (UITestSupport.isActive ? InMemoryShieldStore() : ManagedSettingsShieldStore())
         Task { await checkAuthorizationStatus() }
@@ -93,6 +99,7 @@ final class ScreenTimeService: ScreenTimeProviding {
         if blockAllPreventsAppDelete {
             shield.denyAppRemoval = false
         }
+        reapplyUsageFloor(blockAllPreventsAppDelete: blockAllPreventsAppDelete)
         notifyUpdate()
     }
 
@@ -103,7 +110,29 @@ final class ScreenTimeService: ScreenTimeProviding {
 
     func removeFromShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
         shield.subtract(with: selection, customDomains: customDomains)
+        reapplyUsageFloor()
         notifyUpdate()
+    }
+
+    /// Shields never drop below the limits that have already run out today.
+    ///
+    /// Enforced here rather than at each unblock call site, so every unblock
+    /// reachable from the app — Home, groups, the widget — honours a spent
+    /// allowance. Scheduled windows fire inside `NormalMonitor` instead and
+    /// apply the same floor there.
+    private func reapplyUsageFloor(blockAllPreventsAppDelete: Bool = false) {
+        var restored = false
+        for limit in sharedStore.reachedUsageLimits() {
+            guard let selection = try? FamilyActivitySelection.fromData(limit.selectionData) else { continue }
+            shield.union(with: selection, customDomains: [])
+            restored = true
+            // Re-shielding without this leaves the app deletable while blocks
+            // are in force — the exact hole the setting exists to close.
+            if blockAllPreventsAppDelete {
+                shield.denyAppRemoval = true
+            }
+        }
+        if restored { notifyUpdate() }
     }
 
     func clearCustomDomainFilter() {

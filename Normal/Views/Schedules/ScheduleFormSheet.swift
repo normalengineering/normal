@@ -237,12 +237,7 @@ struct ScheduleFormSheet: View {
     }
 
     private var formattedComputedDuration: String {
-        let total = computedDurationMinutes
-        let hours = total / 60
-        let minutes = total % 60
-        if hours == 0 { return "\(minutes)m" }
-        if minutes == 0 { return "\(hours)h" }
-        return "\(hours)h \(minutes)m"
+        DurationFormat.compact(minutes: computedDurationMinutes)
     }
 
     private var weekdaySection: some View {

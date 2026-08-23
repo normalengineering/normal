@@ -13,6 +13,7 @@ struct NormalApp: App {
             Key.self,
             BlockSchedule.self,
             Settings.self,
+            UsageLimit.self,
         ])
         let configuration = ModelConfiguration(
             schema: schema,

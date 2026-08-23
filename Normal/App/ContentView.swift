@@ -7,9 +7,11 @@ struct ContentView: View {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
+    @Environment(UsageLimitService.self) private var usageLimitService
     @Environment(\.scenePhase) private var scenePhase
     @Query private var allSettings: [Settings]
     @Query private var schedules: [BlockSchedule]
+    @Query private var usageLimits: [UsageLimit]
 
     @State private var selectedTab: AppTab = .home
     @State private var navigationCoordinator = NavigationCoordinator()
@@ -33,12 +35,15 @@ struct ContentView: View {
             if let newTab { selectedTab = newTab }
         }
         .onChange(of: onboardingService.isOnboardingActive, onOnboardingCompleted)
+        .onChange(of: usageLimits.count) { _, _ in reregisterActivities() }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 Task { await screenTimeService.checkAuthorizationStatus() }
                 screenTimeService.notifyUpdate()
                 timedUnblockService.refresh(screenTimeService: screenTimeService)
-                reregisterSchedules()
+                // The monitor extension may have spent a limit while we were away.
+                usageLimitService.notifyUpdate()
+                reregisterActivities()
             }
         }
         .onAppear(perform: onAppear)
@@ -59,14 +64,18 @@ struct ContentView: View {
             await screenTimeService.checkAuthorizationStatus()
             if settings?.hasCompletedOnboarding == true {
                 _ = await screenTimeService.ensureAuthorized()
-                reregisterSchedules()
+                reregisterActivities()
             }
         }
     }
 
-    private func reregisterSchedules() {
-        guard settings?.hasCompletedOnboarding == true else { return }
+    /// Re-registers every `DeviceActivity` we depend on. Usage limits ride along
+    /// with schedules: their threshold events use `includesPastActivity`, so
+    /// re-registering mid-day cannot hand back an allowance already spent.
+    private func reregisterActivities() {
+        guard let settings, settings.hasCompletedOnboarding else { return }
         scheduleService.registerAll(schedules, screenTimeService: screenTimeService)
+        usageLimitService.registerAll(usageLimits)
     }
 
     private func onOnboardingCompleted(_: Bool, _ isActive: Bool) {
