@@ -7,6 +7,7 @@ final class AppServices {
     let schedule: ScheduleService
     let appReview: AppReviewService
     let emergencyUnblock: EmergencyUnblockService
+    let usageLimit: UsageLimitService
 
     init() {
         let screenTime = ScreenTimeService()
@@ -27,11 +28,17 @@ final class AppServices {
                 defaults: UserDefaults(suiteName: "uitest-review-\(UUID().uuidString)")!
             )
             emergencyUnblock = EmergencyUnblockService(ledger: InMemoryEmergencyUnblockLedger())
+            usageLimit = UsageLimitService(
+                activityCenter: center,
+                sharedStore: store,
+                ledger: InMemoryUsageLimitLedger()
+            )
         } else {
             timedUnblock = TimedUnblockService(onExpiration: { screenTime.notifyUpdate() })
             schedule = ScheduleService()
             appReview = AppReviewService()
             emergencyUnblock = EmergencyUnblockService(ledger: KeychainEmergencyUnblockLedger())
+            usageLimit = UsageLimitService()
         }
     }
 }

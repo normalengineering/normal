@@ -29,5 +29,6 @@ enum DS {
         static let chipHeight: CGFloat = 34
         static let avatar: CGFloat = 48
         static let iconWell: CGFloat = 28
+        static let summaryIcon: CGFloat = 36
     }
 }

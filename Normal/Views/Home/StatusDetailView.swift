@@ -4,7 +4,9 @@ import SwiftUI
 
 struct StatusDetailView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(UsageLimitService.self) private var usageLimitService
     @Query(sort: [SortDescriptor(\BlockSchedule.sortIndex)]) private var schedules: [BlockSchedule]
+    @Query(sort: [SortDescriptor(\UsageLimit.sortIndex)]) private var limits: [UsageLimit]
     @Query private var allSettings: [Settings]
 
     let mainSelection: SelectedApps
@@ -26,6 +28,7 @@ struct StatusDetailView: View {
     var body: some View {
         List {
             overallSection
+            if !limits.isEmpty { limitsSection }
             tokenSection("Apps", kinds: selection.applicationTokens.sortedStably.map(SelectedTokenKind.application))
             tokenSection("Websites", kinds: selection.webDomainTokens.sortedStably.map(SelectedTokenKind.webDomain))
             tokenSection("Categories", kinds: selection.categoryTokens.sortedStably.map(SelectedTokenKind.category))
@@ -38,17 +41,45 @@ struct StatusDetailView: View {
 
     private var overallSection: some View {
         Section("Status") {
-            HStack(spacing: DS.Spacing.lg - 1) {
-                Image(systemName: overallStatus.icon)
-                    .font(.title)
-                    .foregroundStyle(overallStatus.color)
-                VStack(alignment: .leading) {
-                    Text(overallStatus.title)
-                        .font(.headline)
-                    Text("\(screenTimeService.activeShieldCount()) of \(selection.count + customDomains.count) blocked")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            SummaryRow(
+                systemImage: overallStatus.icon,
+                tint: overallStatus.color,
+                title: Text(LocalizedStringKey(overallStatus.title)),
+                subtitle: Text(
+                    "\(screenTimeService.activeShieldCount()) of \(selection.count + customDomains.count) blocked"
+                )
+            )
+        }
+    }
+
+    private var limitsSection: some View {
+        let states = usageLimitService.states(for: limits)
+        let isPaused = usageLimitService.isDayOverridden()
+        let reset = usageLimitService.nextReset().formatted(date: .omitted, time: .shortened)
+        return Section {
+            ForEach(limits) { limit in
+                limitRow(limit, state: states[limit.id] ?? .under, isPaused: isPaused)
+            }
+        } header: {
+            Text("Max Daily Limits")
+        } footer: {
+            Text(isPaused ? "Paused by emergency unblock until \(reset)." : "Resets at \(reset).")
+        }
+    }
+
+    private func limitRow(_ limit: UsageLimit, state: UsageLimitState, isPaused: Bool) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                SelectionIconsView(tokens: limit.selection.allTokens, limit: 5)
+                Text("\(limit.selection.selectedTokenCounts) · \(DurationFormat.compact(minutes: limit.minutesPerDay)) a day")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            if isPaused {
+                StatusBadge(title: "Paused", systemImage: "pause.circle.fill", tint: .secondary)
+            } else {
+                StatusBadge(title: state.label, systemImage: state.icon, tint: state.color)
             }
         }
     }

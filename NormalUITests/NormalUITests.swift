@@ -254,4 +254,32 @@ final class NormalUITests: XCTestCase {
         require(app.staticTexts["Group Key"], "Group key should appear in the Group Keys viewer")
         require(app.staticTexts["Test Group"], "Viewer should show the linked group name")
     }
+
+    func testMaxDailyLimitsEmptyStateAndEditors() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+
+        let settings = app.buttons["nav.settings"]
+        require(settings, "Settings button should exist")
+        settings.tap()
+        let link = app.buttons["settings.maxDailyLimitsLink"]
+        require(link, "Settings should show the Max Daily Limits row")
+        link.tap()
+        require(app.staticTexts["No Max Daily Limits"], "Empty state should explain limits")
+
+        let guideAdd = app.buttons["usage.emptyAddLimit"]
+        require(guideAdd, "The guide should offer to add a limit")
+        guideAdd.tap()
+        let save = app.buttons["usage.save"]
+        require(save, "Editor should open")
+        XCTAssertFalse(save.isEnabled, "A limit can't be saved without apps")
+        app.buttons["Cancel"].tap()
+
+        app.swipeUp()
+        let resetRow = app.buttons["usage.resetTime"]
+        require(resetRow, "Reset time row should be listed")
+        resetRow.tap()
+        let resetSave = app.buttons["usage.resetSave"]
+        require(resetSave, "Reset time page should open")
+        XCTAssertFalse(resetSave.isEnabled, "An unchanged reset time can't be saved")
+    }
 }
