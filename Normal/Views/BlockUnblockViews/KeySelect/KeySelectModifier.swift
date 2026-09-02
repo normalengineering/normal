@@ -18,6 +18,7 @@ struct KeySelectModifier: ViewModifier {
     @State private var locationToken: PresentationToken?
     @State private var showQRScanner = false
     @State private var showNoKeysAlert = false
+    @State private var showBypassConfirm = false
     @State private var pendingLocationAction: (@MainActor () -> Void)?
 
     private struct PresentationToken: Identifiable {
@@ -65,10 +66,15 @@ struct KeySelectModifier: ViewModifier {
             KeySelectView(
                 availableKeyTypes: availableKeyTypes,
                 allowBypass: allowBypass,
-                skipBypassConfirmation: Bindable(settings).skipBlockWithoutKeyConfirmation,
                 onSelect: handleSelection,
-                onBypass: bypassNow
+                onBypass: requestBypass
             )
+            .navigationDestination(isPresented: $showBypassConfirm) {
+                BypassConfirmView { skipFuture in
+                    if skipFuture { settings.skipBlockWithoutKeyConfirmation = true }
+                    bypassNow()
+                }
+            }
             .navigationDestination(isPresented: $showQRScanner) {
                 QRScannerView(qrService: qrService)
                     .navigationBarBackButtonHidden()
@@ -87,8 +93,13 @@ struct KeySelectModifier: ViewModifier {
                 }
             }
         }
-        .presentationDetents(showQRScanner ? [.large] : [.medium])
-        .presentationDragIndicator(.hidden)
+        .presentationDetents(sheetDetents)
+        .presentationDragIndicator(showBypassConfirm ? .visible : .hidden)
+    }
+
+    private var sheetDetents: Set<PresentationDetent> {
+        if showQRScanner { return [.large] }
+        return [.medium]
     }
 
     private func applyDecision() {
@@ -104,7 +115,16 @@ struct KeySelectModifier: ViewModifier {
             handleSelection(keyType)
         case .showSheet:
             showQRScanner = false
+            showBypassConfirm = false
             keySelectToken = PresentationToken()
+        }
+    }
+
+    private func requestBypass() {
+        if settings.skipBlockWithoutKeyConfirmation {
+            bypassNow()
+        } else {
+            showBypassConfirm = true
         }
     }
 
@@ -128,6 +148,8 @@ struct KeySelectModifier: ViewModifier {
         }
     }
 
+    /// Leaves `showBypassConfirm` alone: flipping it here would swap the key
+    /// picker back in while the sheet is still animating away.
     private func bypassNow() {
         action?()
         action = nil
