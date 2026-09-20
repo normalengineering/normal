@@ -11,6 +11,7 @@ protocol ShieldStoring: AnyObject {
     func shieldedCount() -> Int
     func status(for selection: FamilyActivitySelection?, customDomains: [String]?) -> BlockStatus
     func isShielded(_ token: SelectedTokenKind) -> Bool
+    func hasActiveCustomDomainFilter() -> Bool
 }
 
 final class ManagedSettingsShieldStore: ShieldStoring {
@@ -85,6 +86,10 @@ final class ManagedSettingsShieldStore: ShieldStoring {
         case let .category(t): store.shield.applicationCategories.tokenSet.contains(t)
         }
     }
+
+    func hasActiveCustomDomainFilter() -> Bool {
+        !store.filterDomains().isEmpty
+    }
 }
 
 final class InMemoryShieldStore: ShieldStoring {
@@ -104,4 +109,5 @@ final class InMemoryShieldStore: ShieldStoring {
     func shieldedCount() -> Int { shielded ? 1 : 0 }
     func status(for _: FamilyActivitySelection?, customDomains _: [String]?) -> BlockStatus { shielded ? .all : .none }
     func isShielded(_: SelectedTokenKind) -> Bool { shielded }
+    func hasActiveCustomDomainFilter() -> Bool { shielded }
 }

@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct GeneralSettingsView: View {
+    @Environment(ScreenTimeService.self) private var screenTimeService
     let settings: Settings
     let availableKeyTypes: [KeyType]
 
@@ -18,16 +19,23 @@ struct GeneralSettingsView: View {
         }
     }
 
+    private var hasActiveFilter: Bool {
+        screenTimeService.hasActiveCustomDomainFilter()
+    }
+
     private var customDomainsSection: some View {
         Section {
             Toggle(
                 "Block Custom Websites",
                 isOn: Bindable(settings).enableCustomDomains
             )
+            .disabled(hasActiveFilter)
         } header: {
             Text("Custom Domains")
         } footer: {
-            Text("Adds a section to App Select, allowing you to type custom website domains to block.")
+            Text(hasActiveFilter
+                 ? "Custom domains are currently being blocked. Unblock all apps before disabling this setting."
+                 : "Adds a section to App Select, allowing you to type custom website domains to block.")
         }
     }
 

@@ -84,6 +84,7 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     func clearCustomDomainFilter() {}
 
     func activeShieldCount() -> Int { stubActiveShieldCount }
+    func hasActiveCustomDomainFilter() -> Bool { false }
     func blockStatus(selection _: FamilyActivitySelection?, customDomains _: [String]? = nil) -> BlockStatus {
         stubBlockStatus
     }
