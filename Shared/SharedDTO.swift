@@ -12,6 +12,8 @@ struct TimedUnblockDTO: Codable, Sendable, Identifiable {
     private let encodedCustomDomains: [String]?
     var customDomains: [String] { encodedCustomDomains ?? [] }
 
+    let startDate: Date?
+
     init(
         id: String,
         selectionData: Data,
@@ -19,7 +21,8 @@ struct TimedUnblockDTO: Codable, Sendable, Identifiable {
         activityName: String,
         isGroupUnblock: Bool,
         blockAllPreventsAppDelete: Bool? = nil,
-        customDomains: [String]? = nil
+        customDomains: [String]? = nil,
+        startDate: Date? = nil
     ) {
         self.id = id
         self.selectionData = selectionData
@@ -28,6 +31,7 @@ struct TimedUnblockDTO: Codable, Sendable, Identifiable {
         self.isGroupUnblock = isGroupUnblock
         self.blockAllPreventsAppDelete = blockAllPreventsAppDelete
         encodedCustomDomains = customDomains
+        self.startDate = startDate
     }
 }
 

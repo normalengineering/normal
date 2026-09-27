@@ -55,6 +55,68 @@ struct TimedUnblockServiceTests {
         #expect(service.isGroupUnblockActive(groupId: groupId))
     }
 
+    @Test func customDurationSetsEndDateAndPersistsStartDate() throws {
+        let (service, _, store) = makeService()
+        let custom = try #require(TimedUnblockDuration(validating: 5700))
+        let before = Date.now
+
+        try service.startMain(
+            duration: custom,
+            selection: FamilyActivitySelection(),
+            screenTimeService: FakeScreenTimeService()
+        )
+
+        let dto = try #require(store.timedUnblocks.first)
+        let start = try #require(dto.startDate)
+        #expect(start >= before)
+        #expect(dto.endDate.timeIntervalSince(start) == 5700)
+        #expect(service.activeUnblockStartDates()[TimedUnblockService.mainID] == start)
+    }
+
+    @Test func updatingSelectionKeepsOriginalStartDate() throws {
+        let (service, _, store) = makeService()
+        let groupId = UUID()
+        try service.startMain(
+            duration: .oneHour,
+            selection: FamilyActivitySelection(),
+            screenTimeService: FakeScreenTimeService()
+        )
+        let mainStart = try #require(store.timedUnblocks.first?.startDate)
+
+        service.updateMainSelection(FamilyActivitySelection(), customDomains: ["x.com"])
+
+        let updated = try #require(store.timedUnblocks.first { $0.id == TimedUnblockService.mainID })
+        #expect(updated.startDate == mainStart)
+        #expect(updated.customDomains == ["x.com"])
+
+        try service.startGroup(
+            duration: .oneHour,
+            groupId: groupId,
+            selection: FamilyActivitySelection(),
+            screenTimeService: FakeScreenTimeService()
+        )
+        let groupStart = try #require(store.timedUnblocks.first { $0.id == groupId.uuidString }?.startDate)
+        service.updateGroupSelection(groupId: groupId, selection: FamilyActivitySelection())
+        #expect(store.timedUnblocks.first { $0.id == groupId.uuidString }?.startDate == groupStart)
+    }
+
+    @Test func legacyUnblockWithoutStartDateHasNoStartDate() throws {
+        let (service, _, store) = makeService()
+        store.timedUnblocks = try [
+            TimedUnblockDTO(
+                id: TimedUnblockService.mainID,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: .now.addingTimeInterval(600),
+                activityName: SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: false
+            ),
+        ]
+        service.reconcile(screenTimeService: FakeScreenTimeService())
+
+        #expect(service.isMainUnblockActive)
+        #expect(service.activeUnblockStartDates().isEmpty, "Live Activity falls back to now")
+    }
+
     @Test func cancelMainAppliesShieldsAndForgets() throws {
         let (service, _, store) = makeService()
         let screenTime = FakeScreenTimeService()
@@ -388,7 +450,7 @@ struct TimedUnblockServiceTests {
         _ service: TimedUnblockService,
         _ screenTime: FakeScreenTimeService,
         _ groupId: UUID,
-        duration: UnblockDuration = .fifteenMinutes
+        duration: TimedUnblockDuration = .fifteenMinutes
     ) throws -> String {
         try service.startGroup(
             duration: duration,
@@ -542,6 +604,57 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.first?.customDomains == ["reddit.com"])
     }
 
+    // Home's "Unblock All" with a default duration skips the sheet; it once dropped custom domains,
+    // so websites never reblocked at expiry. Both Home paths now go through this overload.
+    @Test func startMainFromModelsPersistsCustomDomainsWhenEnabled() throws {
+        let (service, _, store) = makeService()
+        let settings = Settings()
+        settings.enableCustomDomains = true
+        let mainSelection = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["reddit.com"])
+
+        try service.startMain(
+            duration: .oneHour,
+            mainSelection: mainSelection,
+            settings: settings,
+            screenTimeService: FakeScreenTimeService()
+        )
+
+        #expect(store.timedUnblocks.first?.customDomains == ["reddit.com"])
+    }
+
+    @Test func startMainFromModelsOmitsCustomDomainsWhenFeatureDisabled() throws {
+        let (service, _, store) = makeService()
+        let settings = Settings()
+        settings.enableCustomDomains = false
+        let mainSelection = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["reddit.com"])
+
+        try service.startMain(
+            duration: .oneHour,
+            mainSelection: mainSelection,
+            settings: settings,
+            screenTimeService: FakeScreenTimeService()
+        )
+
+        #expect(store.timedUnblocks.first?.customDomains == [])
+    }
+
+    @Test func startMainFromModelsCarriesPreventAppDeleteSetting() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        let settings = Settings()
+        settings.blockAllPreventsAppDelete = true
+
+        try service.startMain(
+            duration: .oneHour,
+            mainSelection: SelectedApps(selection: FamilyActivitySelection()),
+            settings: settings,
+            screenTimeService: screenTime
+        )
+
+        #expect(screenTime.removeShieldOnAllBlockAllPreventsAppDelete == true)
+        #expect(store.timedUnblocks.first?.blockAllPreventsAppDelete == true)
+    }
+
     @Test func reapplyShieldUsesPersistedCustomDomainsForGroup() {
         let (service, _, store) = makeService()
         let screenTime = FakeScreenTimeService()
@@ -636,6 +749,18 @@ struct DeviceActivityScheduleFactoryTests {
             from: start, to: start.addingTimeInterval(.minutes(15)), calendar: Self.utc
         )
         #expect(intervalSeconds(schedule) > .minutes(15))
+    }
+
+    @Test func maximumWindowCrossingMidnightIsPreservedExactly() {
+        let start = date(hour: 22, minute: 0)
+        let end = start.addingTimeInterval(TimeInterval(TimedUnblockDuration.maximumSeconds))
+        let schedule = DeviceActivityScheduleFactory.window(from: start, to: end, calendar: Self.utc)
+
+        #expect(intervalSeconds(schedule) == TimeInterval(TimedUnblockDuration.maximumSeconds))
+        #expect(schedule.intervalEnd.day == 2)
+        #expect(schedule.intervalEnd.hour == 21)
+        #expect(schedule.intervalEnd.minute == 55)
+        #expect(schedule.repeats == false)
     }
 
     @Test func longerWindowIsPreservedExactly() {

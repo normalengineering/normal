@@ -15,6 +15,8 @@ struct GroupTimedUnblockSheet: View {
     var body: some View {
         TimedUnblockSheet(
             title: "Unblock \(group.name)",
+            durations: allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets,
+            initialDuration: allSettings.first?.defaultDuration,
             onTimedUnblock: { duration in
                 try timedUnblockService.startGroup(
                     duration: duration,

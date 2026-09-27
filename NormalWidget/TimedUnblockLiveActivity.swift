@@ -4,7 +4,10 @@ import SwiftUI
 import WidgetKit
 
 struct TimedUnblockLiveActivity: Widget {
-    private let compactTimerWidth: CGFloat = 44
+    private func compactTimerWidth(_ context: ActivityViewContext<TimedUnblockActivityAttributes>) -> CGFloat {
+        let total = context.state.endDate.timeIntervalSince(context.attributes.startDate)
+        return total >= 10 * 3600 ? 58 : 44
+    }
 
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TimedUnblockActivityAttributes.self) { context in
@@ -40,7 +43,7 @@ struct TimedUnblockLiveActivity: Widget {
                             .foregroundStyle(.orange)
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
-                            .frame(width: compactTimerWidth, alignment: .trailing)
+                            .frame(width: compactTimerWidth(context), alignment: .trailing)
                     }
                 }
             } minimal: {

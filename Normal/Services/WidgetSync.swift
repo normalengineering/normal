@@ -5,12 +5,14 @@ enum WidgetSync {
     static func sync(
         groups: [AppGroup],
         availableKeyTypes: [KeyType],
-        blockStatuses: [String: String]
+        blockStatuses: [String: String],
+        unblockDurations: [TimedUnblockDuration]
     ) {
         let store = WidgetSharedStore()
         store.saveGroups(groups.map { WidgetGroupDTO(id: $0.id, name: $0.name, sortIndex: $0.sortIndex) })
         store.saveKeyTypes(availableKeyTypes.map(\.rawValue))
         store.saveBlockStatuses(blockStatuses)
+        store.saveUnblockDurations(unblockDurations.map(\.seconds))
         reloadTimelines()
     }
 

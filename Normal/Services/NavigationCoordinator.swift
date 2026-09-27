@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum GroupAction: Equatable {
-    case unlock(duration: UnblockDuration?, keyType: KeyType?)
+    case unlock(duration: UnlockDurationRequest, keyType: KeyType?)
     case block
 }
 
@@ -26,7 +26,7 @@ final class NavigationCoordinator {
 
     func dismissSettings() { isSettingsPresented = false }
 
-    func requestGroupUnlock(groupID: UUID, duration: UnblockDuration?, keyType: KeyType?) {
+    func requestGroupUnlock(groupID: UUID, duration: UnlockDurationRequest, keyType: KeyType?) {
         pendingGroupAction = GroupActionRequest(
             token: UUID(),
             groupID: groupID,
@@ -50,9 +50,9 @@ final class NavigationCoordinator {
 
         switch url.host {
         case WidgetDeepLink.unlockHost:
-            let duration = items.first { $0.name == WidgetDeepLink.durationQueryItem }?.value
-                .flatMap { Int($0) }
-                .flatMap { UnblockDuration(rawValue: $0) }
+            let duration = UnlockDurationRequest(
+                queryValue: items.first { $0.name == WidgetDeepLink.durationQueryItem }?.value
+            )
             let keyType = items.first { $0.name == WidgetDeepLink.keyQueryItem }?.value
                 .flatMap { KeyType(rawValue: $0) }
             requestGroupUnlock(groupID: groupID, duration: duration, keyType: keyType)

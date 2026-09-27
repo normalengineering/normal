@@ -13,6 +13,17 @@ struct WidgetSharedStoreTests {
         WidgetGroupDTO(id: id, name: name, sortIndex: sortIndex)
     }
 
+    @Test func unblockDurationsFallBackToPresetsWhenMissing() {
+        let (store, _) = makeStore()
+        #expect(store.loadUnblockDurations() == TimedUnblockDuration.presets)
+    }
+
+    @Test func unblockDurationsRoundTrip() {
+        let (store, _) = makeStore()
+        store.saveUnblockDurations([5700, 900])
+        #expect(store.loadUnblockDurations().map(\.seconds) == [900, 5700])
+    }
+
     @Test func loadEmptyReturnsEmpty() {
         let (store, _) = makeStore()
         #expect(store.loadGroups().isEmpty)

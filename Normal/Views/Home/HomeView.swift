@@ -62,13 +62,14 @@ struct HomeView: View {
         if let mainSelection {
             TimedUnblockSheet(
                 title: "Unblock All",
+                durations: settings.unblockDurations,
+                initialDuration: settings.defaultDuration,
                 onTimedUnblock: { duration in
                     try timedUnblockService.startMain(
                         duration: duration,
-                        selection: mainSelection.selection,
-                        customDomains: customDomains(for: mainSelection),
-                        screenTimeService: screenTimeService,
-                        blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+                        mainSelection: mainSelection,
+                        settings: settings,
+                        screenTimeService: screenTimeService
                     )
                     recordUnblockForReview()
                 },
@@ -94,13 +95,13 @@ struct HomeView: View {
     }
 
     private func unblockMain(_ selection: SelectedApps) {
-        if let duration = settings.defaultUnblockDuration {
+        if let duration = settings.defaultDuration {
             do {
                 try timedUnblockService.startMain(
                     duration: duration,
-                    selection: selection.selection,
-                    screenTimeService: screenTimeService,
-                    blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+                    mainSelection: selection,
+                    settings: settings,
+                    screenTimeService: screenTimeService
                 )
                 recordUnblockForReview()
             } catch {}

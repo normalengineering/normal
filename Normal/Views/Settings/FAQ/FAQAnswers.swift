@@ -79,7 +79,7 @@ enum FAQAnswer {
             )
             FAQHeadedParagraph(
                 title: "Timed unblocks",
-                text: "Other apps require you to manually reblock when you're done, and users commonly report forgetting to reblock or falling back into doom-scrolling. With Normal, set a timed unblock for 15 minutes and you'll be automatically blocked again when it's up. Going to an event where you need to stay reachable? Unblock for a few hours and Normal handles the rest."
+                text: "Other apps require you to manually reblock when you're done, and users commonly report forgetting to reblock or falling back into doom-scrolling. With Normal, set a timed unblock for 15 minutes and you'll be automatically blocked again when it's up. Going to an event where you need to stay reachable? Unblock for a few hours and Normal handles the rest. You can add your own durations in Settings, under Unblock Durations."
             )
             FAQHeadedParagraph(
                 title: "App groups",

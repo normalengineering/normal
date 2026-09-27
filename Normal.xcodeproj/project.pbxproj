@@ -104,6 +104,7 @@
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 				RecoveryUITests.swift,
+				UnblockDurationsUITests.swift,
 			);
 			target = 2F58EFFE2EC9C5DF00A38180 /* NormalUITests */;
 		};
@@ -115,6 +116,7 @@
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 				RecoveryUITests.swift,
+				UnblockDurationsUITests.swift,
 			);
 			target = 2F58EFE72EC9C5DE00A38180 /* Normal */;
 		};
@@ -131,6 +133,7 @@
 				DismissUnblockActivityIntent.swift,
 				SharedConstants.swift,
 				TimedUnblockActivityAttributes.swift,
+				TimedUnblockDuration.swift,
 				WidgetSharedData.swift,
 			);
 			target = 2FDA0000000000000000A003 /* NormalWidget */;

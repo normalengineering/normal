@@ -19,5 +19,16 @@ enum UITestSupport {
 
     static let skipBypassConfirm = arguments.contains("-uiTestSkipBypassConfirm")
 
+    static let unblockDurationSeconds: [Int]? = value(after: "-uiTestUnblockDurations")?
+        .split(separator: ",")
+        .compactMap { Int($0) }
+
+    static let defaultDurationSeconds: Int? = value(after: "-uiTestDefaultDuration").flatMap(Int.init)
+
     static let stubScanValue = "UITEST-SCAN-VALUE"
+
+    private static func value(after flag: String) -> String? {
+        guard let index = arguments.firstIndex(of: flag), arguments.indices.contains(index + 1) else { return nil }
+        return arguments[index + 1]
+    }
 }

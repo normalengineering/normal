@@ -34,6 +34,14 @@ final class TimedUnblockService {
         activeUnblocks[Self.mainID]
     }
 
+    func activeUnblockStartDates() -> [String: Date] {
+        var starts: [String: Date] = [:]
+        for unblock in sharedStore.loadTimedUnblocks() where activeUnblocks[unblock.id] != nil {
+            starts[unblock.id] = unblock.startDate
+        }
+        return starts
+    }
+
     func isGroupUnblockActive(groupId: UUID) -> Bool {
         activeUnblocks[groupId.uuidString] != nil
     }
@@ -43,7 +51,7 @@ final class TimedUnblockService {
     }
 
     func startMain(
-        duration: UnblockDuration,
+        duration: TimedUnblockDuration,
         selection: FamilyActivitySelection,
         customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding,
@@ -63,6 +71,7 @@ final class TimedUnblockService {
             id: Self.mainID,
             selection: selection,
             customDomains: customDomains,
+            startDate: start,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: false,
@@ -71,7 +80,7 @@ final class TimedUnblockService {
     }
 
     func startGroup(
-        duration: UnblockDuration,
+        duration: TimedUnblockDuration,
         groupId: UUID,
         selection: FamilyActivitySelection,
         customDomains: [String] = [],
@@ -90,6 +99,7 @@ final class TimedUnblockService {
             id: id,
             selection: selection,
             customDomains: customDomains,
+            startDate: start,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: true
@@ -138,29 +148,31 @@ final class TimedUnblockService {
     func updateMainSelection(_ selection: FamilyActivitySelection, customDomains: [String] = []) {
         guard let endDate = activeUnblocks[Self.mainID] else { return }
         let activityName = SharedConstants.mainTimedUnblockActivityName
-        let preventAppDelete = sharedStore
-            .findTimedUnblock(activityName: activityName)?.blockAllPreventsAppDelete
+        let existing = sharedStore.findTimedUnblock(activityName: activityName)
         try? persist(
             id: Self.mainID,
             selection: selection,
             customDomains: customDomains,
+            startDate: existing?.startDate,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: false,
             scheduleTask: false,
-            blockAllPreventsAppDelete: preventAppDelete
+            blockAllPreventsAppDelete: existing?.blockAllPreventsAppDelete
         )
     }
 
     func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection, customDomains: [String] = []) {
         let id = groupId.uuidString
         guard let endDate = activeUnblocks[id] else { return }
+        let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
         try? persist(
             id: id,
             selection: selection,
             customDomains: customDomains,
+            startDate: sharedStore.findTimedUnblock(activityName: activityName)?.startDate,
             endDate: endDate,
-            activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
+            activityName: activityName,
             isGroupUnblock: true,
             scheduleTask: false
         )
@@ -170,6 +182,7 @@ final class TimedUnblockService {
         id: String,
         selection: FamilyActivitySelection,
         customDomains: [String],
+        startDate: Date?,
         endDate: Date,
         activityName: String,
         isGroupUnblock: Bool,
@@ -183,7 +196,8 @@ final class TimedUnblockService {
             activityName: activityName,
             isGroupUnblock: isGroupUnblock,
             blockAllPreventsAppDelete: blockAllPreventsAppDelete,
-            customDomains: customDomains
+            customDomains: customDomains,
+            startDate: startDate
         )
         sharedStore.upsertTimedUnblock(dto)
 
@@ -288,5 +302,22 @@ final class TimedUnblockService {
                 blockAllPreventsAppDelete: unblock.blockAllPreventsAppDelete ?? false
             )
         }
+    }
+}
+
+extension TimedUnblockService {
+    func startMain(
+        duration: TimedUnblockDuration,
+        mainSelection: SelectedApps,
+        settings: Settings,
+        screenTimeService: any ScreenTimeProviding
+    ) throws {
+        try startMain(
+            duration: duration,
+            selection: mainSelection.selection,
+            customDomains: settings.enableCustomDomains ? mainSelection.customDomains : [],
+            screenTimeService: screenTimeService,
+            blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+        )
     }
 }

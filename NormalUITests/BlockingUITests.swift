@@ -175,7 +175,7 @@ final class BlockingUITests: XCTestCase {
         require(bypass, "Choose-key sheet with bypass should appear")
         bypass.tap()
 
-        let dontShowAgain = app.switches["keySelect.dontShowAgain"]
+        let dontShowAgain = app.buttons["keySelect.dontShowAgain"]
         require(dontShowAgain, "Confirmation sheet should offer 'Don't show this again'")
         dontShowAgain.tap()
         confirmBypass(app)

@@ -21,6 +21,10 @@ private struct WidgetActionResponder: ViewModifier {
         KeyType.selectable(registered: keys.map(\.type))
     }
 
+    private var unblockDurations: [TimedUnblockDuration] {
+        allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
+    }
+
     private var customDomainsEnabled: Bool {
         allSettings.first?.enableCustomDomains ?? false
     }
@@ -45,6 +49,7 @@ private struct WidgetActionResponder: ViewModifier {
             .onChange(of: groups) { _, _ in syncWidget() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
+            .onChange(of: unblockDurations) { _, _ in syncWidget() }
             .onAppear { syncWidget() }
     }
 
@@ -61,7 +66,8 @@ private struct WidgetActionResponder: ViewModifier {
         WidgetSync.sync(
             groups: groups,
             availableKeyTypes: availableKeyTypes,
-            blockStatuses: blockStatuses
+            blockStatuses: blockStatuses,
+            unblockDurations: unblockDurations
         )
     }
 
@@ -90,7 +96,12 @@ private struct WidgetActionResponder: ViewModifier {
         coordinator.clearPendingGroupAction()
     }
 
-    private func unlock(_ group: AppGroup, duration: UnblockDuration?) {
+    private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {
+        let duration: TimedUnblockDuration? = switch request {
+        case let .fixed(duration): duration
+        case .useDefault: allSettings.first?.defaultDuration
+        case .ask: nil
+        }
         if let duration {
             try? timedUnblockService.startGroup(
                 duration: duration,

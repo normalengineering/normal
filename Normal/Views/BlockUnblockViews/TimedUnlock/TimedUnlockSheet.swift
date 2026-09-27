@@ -4,24 +4,39 @@ struct TimedUnblockSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let title: String
-    let onTimedUnblock: (UnblockDuration) throws -> Void
+    let durations: [TimedUnblockDuration]
+    let onTimedUnblock: (TimedUnblockDuration) throws -> Void
     let onPermanentUnblock: () -> Void
 
-    @State private var selectedDuration: UnblockDuration? = .fifteenMinutes
+    @State private var selectedDuration: TimedUnblockDuration?
     @State private var error: Error?
+
+    init(
+        title: String,
+        durations: [TimedUnblockDuration],
+        initialDuration: TimedUnblockDuration?,
+        onTimedUnblock: @escaping (TimedUnblockDuration) throws -> Void,
+        onPermanentUnblock: @escaping () -> Void
+    ) {
+        self.title = title
+        self.durations = durations
+        self.onTimedUnblock = onTimedUnblock
+        self.onPermanentUnblock = onPermanentUnblock
+        _selectedDuration = State(initialValue: initialDuration ?? durations.first)
+    }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    ForEach(UnblockDuration.allCases) { duration in
+                    ForEach(durations) { duration in
                         ChoiceListRow(
                             title: LocalizedStringKey(duration.label),
                             isSelected: selectedDuration == duration
                         ) {
                             selectedDuration = duration
                         }
-                        .accessibilityIdentifier("timedUnblock.duration.\(duration.rawValue)")
+                        .accessibilityIdentifier("timedUnblock.duration.\(duration.seconds)")
                     }
                 } header: {
                     Text("Timed Unblock")

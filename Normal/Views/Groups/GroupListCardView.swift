@@ -223,7 +223,7 @@ struct GroupListCardView: View {
             prominent: false
         ) {
             requestAction(allowBypass: false) {
-                if let duration = settings.defaultUnblockDuration {
+                if let duration = settings.defaultDuration {
                     try? timedUnblockService.startGroup(
                         duration: duration,
                         groupId: appGroup.id,

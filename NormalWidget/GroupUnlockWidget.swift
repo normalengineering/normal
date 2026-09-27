@@ -7,7 +7,7 @@ struct GroupEntry: TimelineEntry {
     let groupName: String?
     let isUnblocked: Bool
     let countdownEnd: Date?
-    let durationSeconds: Int?
+    let duration: UnlockDurationRequest
     let keyRawValue: String?
 
     static let placeholder = GroupEntry(
@@ -16,7 +16,7 @@ struct GroupEntry: TimelineEntry {
         groupName: "Social Media",
         isUnblocked: false,
         countdownEnd: nil,
-        durationSeconds: nil,
+        duration: .useDefault,
         keyRawValue: nil
     )
 
@@ -28,7 +28,7 @@ struct GroupEntry: TimelineEntry {
             ? WidgetDeepLink.blockURL(groupID: groupID)
             : WidgetDeepLink.unlockURL(
                 groupID: groupID,
-                durationSeconds: durationSeconds,
+                duration: duration,
                 keyTypeRawValue: keyRawValue
             )
     }
@@ -57,7 +57,7 @@ struct GroupUnlockProvider: AppIntentTimelineProvider {
                 groupName: nil,
                 isUnblocked: false,
                 countdownEnd: nil,
-                durationSeconds: nil,
+                duration: .useDefault,
                 keyRawValue: nil
             )
         }
@@ -69,7 +69,7 @@ struct GroupUnlockProvider: AppIntentTimelineProvider {
             groupName: store.group(id: group.id)?.name ?? group.name,
             isUnblocked: state.isUnblocked,
             countdownEnd: state.countdownEnd,
-            durationSeconds: configuration.duration?.rawValue,
+            duration: configuration.durationRequest,
             keyRawValue: configuration.keyType?.id
         )
     }

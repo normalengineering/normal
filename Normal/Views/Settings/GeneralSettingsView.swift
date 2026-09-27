@@ -59,10 +59,20 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Picker("Default Duration", selection: Bindable(settings).defaultUnblockDuration) {
-                Text("None").tag(UnblockDuration?.none)
-                ForEach(UnblockDuration.allCases) { duration in
-                    Text(duration.label).tag(UnblockDuration?.some(duration))
+            NavigationLink {
+                UnblockDurationsView(settings: settings)
+            } label: {
+                CountRow(title: "Unblock Durations", count: settings.unblockDurations.count)
+            }
+            .accessibilityIdentifier("settings.unblockDurationsLink")
+
+            Picker("Default Duration", selection: Binding(
+                get: { settings.defaultDuration },
+                set: { settings.defaultDuration = $0 }
+            )) {
+                Text("None").tag(TimedUnblockDuration?.none)
+                ForEach(settings.unblockDurations) { duration in
+                    Text(duration.label).tag(TimedUnblockDuration?.some(duration))
                 }
             }
 
@@ -78,7 +88,7 @@ struct GeneralSettingsView: View {
         } header: {
             Text("Unblocking")
         } footer: {
-            Text("Defaults allow to skip selection steps for faster unblocking. Live Activity shows a Lock Screen and Dynamic Island countdown for timed unblocks.")
+            Text("Defaults allow to skip selection steps for faster unblocking. Live Activity shows a Lock Screen and Dynamic Island countdown for timed unblocks, for up to 8 hours.")
         }
     }
 

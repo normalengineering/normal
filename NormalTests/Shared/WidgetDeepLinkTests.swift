@@ -11,14 +11,14 @@ struct WidgetDeepLinkTests {
     }
 
     @Test func buildsSchemeAndHost() {
-        let url = WidgetDeepLink.unlockURL(groupID: UUID(), durationSeconds: nil, keyTypeRawValue: nil)
+        let url = WidgetDeepLink.unlockURL(groupID: UUID(), duration: .useDefault, keyTypeRawValue: nil)
         #expect(url.scheme == WidgetDeepLink.scheme)
         #expect(url.host == WidgetDeepLink.unlockHost)
     }
 
     @Test func includesAllParamsWhenProvided() {
         let id = UUID()
-        let url = WidgetDeepLink.unlockURL(groupID: id, durationSeconds: 3600, keyTypeRawValue: "QR")
+        let url = WidgetDeepLink.unlockURL(groupID: id, duration: .fixed(.oneHour), keyTypeRawValue: "QR")
         let items = queryItems(url)
         #expect(items[WidgetDeepLink.groupQueryItem] == id.uuidString)
         #expect(items[WidgetDeepLink.durationQueryItem] == "3600")
@@ -26,11 +26,16 @@ struct WidgetDeepLinkTests {
     }
 
     @Test func omitsNilParams() {
-        let url = WidgetDeepLink.unlockURL(groupID: UUID(), durationSeconds: nil, keyTypeRawValue: nil)
+        let url = WidgetDeepLink.unlockURL(groupID: UUID(), duration: .useDefault, keyTypeRawValue: nil)
         let items = queryItems(url)
         #expect(items[WidgetDeepLink.durationQueryItem] == nil)
         #expect(items[WidgetDeepLink.keyQueryItem] == nil)
         #expect(items[WidgetDeepLink.groupQueryItem] != nil)
+    }
+
+    @Test func encodesAskEachTime() {
+        let url = WidgetDeepLink.unlockURL(groupID: UUID(), duration: .ask, keyTypeRawValue: nil)
+        #expect(queryItems(url)[WidgetDeepLink.durationQueryItem] == "ask")
     }
 
     @Test func blockURLUsesBlockHostWithOnlyGroup() {

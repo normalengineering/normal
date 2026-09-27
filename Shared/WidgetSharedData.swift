@@ -69,6 +69,15 @@ struct WidgetSharedStore: Sendable {
         defaults?.stringArray(forKey: SharedConstants.DefaultsKey.widgetKeyTypes) ?? []
     }
 
+    func saveUnblockDurations(_ seconds: [Int]) {
+        defaults?.set(seconds, forKey: SharedConstants.DefaultsKey.widgetUnblockDurations)
+    }
+
+    func loadUnblockDurations() -> [TimedUnblockDuration] {
+        let stored = defaults?.array(forKey: SharedConstants.DefaultsKey.widgetUnblockDurations) as? [Int]
+        return TimedUnblockDuration.sanitized(stored)
+    }
+
     func saveBlockStatuses(_ statuses: [String: String]) {
         defaults?.set(statuses, forKey: SharedConstants.DefaultsKey.widgetBlockStatuses)
     }
@@ -103,10 +112,10 @@ enum WidgetDeepLink {
     static let durationQueryItem = "duration"
     static let keyQueryItem = "key"
 
-    static func unlockURL(groupID: UUID, durationSeconds: Int?, keyTypeRawValue: String?) -> URL {
+    static func unlockURL(groupID: UUID, duration: UnlockDurationRequest, keyTypeRawValue: String?) -> URL {
         var items = [URLQueryItem(name: groupQueryItem, value: groupID.uuidString)]
-        if let durationSeconds {
-            items.append(URLQueryItem(name: durationQueryItem, value: String(durationSeconds)))
+        if let durationValue = duration.queryValue {
+            items.append(URLQueryItem(name: durationQueryItem, value: durationValue))
         }
         if let keyTypeRawValue {
             items.append(URLQueryItem(name: keyQueryItem, value: keyTypeRawValue))

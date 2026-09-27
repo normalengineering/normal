@@ -40,6 +40,22 @@ struct DTOBackCompatTests {
         let decoded = try PropertyListDecoder().decode(TimedUnblockDTO.self, from: blob)
         #expect(decoded.id == "main")
         #expect(decoded.customDomains == [], "Absent key decodes to an empty list")
+        #expect(decoded.startDate == nil, "Unblocks persisted before startDate still decode")
+    }
+
+    @Test func timedUnblockDTORoundTripsStartDate() throws {
+        let start = Date(timeIntervalSince1970: 500)
+        let dto = TimedUnblockDTO(
+            id: "main",
+            selectionData: Data(),
+            endDate: Date(timeIntervalSince1970: 1000),
+            activityName: "timedUnblock_main",
+            isGroupUnblock: false,
+            startDate: start
+        )
+        let blob = try PropertyListEncoder().encode(dto)
+        let decoded = try PropertyListDecoder().decode(TimedUnblockDTO.self, from: blob)
+        #expect(decoded.startDate == start)
     }
 
     @Test func scheduleDTODecodesLegacyBlobWithoutCustomDomains() throws {

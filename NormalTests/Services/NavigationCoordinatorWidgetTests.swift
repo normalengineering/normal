@@ -4,17 +4,17 @@ import Testing
 
 @MainActor
 struct NavigationCoordinatorWidgetTests {
-    private func unlockURL(groupID: UUID, durationSeconds: Int? = nil, key: String? = nil) -> URL {
-        WidgetDeepLink.unlockURL(groupID: groupID, durationSeconds: durationSeconds, keyTypeRawValue: key)
+    private func unlockURL(groupID: UUID, duration: UnlockDurationRequest = .useDefault, key: String? = nil) -> URL {
+        WidgetDeepLink.unlockURL(groupID: groupID, duration: duration, keyTypeRawValue: key)
     }
 
     @Test func handleParsesGroupDurationAndKey() {
         let c = NavigationCoordinator()
         let id = UUID()
-        c.handle(url: unlockURL(groupID: id, durationSeconds: 1800, key: "NFC"))
+        c.handle(url: unlockURL(groupID: id, duration: .fixed(.thirtyMinutes), key: "NFC"))
 
         #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .unlock(duration: .thirtyMinutes, keyType: .nfc))
+        #expect(c.pendingGroupAction?.action == .unlock(duration: .fixed(.thirtyMinutes), keyType: .nfc))
     }
 
     @Test func handleAllowsMissingDurationAndKey() {
@@ -23,17 +23,35 @@ struct NavigationCoordinatorWidgetTests {
         c.handle(url: unlockURL(groupID: id))
 
         #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .unlock(duration: nil, keyType: nil))
+        #expect(c.pendingGroupAction?.action == .unlock(duration: .useDefault, keyType: nil))
     }
 
-    @Test func handleIgnoresUnknownDurationValue() {
+    @Test func handleAcceptsCustomDurationNotInPresets() throws {
         let c = NavigationCoordinator()
         let id = UUID()
-        c.handle(url: unlockURL(groupID: id, durationSeconds: 999))
+        let custom = try #require(TimedUnblockDuration(validating: 5700))
+        c.handle(url: unlockURL(groupID: id, duration: .fixed(custom)))
+
+        #expect(c.pendingGroupAction?.action == .unlock(duration: .fixed(custom), keyType: nil))
+    }
+
+    @Test func handleParsesAskEachTime() {
+        let c = NavigationCoordinator()
+        let id = UUID()
+        c.handle(url: unlockURL(groupID: id, duration: .ask))
+
+        #expect(c.pendingGroupAction?.action == .unlock(duration: .ask, keyType: nil))
+    }
+
+    @Test(arguments: ["999", "60", "90000", "abc"])
+    func handleFallsBackToAskingForInvalidDuration(_ value: String) {
+        let c = NavigationCoordinator()
+        let id = UUID()
+        c.handle(url: URL(string: "normal://unlock?group=\(id.uuidString)&duration=\(value)")!)
 
         #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .unlock(duration: nil, keyType: nil),
-                "999s is not a known UnblockDuration")
+        #expect(c.pendingGroupAction?.action == .unlock(duration: .ask, keyType: nil),
+                "An invalid duration shows the sheet rather than guessing")
     }
 
     @Test func handleParsesBlock() {
@@ -85,9 +103,9 @@ struct NavigationCoordinatorWidgetTests {
     @Test func eachRequestGetsAUniqueToken() {
         let c = NavigationCoordinator()
         let id = UUID()
-        c.requestGroupUnlock(groupID: id, duration: nil, keyType: nil)
+        c.requestGroupUnlock(groupID: id, duration: .useDefault, keyType: nil)
         let first = c.pendingGroupAction?.token
-        c.requestGroupUnlock(groupID: id, duration: nil, keyType: nil)
+        c.requestGroupUnlock(groupID: id, duration: .useDefault, keyType: nil)
         let second = c.pendingGroupAction?.token
 
         #expect(first != nil)

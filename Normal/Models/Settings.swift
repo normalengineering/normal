@@ -8,6 +8,8 @@ final class Settings {
     var emergencyUnblockDates: [Date]
     var defaultKeyType: KeyType?
     var defaultUnblockDuration: UnblockDuration?
+    var customUnblockDurationSeconds: [Int]?
+    var defaultUnblockSeconds: Int?
     var hasCompletedOnboarding: Bool = false
     var blockAllPreventsAppDelete: Bool = true
     var defaultTab: AppTab?

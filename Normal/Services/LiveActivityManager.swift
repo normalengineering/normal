@@ -15,7 +15,7 @@ struct LiveActivityPlan: Equatable {
 
 enum LiveActivityManager {
     @MainActor
-    static func reconcile(active: [String: Date], titles: [String: String]) {
+    static func reconcile(active: [String: Date], titles: [String: String], startDates: [String: Date] = [:]) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
         let running = Activity<TimedUnblockActivityAttributes>.activities
@@ -40,7 +40,7 @@ enum LiveActivityManager {
             let attributes = TimedUnblockActivityAttributes(
                 title: titles[id] ?? String(localized: "Apps"),
                 unblockID: id,
-                startDate: .now
+                startDate: startDates[id] ?? .now
             )
             _ = try? Activity.request(attributes: attributes, content: content(endingAt: endDate))
         }

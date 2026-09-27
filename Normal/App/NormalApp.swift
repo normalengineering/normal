@@ -27,6 +27,8 @@ struct NormalApp: App {
             settings.hasCompletedOnboarding = UITestSupport.skipOnboarding
             settings.enableCustomDomains = UITestSupport.customDomains
             settings.skipBlockWithoutKeyConfirmation = UITestSupport.skipBypassConfirm
+            settings.customUnblockDurationSeconds = UITestSupport.unblockDurationSeconds
+            settings.defaultUnblockSeconds = UITestSupport.defaultDurationSeconds
             context.insert(settings)
         }
 

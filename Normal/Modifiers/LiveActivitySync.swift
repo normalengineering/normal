@@ -23,7 +23,11 @@ private struct LiveActivitySyncModifier: ViewModifier {
             titles[group.id.uuidString] = group.name
         }
         let active = liveActivityEnabled ? timedUnblockService.activeUnblocks : [:]
-        LiveActivityManager.reconcile(active: active, titles: titles)
+        LiveActivityManager.reconcile(
+            active: active,
+            titles: titles,
+            startDates: timedUnblockService.activeUnblockStartDates()
+        )
     }
 }
 
