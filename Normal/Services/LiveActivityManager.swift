@@ -15,6 +15,19 @@ struct LiveActivityPlan: Equatable {
 
 enum LiveActivityManager {
     @MainActor
+    static func reconcile(timedUnblockService: TimedUnblockService, groups: [AppGroup], isEnabled: Bool) {
+        var titles = [TimedUnblockService.mainID: String(localized: "All Apps")]
+        for group in groups {
+            titles[group.id.uuidString] = group.name
+        }
+        reconcile(
+            active: isEnabled ? timedUnblockService.activeUnblocks : [:],
+            titles: titles,
+            startDates: timedUnblockService.activeUnblockStartDates()
+        )
+    }
+
+    @MainActor
     static func reconcile(active: [String: Date], titles: [String: String], startDates: [String: Date] = [:]) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 

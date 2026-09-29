@@ -28,8 +28,10 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     var stubBlockStatus: BlockStatus = .none
     var stubActiveShieldCount: Int = 0
     var stubIsAppDeleteDisabled: Bool = false
+    var stubIsAuthorizedNow: Bool = true
 
     var isAppDeleteDisabled: Bool { stubIsAppDeleteDisabled }
+    var isAuthorizedNow: Bool { stubIsAuthorizedNow }
 
     func notifyUpdate() {
         notifyUpdateCallCount += 1

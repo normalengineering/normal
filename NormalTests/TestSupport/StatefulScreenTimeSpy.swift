@@ -13,6 +13,7 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
     private(set) var invariantViolated = false
 
     var isAppDeleteDisabled: Bool { appDeleteDisabled }
+    var isAuthorizedNow: Bool { authorizationState == .authorized }
 
     private func checkInvariant() {
         if appDeleteDisabled, !shieldActive {

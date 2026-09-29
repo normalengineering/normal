@@ -1,9 +1,9 @@
 import Foundation
 
-enum SharedConstants {
+nonisolated enum SharedConstants {
     static let appGroupID = "group.com.normalengineering.block"
 
-    enum DefaultsKey {
+    nonisolated enum DefaultsKey {
         static let timedUnblocks = "timedUnblocks_v1"
         static let schedules = "schedules_v1"
         static let scheduleOverride = "scheduleOverride_v1"

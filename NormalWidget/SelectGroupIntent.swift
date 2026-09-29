@@ -88,32 +88,6 @@ struct UnblockDurationEntityQuery: EntityQuery {
     }
 }
 
-struct GroupEntity: AppEntity {
-    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Group")
-    static let defaultQuery = GroupEntityQuery()
-
-    let id: UUID
-    let name: String
-
-    var displayRepresentation: DisplayRepresentation {
-        DisplayRepresentation(title: "\(name)")
-    }
-}
-
-struct GroupEntityQuery: EntityQuery {
-    private let store = WidgetSharedStore()
-
-    func entities(for identifiers: [UUID]) async throws -> [GroupEntity] {
-        store.loadGroups()
-            .filter { identifiers.contains($0.id) }
-            .map { GroupEntity(id: $0.id, name: $0.name) }
-    }
-
-    func suggestedEntities() async throws -> [GroupEntity] {
-        store.loadGroups().map { GroupEntity(id: $0.id, name: $0.name) }
-    }
-}
-
 struct KeyTypeEntity: AppEntity {
     static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Key Type")
     static let defaultQuery = KeyTypeEntityQuery()

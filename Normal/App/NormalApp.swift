@@ -1,3 +1,4 @@
+import AppIntents
 import FamilyControls
 import SwiftData
 import SwiftUI
@@ -5,6 +6,7 @@ import SwiftUI
 @main
 struct NormalApp: App {
     let modelContainer: ModelContainer
+    let services: AppServices
 
     init() {
         let schema = Schema([
@@ -58,11 +60,18 @@ struct NormalApp: App {
         }
 
         modelContainer = container
+        services = AppServices()
+
+        let blockPerformer: any BlockIntentPerforming = AppBlockIntentPerformer(
+            container: container,
+            services: services
+        )
+        AppDependencyManager.shared.add(dependency: blockPerformer)
     }
 
     var body: some Scene {
         WindowGroup {
-            AppContainer()
+            AppContainer(services: services)
         }
         .modelContainer(modelContainer)
     }

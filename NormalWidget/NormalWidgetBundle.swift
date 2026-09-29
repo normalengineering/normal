@@ -6,5 +6,7 @@ struct NormalWidgetBundle: WidgetBundle {
     var body: some Widget {
         GroupUnlockWidget()
         TimedUnblockLiveActivity()
+        BlockAllControl()
+        BlockGroupControl()
     }
 }

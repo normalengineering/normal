@@ -6,6 +6,7 @@ protocol ScreenTimeProviding: AnyObject {
     var authorizationState: AuthorizationState { get set }
     var lastUpdate: Date { get set }
     var isAppDeleteDisabled: Bool { get }
+    var isAuthorizedNow: Bool { get }
 
     func notifyUpdate()
     func checkAuthorizationStatus() async

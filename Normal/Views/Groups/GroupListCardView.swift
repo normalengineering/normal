@@ -100,6 +100,15 @@ struct GroupListCardView: View {
         authAction = action
     }
 
+    private func blockGroup() {
+        BlockActions.blockGroup(
+            appGroup,
+            settings: settings,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService
+        )
+    }
+
     private var header: some View {
         HStack(alignment: .center) {
             Text(appGroup.name)
@@ -174,14 +183,7 @@ struct GroupListCardView: View {
                 .foregroundStyle(.secondary)
             Spacer()
             Button {
-                requestAction(allowBypass: true) {
-                    timedUnblockService.cancelGroup(
-                        groupId: appGroup.id,
-                        selection: appGroup.selection,
-                        customDomains: customDomains,
-                        screenTimeService: screenTimeService
-                    )
-                }
+                requestAction(allowBypass: true, blockGroup)
             } label: {
                 Text("Block Now").font(.caption.weight(.semibold))
             }
@@ -208,9 +210,7 @@ struct GroupListCardView: View {
             prominent: true,
             tint: .blue
         ) {
-            requestAction(allowBypass: true) {
-                screenTimeService.addToShields(selection: appGroup.selection, customDomains: customDomains)
-            }
+            requestAction(allowBypass: true, blockGroup)
         }
         .accessibilityIdentifier("group.blockButton")
         .disabled(!hasGlobalKey)

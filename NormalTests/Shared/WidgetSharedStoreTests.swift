@@ -59,6 +59,34 @@ struct WidgetSharedStoreTests {
         #expect(store.group(id: UUID()) == nil)
     }
 
+    @Test func groupDetailRoundTripsIntoEntity() throws {
+        let (store, _) = makeStore()
+        let saved = WidgetGroupDTO(id: UUID(), name: "Social", sortIndex: 0, detail: "3 Apps, 1 Website")
+        store.saveGroups([saved])
+
+        let loaded = try #require(store.loadGroups().first)
+        let entity = GroupEntity(dto: loaded)
+        #expect(entity.id == saved.id)
+        #expect(entity.name == "Social")
+        #expect(entity.detail == "3 Apps, 1 Website")
+    }
+
+    @Test func groupsMirroredByOlderBuildsDecodeWithoutDetail() throws {
+        struct LegacyGroupDTO: Encodable {
+            let id: UUID
+            let name: String
+            let sortIndex: Int
+        }
+        let (store, defaults) = makeStore()
+        let id = UUID()
+        let data = try PropertyListEncoder().encode([LegacyGroupDTO(id: id, name: "Social", sortIndex: 0)])
+        defaults.set(data, forKey: SharedConstants.DefaultsKey.widgetGroups)
+
+        let loaded = store.loadGroups()
+        #expect(loaded.map(\.id) == [id])
+        #expect(loaded.first?.detail == nil)
+    }
+
     @Test func timedUnblockEndReturnsStoredExpiry() throws {
         let (store, defaults) = makeStore()
         let groupID = UUID()

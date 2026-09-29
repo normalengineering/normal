@@ -18,15 +18,10 @@ private struct LiveActivitySyncModifier: ViewModifier {
     }
 
     private func reconcile() {
-        var titles = [TimedUnblockService.mainID: String(localized: "All Apps")]
-        for group in groups {
-            titles[group.id.uuidString] = group.name
-        }
-        let active = liveActivityEnabled ? timedUnblockService.activeUnblocks : [:]
         LiveActivityManager.reconcile(
-            active: active,
-            titles: titles,
-            startDates: timedUnblockService.activeUnblockStartDates()
+            timedUnblockService: timedUnblockService,
+            groups: groups,
+            isEnabled: liveActivityEnabled
         )
     }
 }

@@ -4,6 +4,7 @@ struct WidgetGroupDTO: Codable, Identifiable, Sendable, Equatable {
     let id: UUID
     let name: String
     let sortIndex: Int
+    var detail: String? = nil
 }
 
 enum WidgetBlockStatus: String, Sendable {
@@ -12,7 +13,7 @@ enum WidgetBlockStatus: String, Sendable {
     case unblocked
 }
 
-enum WidgetGroupState: Equatable, Sendable {
+nonisolated enum WidgetGroupState: Equatable, Sendable {
     case blocked
     case unblocked(until: Date?)
 
@@ -37,7 +38,7 @@ private struct WidgetUnblockStatusDTO: Codable {
     let endDate: Date
 }
 
-struct WidgetSharedStore: Sendable {
+nonisolated struct WidgetSharedStore: Sendable {
     private nonisolated(unsafe) let defaults: UserDefaults?
 
     init(defaults: UserDefaults? = nil) {

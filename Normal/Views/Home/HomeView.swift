@@ -85,13 +85,13 @@ struct HomeView: View {
     }
 
     private func blockMain(_ selection: SelectedApps) {
-        screenTimeService.applyShieldOnAll(
-            selection: selection.selection,
-            customDomains: customDomains(for: selection),
-            blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+        BlockActions.blockAll(
+            mainSelection: selection,
+            settings: settings,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService,
+            scheduleService: scheduleService
         )
-        timedUnblockService.clearAll()
-        scheduleService.setScheduleOverride(false)
     }
 
     private func unblockMain(_ selection: SelectedApps) {

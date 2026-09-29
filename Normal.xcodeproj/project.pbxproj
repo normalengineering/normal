@@ -130,7 +130,9 @@
 		2FDA0000000000000000A006 /* Exceptions for "Shared" folder in "NormalWidget" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				BlockIntents.swift,
 				DismissUnblockActivityIntent.swift,
+				GroupEntity.swift,
 				SharedConstants.swift,
 				TimedUnblockActivityAttributes.swift,
 				TimedUnblockDuration.swift,

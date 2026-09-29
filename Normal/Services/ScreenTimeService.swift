@@ -20,7 +20,10 @@ final class ScreenTimeService: ScreenTimeProviding {
         self.defaults = defaults
         self.shield = shield
             ?? (UITestSupport.isActive ? InMemoryShieldStore() : ManagedSettingsShieldStore())
-        Task { await checkAuthorizationStatus() }
+    }
+
+    var isAuthorizedNow: Bool {
+        UITestSupport.isActive || authCenter.authorizationStatus == .approved
     }
 
     var isAppDeleteDisabled: Bool {

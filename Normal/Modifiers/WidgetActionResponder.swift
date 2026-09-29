@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftData
 import SwiftUI
 
@@ -16,10 +17,6 @@ private struct WidgetActionResponder: ViewModifier {
     @State private var keyType: KeyType?
     @State private var allowBypass = false
     @State private var showDurationSheet = false
-
-    private var availableKeyTypes: [KeyType] {
-        KeyType.selectable(registered: keys.map(\.type))
-    }
 
     private var unblockDurations: [TimedUnblockDuration] {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
@@ -46,29 +43,25 @@ private struct WidgetActionResponder: ViewModifier {
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }
-            .onChange(of: groups) { _, _ in syncWidget() }
+            .onChange(of: groups) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
             .onChange(of: unblockDurations) { _, _ in syncWidget() }
-            .onAppear { syncWidget() }
+            .onAppear { syncGroups() }
     }
 
     private func syncWidget() {
-        let blockStatuses = Dictionary(uniqueKeysWithValues: groups.map { group in
-            (
-                group.id.uuidString,
-                screenTimeService.blockStatus(
-                    selection: group.selection,
-                    customDomains: customDomains(for: group)
-                ).widget.rawValue
-            )
-        })
         WidgetSync.sync(
             groups: groups,
-            availableKeyTypes: availableKeyTypes,
-            blockStatuses: blockStatuses,
-            unblockDurations: unblockDurations
+            keys: keys,
+            settings: allSettings.first,
+            screenTimeService: screenTimeService
         )
+    }
+
+    private func syncGroups() {
+        syncWidget()
+        NormalShortcuts.updateAppShortcutParameters()
     }
 
     private func resolve(_ request: GroupActionRequest?) {
@@ -116,16 +109,12 @@ private struct WidgetActionResponder: ViewModifier {
     }
 
     private func block(_ group: AppGroup) {
-        if timedUnblockService.isGroupUnblockActive(groupId: group.id) {
-            timedUnblockService.cancelGroup(
-                groupId: group.id,
-                selection: group.selection,
-                customDomains: customDomains(for: group),
-                screenTimeService: screenTimeService
-            )
-        } else {
-            screenTimeService.addToShields(selection: group.selection, customDomains: customDomains(for: group))
-        }
+        BlockActions.blockGroup(
+            group,
+            settings: allSettings.unwrapped,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService
+        )
     }
 }
 
