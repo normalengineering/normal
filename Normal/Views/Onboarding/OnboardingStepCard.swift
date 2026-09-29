@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct OnboardingStepCard: View {
-    let title: String
-    let description: String
+    let title: LocalizedStringResource
+    let description: LocalizedStringResource
     let onNext: () -> Void
     let onSkip: () -> Void
 

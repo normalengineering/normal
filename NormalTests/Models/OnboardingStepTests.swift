@@ -30,23 +30,31 @@ struct OnboardingStepTests {
         #expect(OnboardingStep.tabHome.next() == .tabAppSelect)
     }
 
-    @Test func nextFromLastTabGoesToComplete() {
-        #expect(OnboardingStep.tabSchedules.next() == .complete)
+    @Test func nextFromLastTabGoesToFinish() {
+        #expect(OnboardingStep.tabSchedules.next() == .finish)
+    }
+
+    @Test func finishIsNotTabWalkthroughAndGoesToComplete() {
+        #expect(OnboardingStep.finish.requiredTab == nil)
+        #expect(!OnboardingStep.finish.isTabWalkthrough)
+        #expect(OnboardingStep.finish.next() == .complete)
     }
 
     @Test func nextFromCompleteStaysComplete() {
         #expect(OnboardingStep.complete.next() == .complete)
     }
 
-    @Test func nonTabStepsHaveEmptyTitle() {
-        #expect(OnboardingStep.welcome.title.isEmpty)
-        #expect(OnboardingStep.complete.title.isEmpty)
+    @Test func nonTabStepsHaveNoTitle() {
+        for step in [OnboardingStep.welcome, .screenTimePermission, .finish, .complete] {
+            #expect(step.title == nil)
+            #expect(step.description == nil)
+        }
     }
 
     @Test func tabStepsHaveTitleAndDescription() {
         for step in [OnboardingStep.tabHome, .tabAppSelect, .tabKeys, .tabGroups, .tabSchedules] {
-            #expect(!step.title.isEmpty)
-            #expect(!step.description.isEmpty)
+            #expect(step.title != nil)
+            #expect(step.description != nil)
         }
     }
 }

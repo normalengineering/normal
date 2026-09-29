@@ -17,9 +17,17 @@ struct OnboardingServiceTests {
         #expect(s.currentStep == .tabHome)
     }
 
-    @Test func nextOnLastTabCompletes() {
+    @Test func nextOnLastTabShowsFinish() {
         let s = OnboardingService()
         s.currentStep = .tabSchedules
+        s.next()
+        #expect(s.currentStep == .finish)
+        #expect(s.isOnboardingActive)
+    }
+
+    @Test func nextOnFinishCompletes() {
+        let s = OnboardingService()
+        s.currentStep = .finish
         s.next()
         #expect(s.currentStep == .complete)
         #expect(!s.isOnboardingActive)

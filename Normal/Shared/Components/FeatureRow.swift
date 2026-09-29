@@ -11,8 +11,10 @@ struct FeatureRow: View {
                 .font(.title3)
                 .foregroundStyle(tint)
                 .frame(width: DS.Size.iconWell, alignment: .center)
+                .accessibilityHidden(true)
             Text(text)
                 .font(.subheadline)
         }
+        .accessibilityElement(children: .combine)
     }
 }

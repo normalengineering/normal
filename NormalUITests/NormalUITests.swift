@@ -50,6 +50,39 @@ final class NormalUITests: XCTestCase {
     }
 
     @MainActor
+    func testOnboardingFinishViewFAQOpensSettingsFAQ() {
+        let app = launch(["-uiTestMode"])
+
+        let getStarted = app.buttons["onboarding.getStarted"]
+        require(getStarted, "Get Started button should exist on welcome step")
+        getStarted.tap()
+        XCTAssertTrue(getStarted.waitForNonExistence(timeout: timeout), "Welcome card should be dismissed")
+
+        let skipPermission = app.buttons["Skip"]
+        require(skipPermission, "Permission step should offer Skip")
+        skipPermission.tap()
+
+        for _ in 0 ..< 5 {
+            let next = app.buttons["Next"]
+            require(next, "Each tab walkthrough step should offer Next")
+            next.tap()
+        }
+
+        require(app.staticTexts["You're All Set"], "Tab walkthrough should end on the finish card")
+        let viewFAQ = app.buttons["onboarding.viewFAQ"]
+        require(viewFAQ, "Finish card should offer View FAQ")
+        viewFAQ.tap()
+
+        let faqTab = app.tabBars.buttons["FAQ"]
+        require(faqTab, "View FAQ should open Settings")
+        XCTAssertTrue(faqTab.isSelected, "Settings should open on the FAQ tab")
+        require(
+            app.staticTexts["Can I prevent disabling Normal via Settings? I want to make it impossible to access blocked apps."],
+            "FAQ should list the Settings bypass guide"
+        )
+    }
+
+    @MainActor
     func testAddKeyViaScanCreatesKey() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 

@@ -160,7 +160,7 @@ enum FAQAnswer {
                 BulletRow(text: "We can't confirm it's the same tag you registered")
                 BulletRow(text: "So they can't be used as a reliable key")
             }
-            Text("Use a tag with a fixed unique ID; AirTags, Amiibo, most Credit Cards and most everyday NFC tags work well. Or use a QR code or barcode as a key instead.")
+            Text("Use a tag with a fixed unique ID; AirTags, Amiibo, most Credit Cards and most everyday NFC tags work well. Or use a QR code/barcode or Location as a key instead.")
         }
         .font(body)
         .foregroundStyle(.secondary)

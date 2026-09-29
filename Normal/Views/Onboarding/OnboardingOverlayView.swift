@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingOverlayView: View {
     @Environment(OnboardingService.self) private var onboardingService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(\.navigationCoordinator) private var navigationCoordinator
 
     var body: some View {
         ZStack {
@@ -29,6 +30,16 @@ struct OnboardingOverlayView: View {
             case .tabHome, .tabAppSelect, .tabKeys, .tabGroups, .tabSchedules:
                 tabWalkthroughOverlay
 
+            case .finish:
+                scrim
+                OnboardingFinishView(
+                    onDone: { onboardingService.next() },
+                    onViewFAQ: {
+                        onboardingService.next()
+                        navigationCoordinator.presentSettings(tab: .faq)
+                    }
+                )
+
             case .complete:
                 EmptyView()
             }
@@ -48,12 +59,14 @@ struct OnboardingOverlayView: View {
             scrim.allowsHitTesting(false)
             VStack {
                 Spacer()
-                OnboardingStepCard(
-                    title: step.title,
-                    description: step.description,
-                    onNext: { onboardingService.next() },
-                    onSkip: { onboardingService.skip() }
-                )
+                if let title = step.title, let description = step.description {
+                    OnboardingStepCard(
+                        title: title,
+                        description: description,
+                        onNext: { onboardingService.next() },
+                        onSkip: { onboardingService.skip() }
+                    )
+                }
                 Spacer().frame(height: 100)
             }
         }

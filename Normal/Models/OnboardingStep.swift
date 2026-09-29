@@ -8,6 +8,7 @@ enum OnboardingStep: String, CaseIterable, Sendable {
     case tabKeys
     case tabGroups
     case tabSchedules
+    case finish
     case complete
 
     var requiredTab: AppTab? {
@@ -23,25 +24,25 @@ enum OnboardingStep: String, CaseIterable, Sendable {
 
     var isTabWalkthrough: Bool { requiredTab != nil }
 
-    var title: String {
+    var title: LocalizedStringResource? {
         switch self {
-        case .tabHome: "Home"
-        case .tabAppSelect: "App Select"
-        case .tabKeys: "Keys"
-        case .tabGroups: "Groups"
-        case .tabSchedules: "Schedules"
-        default: ""
+        case .tabHome: return "Home"
+        case .tabAppSelect: return "App Select"
+        case .tabKeys: return "Keys"
+        case .tabGroups: return "Groups"
+        case .tabSchedules: return "Schedules"
+        default: return nil
         }
     }
 
-    var description: String {
+    var description: LocalizedStringResource? {
         switch self {
-        case .tabHome: "View your block status and quickly block or unblock all your selected apps."
-        case .tabAppSelect: "Choose which apps you want Normal to manage. These are the apps that can be blocked."
-        case .tabKeys: "Register NFC tags, QR codes, or barcodes as physical keys to lock and unlock your apps."
-        case .tabGroups: "Organize your apps into groups so you can block and unblock them separately."
-        case .tabSchedules: "Set up automatic schedules to block apps at certain times and days."
-        default: ""
+        case .tabHome: return "View your block status and quickly block or unblock all your selected apps."
+        case .tabAppSelect: return "Choose which apps you want Normal to manage. These are the apps that can be blocked."
+        case .tabKeys: return "Add keys to lock and unlock your apps. A key can be an NFC tag, a QR code/barcode, or a location."
+        case .tabGroups: return "Organize your apps into groups so you can block and unblock them independently."
+        case .tabSchedules: return "Set up automatic schedules to block apps at certain times and days."
+        default: return nil
         }
     }
 

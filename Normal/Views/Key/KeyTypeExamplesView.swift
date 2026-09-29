@@ -7,6 +7,7 @@ struct KeyTypeExamplesView: View {
         VStack(alignment: .leading, spacing: DS.Spacing.xl) {
             if isNFCAvailable { nfcCard }
             qrCard
+            locationCard
             placementCard
         }
     }
@@ -35,13 +36,23 @@ struct KeyTypeExamplesView: View {
         }
     }
 
+    private var locationCard: some View {
+        card {
+            cardTitle("Location examples", systemImage: KeyType.location.icon)
+            FeatureRow(systemImage: "location.circle.fill", text: "Unblock radius: your key only works inside the areas you choose, like your office or the gym.", tint: LocationRadiusKind.unblock.zoneColor)
+            FeatureRow(systemImage: "location.slash.circle.fill", text: "Block radius: your key only works outside the areas you choose, like home or school, so you can't unblock while you're there.", tint: LocationRadiusKind.block.zoneColor)
+            FeatureRow(systemImage: "iphone", text: "To use a location key, open Normal and unblock. Normal only checks your location at that moment, never in the background.")
+        }
+    }
+
     private var placementCard: some View {
         card {
             cardTitle("Where to place them", systemImage: "mappin.and.ellipse")
             FeatureRow(systemImage: "door.left.hand.closed", text: "Another room, a closet, or a high shelf", tint: .orange)
             FeatureRow(systemImage: "car.fill", text: "Your car, office, mailbox or with a trusted person", tint: .orange)
+            FeatureRow(systemImage: "location.fill", text: "For location keys, the park, office or somewhere random far away.", tint: .orange)
             FeatureRow(systemImage: "person.2.fill", text: "However difficult you make it to reach is how difficult it will be to unblock your device.", tint: .orange)
-            BulletRow(text: "Keep a backup key somewhere safe so you're never fully locked out.")
+            BulletRow(text: "Setup an accessible backup key so you're never fully locked out.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .padding(.top, DS.Spacing.xs)
@@ -60,6 +71,6 @@ struct KeyTypeExamplesView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(DS.Radius.md)
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.md))
     }
 }
