@@ -6,7 +6,7 @@ import SwiftData
 enum InMemoryModelContainer {
     static func make() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        return try ModelContainer(
+        let container = try ModelContainer(
             for: Key.self,
             Settings.self,
             BlockSchedule.self,
@@ -14,5 +14,7 @@ enum InMemoryModelContainer {
             AppGroup.self,
             configurations: config
         )
+        container.mainContext.autosaveEnabled = false
+        return container
     }
 }

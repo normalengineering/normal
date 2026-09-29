@@ -5,6 +5,9 @@ enum UITestSupport {
 
     static let isActive = arguments.contains("-uiTestMode")
 
+    static let isUnitTestHost = !isActive
+        && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+
     static let skipOnboarding = arguments.contains("-uiTestSkipOnboarding")
 
     static let seedSchedule = arguments.contains("-uiTestSeedSchedule")

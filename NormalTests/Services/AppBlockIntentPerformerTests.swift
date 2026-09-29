@@ -32,7 +32,7 @@ struct AppBlockIntentPerformerTests {
         onboarded: Bool = true,
         globalKey: Bool = true,
         mainDomains: [String] = ["example.com"]
-    ) -> Settings {
+    ) throws -> Settings {
         let settings = Settings()
         settings.hasCompletedOnboarding = onboarded
         settings.enableCustomDomains = true
@@ -41,13 +41,14 @@ struct AppBlockIntentPerformerTests {
         if globalKey {
             context.insert(Key(name: "global", type: .qr, rawValue: "g"))
         }
+        try context.save()
         return settings
     }
 
     // MARK: - blockAll
 
     @Test func blockAllAppliesShieldAndReportsNewBlock() throws {
-        seed()
+        try seed()
         screenTime.stubBlockStatus = .none
 
         let outcome = try performer.blockAll()
@@ -58,7 +59,7 @@ struct AppBlockIntentPerformerTests {
     }
 
     @Test func blockAllReportsAlreadyBlocked() throws {
-        seed()
+        try seed()
         screenTime.stubBlockStatus = .all
 
         let outcome = try performer.blockAll()
@@ -67,7 +68,7 @@ struct AppBlockIntentPerformerTests {
     }
 
     @Test func blockAllDuringTimedUnblockIsNotAlreadyBlocked() throws {
-        seed()
+        try seed()
         screenTime.stubBlockStatus = .all
         try timedUnblock.startMain(
             duration: .fifteenMinutes,
@@ -81,8 +82,8 @@ struct AppBlockIntentPerformerTests {
         #expect(!timedUnblock.isMainUnblockActive)
     }
 
-    @Test func blockAllRequiresSomethingSelected() {
-        seed(mainDomains: [])
+    @Test func blockAllRequiresSomethingSelected() throws {
+        try seed(mainDomains: [])
 
         #expect(throws: BlockIntentError.noAppsSelected) {
             try performer.blockAll()
@@ -90,16 +91,16 @@ struct AppBlockIntentPerformerTests {
         #expect(!screenTime.applyShieldOnAllCalled)
     }
 
-    @Test func blockAllRequiresCompletedSetup() {
-        seed(onboarded: false)
+    @Test func blockAllRequiresCompletedSetup() throws {
+        try seed(onboarded: false)
 
         #expect(throws: BlockIntentError.setupIncomplete) {
             try performer.blockAll()
         }
     }
 
-    @Test func blockAllRequiresScreenTimeAuthorization() {
-        seed()
+    @Test func blockAllRequiresScreenTimeAuthorization() throws {
+        try seed()
         screenTime.stubIsAuthorizedNow = false
 
         #expect(throws: BlockIntentError.screenTimeNotAuthorized) {
@@ -108,9 +109,10 @@ struct AppBlockIntentPerformerTests {
         #expect(!screenTime.applyShieldOnAllCalled)
     }
 
-    @Test func blockAllRequiresGlobalKey() {
-        seed(globalKey: false)
+    @Test func blockAllRequiresGlobalKey() throws {
+        try seed(globalKey: false)
         context.insert(Key(name: "group", type: .qr, rawValue: "a", groupID: UUID()))
+        try context.save()
 
         #expect(throws: BlockIntentError.noGlobalKey) {
             try performer.blockAll()
@@ -120,10 +122,11 @@ struct AppBlockIntentPerformerTests {
     // MARK: - blockGroup
 
     @Test func blockGroupResolvesGroupById() throws {
-        seed()
+        try seed()
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection(), customDomains: ["x.com"])
         context.insert(group)
         context.insert(AppGroup(name: "Games", selection: FamilyActivitySelection()))
+        try context.save()
 
         let outcome = try performer.blockGroup(id: group.id)
 
@@ -132,8 +135,8 @@ struct AppBlockIntentPerformerTests {
         #expect(screenTime.addToShieldsCustomDomains == ["x.com"])
     }
 
-    @Test func blockGroupThrowsForDeletedGroup() {
-        seed()
+    @Test func blockGroupThrowsForDeletedGroup() throws {
+        try seed()
 
         #expect(throws: BlockIntentError.groupNotFound) {
             try performer.blockGroup(id: UUID())
@@ -142,9 +145,10 @@ struct AppBlockIntentPerformerTests {
     }
 
     @Test func blockGroupEndsTimedUnblock() throws {
-        seed()
+        try seed()
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
         context.insert(group)
+        try context.save()
         try timedUnblock.startGroup(
             duration: .fifteenMinutes,
             groupId: group.id,
@@ -160,9 +164,10 @@ struct AppBlockIntentPerformerTests {
     }
 
     @Test func blockGroupReportsAlreadyBlocked() throws {
-        seed()
+        try seed()
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
         context.insert(group)
+        try context.save()
         screenTime.stubBlockStatus = .all
 
         let outcome = try performer.blockGroup(id: group.id)

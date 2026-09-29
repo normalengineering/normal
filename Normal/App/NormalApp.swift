@@ -18,7 +18,7 @@ struct NormalApp: App {
         ])
         let configuration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: UITestSupport.isActive
+            isStoredInMemoryOnly: UITestSupport.isActive || UITestSupport.isUnitTestHost
         )
         let container = try! ModelContainer(for: schema, configurations: configuration)
 
@@ -71,7 +71,11 @@ struct NormalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppContainer(services: services)
+            if UITestSupport.isUnitTestHost {
+                Color.clear
+            } else {
+                AppContainer(services: services)
+            }
         }
         .modelContainer(modelContainer)
     }

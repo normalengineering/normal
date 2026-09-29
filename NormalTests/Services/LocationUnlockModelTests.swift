@@ -4,7 +4,7 @@ import Testing
 
 @MainActor
 struct LocationUnlockModelTests {
-    private static let cupertino = CLLocationCoordinate2D(latitude: 37.3349, longitude: -122.0090)
+    private nonisolated static let cupertino = CLLocationCoordinate2D(latitude: 37.3349, longitude: -122.0090)
     private static let london = CLLocationCoordinate2D(latitude: 51.5074, longitude: -0.1278)
 
     private func locationKey(
