@@ -56,7 +56,9 @@ struct ScheduleCardView: View {
         }
         .editDeleteContextMenu(
             isDisabled: isLocked && !needsSync,
+            isDuplicateDisabled: needsSync,
             onEdit: { if needsSync { isReselecting = true } else { isEditing = true } },
+            onDuplicate: duplicateSchedule,
             onDelete: { showDeleteConfirmation = true }
         )
         .sheet(isPresented: $isEditing) {
@@ -225,6 +227,16 @@ struct ScheduleCardView: View {
             scheduleService.syncAllToSharedStore(allSchedules)
         } catch {
             self.error = error
+        }
+    }
+
+    private func duplicateSchedule() {
+        let ordered = allSchedules.sorted { $0.sortIndex < $1.sortIndex }
+        let copy = schedule.duplicate(named: CopyNaming.name(for: schedule.name, existing: allSchedules.map(\.name)))
+        withAnimation {
+            modelContext.insert(copy)
+            let reordered = SortIndexing.insert(copy, after: schedule, in: ordered, sortIndex: \.sortIndex)
+            scheduleService.syncAllToSharedStore(reordered)
         }
     }
 

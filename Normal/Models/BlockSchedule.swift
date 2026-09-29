@@ -82,6 +82,21 @@ final class BlockSchedule: Identifiable {
         self.customDomains = customDomains
     }
 
+    func duplicate(named name: String) -> BlockSchedule {
+        BlockSchedule(
+            name: name,
+            selection: selection,
+            startHour: startHour,
+            startMinute: startMinute,
+            durationMinutes: durationMinutes,
+            weekdays: weekdays,
+            shouldBlock: shouldBlock,
+            isTimed: isTimed,
+            isEnabled: false,
+            customDomains: customDomains
+        )
+    }
+
     func isActive(at now: Date, calendar: Calendar = .current) -> Bool {
         guard isEnabled else { return false }
 

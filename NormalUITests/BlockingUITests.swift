@@ -152,6 +152,38 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(app.switches["schedule.enabledToggle"].exists, "Schedule enable toggle should exist")
     }
 
+    func testDuplicateScheduleAddsDisabledCopy() {
+        let app = launch(["-uiTestSeedSchedule"])
+
+        app.tabBars.buttons["Schedules"].tap()
+        let original = app.staticTexts["Test Schedule"]
+        require(original, "Seeded schedule card should render")
+        original.press(forDuration: 1)
+
+        let duplicate = app.buttons["Duplicate"]
+        require(duplicate, "Schedule context menu should offer Duplicate")
+        duplicate.tap()
+
+        require(app.staticTexts["Test Schedule Copy"], "Duplicate should add a copy named after the original")
+        let toggles = app.switches.matching(identifier: "schedule.enabledToggle")
+        XCTAssertEqual(toggles.count, 2, "Original and copy should both be listed")
+        XCTAssertEqual(toggles.element(boundBy: 0).value as? String, "1", "Original should stay enabled")
+        XCTAssertEqual(toggles.element(boundBy: 1).value as? String, "0", "Copy should start disabled, below the original")
+    }
+
+    func testDuplicateScheduleUnavailableWhileBlocked() {
+        let app = launch(["-uiTestSeedSchedule", "-uiTestStartBlocked"])
+
+        app.tabBars.buttons["Schedules"].tap()
+        let original = app.staticTexts["Test Schedule"]
+        require(original, "Seeded schedule card should render")
+        original.press(forDuration: 1)
+
+        let duplicate = app.buttons["Duplicate"]
+        require(duplicate, "Schedule context menu should list Duplicate")
+        XCTAssertFalse(duplicate.isEnabled, "Duplicate should be unavailable while apps are blocked")
+    }
+
     func testBypassConfirmationSkippedWhenSettingIsOn() {
         let app = launch(["-uiTestSkipBypassConfirm"])
 

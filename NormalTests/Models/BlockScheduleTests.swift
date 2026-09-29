@@ -113,4 +113,31 @@ struct BlockScheduleTests {
         s.sortIndex = 99
         #expect(s.sortIndex == 99)
     }
+
+    @Test func duplicateCopiesFieldsAndStartsDisabled() {
+        let original = makeSchedule(
+            startHour: 22,
+            startMinute: 15,
+            durationMinutes: 90,
+            weekdays: [1, 7],
+            shouldBlock: false,
+            isTimed: false,
+            isEnabled: true
+        )
+        original.customDomains = ["example.com"]
+
+        let copy = original.duplicate(named: "Work Copy")
+
+        #expect(copy.id != original.id)
+        #expect(copy.name == "Work Copy")
+        #expect(copy.selection == original.selection)
+        #expect(copy.startHour == 22)
+        #expect(copy.startMinute == 15)
+        #expect(copy.durationMinutes == 90)
+        #expect(copy.weekdays == [1, 7])
+        #expect(!copy.shouldBlock)
+        #expect(!copy.isTimed)
+        #expect(copy.customDomains == ["example.com"])
+        #expect(!copy.isEnabled)
+    }
 }

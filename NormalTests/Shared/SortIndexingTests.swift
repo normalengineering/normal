@@ -99,4 +99,35 @@ struct SortIndexingTests {
         let items = [Item(id: 0, sortIndex: -3)]
         #expect(SortIndexing.nextIndex(after: items, sortIndex: \.sortIndex) == -2)
     }
+
+    @Test func insertAfterPlacesItemBelowAnchorAndNormalizes() {
+        let items = makeItems(3)
+        let new = Item(id: 9, sortIndex: 0)
+
+        let result = SortIndexing.insert(new, after: items[1], in: items, sortIndex: \.sortIndex)
+
+        #expect(result.map(\.id) == [0, 1, 9, 2])
+        #expect(result.map(\.sortIndex) == [0, 1, 2, 3])
+    }
+
+    @Test func insertAfterLastItemAppends() {
+        let items = makeItems(2)
+        let new = Item(id: 9, sortIndex: 0)
+
+        let result = SortIndexing.insert(new, after: items[1], in: items, sortIndex: \.sortIndex)
+
+        #expect(result.map(\.id) == [0, 1, 9])
+        #expect(result.map(\.sortIndex) == [0, 1, 2])
+    }
+
+    @Test func insertAfterMissingAnchorAppends() {
+        let items = makeItems(2)
+        let stranger = Item(id: 7, sortIndex: 0)
+        let new = Item(id: 9, sortIndex: 0)
+
+        let result = SortIndexing.insert(new, after: stranger, in: items, sortIndex: \.sortIndex)
+
+        #expect(result.map(\.id) == [0, 1, 9])
+        #expect(result.map(\.sortIndex) == [0, 1, 2])
+    }
 }
