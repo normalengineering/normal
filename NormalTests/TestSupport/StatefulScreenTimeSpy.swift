@@ -52,6 +52,12 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         checkInvariant()
     }
 
+    func removeAllRestrictions() {
+        shieldActive = false
+        appDeleteDisabled = false
+        checkInvariant()
+    }
+
     func addToShields(selection _: FamilyActivitySelection, customDomains _: [String] = []) {
         shieldActive = true
         checkInvariant()

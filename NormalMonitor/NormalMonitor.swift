@@ -6,10 +6,17 @@ import ManagedSettings
 final class NormalMonitor: DeviceActivityMonitor {
     private let sharedStore = SharedStore()
     private let store = ManagedSettingsStore()
+    private let limitStore = ManagedSettingsStore(named: .dailyLimits)
+
+    private static let thresholdGraceSeconds: TimeInterval = 10
 
     override func intervalDidStart(for activity: DeviceActivityName) {
         let name = activity.rawValue
-        if name.hasPrefix("schedule_") {
+        if name == SharedConstants.usageLimitsActivityName {
+            sharedStore.resetUsageDayIfStale()
+            sharedStore.saveUsageLimitsIntervalStart(.now)
+            limitStore.syncDailyLimits(from: sharedStore)
+        } else if name.hasPrefix("schedule_") {
             handleScheduleIntervalStart(activityName: name)
         }
     }
@@ -21,6 +28,43 @@ final class NormalMonitor: DeviceActivityMonitor {
         } else if name.hasPrefix("schedule_") {
             handleScheduleIntervalEnd(activityName: name)
         }
+    }
+
+    override func eventDidReachThreshold(
+        _ event: DeviceActivityEvent.Name,
+        activity _: DeviceActivityName
+    ) {
+        guard let limit = credibleUsageLimit(eventName: event.rawValue, minutes: \.minutesPerDay) else { return }
+        sharedStore.recordUsageState(.reached, for: limit.id)
+        limitStore.syncDailyLimits(from: sharedStore)
+    }
+
+    override func eventWillReachThresholdWarning(
+        _ event: DeviceActivityEvent.Name,
+        activity _: DeviceActivityName
+    ) {
+        guard let limit = credibleUsageLimit(
+            eventName: event.rawValue,
+            minutes: { $0.minutesPerDay - SharedConstants.usageLimitWarningMinutes }
+        ) else { return }
+        sharedStore.recordUsageState(.warning, for: limit.id)
+    }
+
+    private func credibleUsageLimit(
+        eventName: String,
+        minutes: (UsageLimitDTO) -> Int
+    ) -> UsageLimitDTO? {
+        guard !sharedStore.isUsageDayOverridden(),
+              let id = SharedConstants.usageLimitID(fromEventName: eventName),
+              let limit = sharedStore.loadUsageLimits().first(where: { $0.id == id })
+        else { return nil }
+
+        if let start = sharedStore.loadUsageLimitsIntervalStart(),
+           Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds {
+            return nil
+        }
+        guard sharedStore.usagePeriod.couldHaveMetered(minutes: minutes(limit), by: .now) else { return nil }
+        return limit
     }
 
     private func handleTimedUnblockExpired(activityName: String) {
