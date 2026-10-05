@@ -145,6 +145,22 @@ final class TimedUnblockService {
         }
     }
 
+    func discardAll() {
+        let activityNames = Set(
+            sharedStore.loadTimedUnblocks().map(\.activityName)
+                + activeUnblocks.keys.map { key in
+                    UUID(uuidString: key).map(SharedConstants.groupTimedUnblockActivityName(for:))
+                        ?? SharedConstants.mainTimedUnblockActivityName
+                }
+        )
+        sharedStore.saveTimedUnblocks([])
+        for key in Array(activeUnblocks.keys) {
+            cancelExpiration(id: key)
+        }
+        activeUnblocks.removeAll()
+        activityCenter.stopMonitoring(activityNames.map { DeviceActivityName($0) })
+    }
+
     func updateMainSelection(_ selection: FamilyActivitySelection, customDomains: [String] = []) {
         guard let endDate = activeUnblocks[Self.mainID] else { return }
         let activityName = SharedConstants.mainTimedUnblockActivityName

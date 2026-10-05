@@ -60,6 +60,22 @@ extension FamilyActivitySelection {
         }
     }
 
+    func subtracting(_ other: FamilyActivitySelection) -> FamilyActivitySelection {
+        var result = self
+        result.applicationTokens.subtract(other.applicationTokens)
+        result.webDomainTokens.subtract(other.webDomainTokens)
+        result.categoryTokens.subtract(other.categoryTokens)
+        return result
+    }
+
+    func intersection(_ other: FamilyActivitySelection) -> FamilyActivitySelection {
+        var result = self
+        result.applicationTokens.formIntersection(other.applicationTokens)
+        result.webDomainTokens.formIntersection(other.webDomainTokens)
+        result.categoryTokens.formIntersection(other.categoryTokens)
+        return result
+    }
+
     func isSubset(of other: FamilyActivitySelection) -> Bool {
         applicationTokens.isSubset(of: other.applicationTokens)
             && webDomainTokens.isSubset(of: other.webDomainTokens)
@@ -72,7 +88,7 @@ enum SelectedTokenKind: Hashable {
     case webDomain(WebDomainToken)
     case category(ActivityCategoryToken)
 
-    init?(_ hashable: AnyHashable) {
+    nonisolated init?(_ hashable: AnyHashable) {
         let base = hashable.base
         if let token = base as? ApplicationToken { self = .application(token); return }
         if let token = base as? WebDomainToken { self = .webDomain(token); return }

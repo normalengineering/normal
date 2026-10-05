@@ -20,6 +20,7 @@ protocol ScreenTimeProviding: AnyObject {
         blockAllPreventsAppDelete: Bool
     )
     func removeShieldOnAll(blockAllPreventsAppDelete: Bool)
+    func removeAllRestrictions()
     func addToShields(selection: FamilyActivitySelection, customDomains: [String])
     func removeFromShields(selection: FamilyActivitySelection, customDomains: [String])
     func clearCustomDomainFilter()

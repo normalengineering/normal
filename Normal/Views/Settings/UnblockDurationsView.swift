@@ -121,14 +121,12 @@ struct AddUnblockDurationSheet: View {
     let existing: [TimedUnblockDuration]
     let onAdd: (TimedUnblockDuration) -> Void
 
-    @State private var hours = 0
-    @State private var minutes = 30
+    @State private var totalMinutes = 30
 
-    private static let minuteOptions = Array(stride(from: 0, to: 60, by: TimedUnblockDuration.stepSeconds / 60))
     private static let liveActivityLimitHours = 8
 
     private var duration: TimedUnblockDuration? {
-        TimedUnblockDuration(hours: hours, minutes: minutes)
+        TimedUnblockDuration(validating: totalMinutes * 60)
     }
 
     private var isDuplicate: Bool {
@@ -141,12 +139,12 @@ struct AddUnblockDurationSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    HStack(spacing: 0) {
-                        wheel("Hours", unit: "hr", selection: $hours, options: Array(0 ..< 24))
-                            .accessibilityIdentifier("durationPicker.hours")
-                        wheel("Minutes", unit: "min", selection: $minutes, options: Self.minuteOptions)
-                            .accessibilityIdentifier("durationPicker.minutes")
-                    }
+                    DurationWheelPicker(
+                        minutes: $totalMinutes,
+                        maxMinutes: TimedUnblockDuration.maximumSeconds / 60,
+                        minuteStep: TimedUnblockDuration.stepSeconds / 60,
+                        identifierPrefix: "durationPicker"
+                    )
                 } header: {
                     if let duration {
                         Text(duration.label)
@@ -181,31 +179,9 @@ struct AddUnblockDurationSheet: View {
         } else if isDuplicate {
             Text("This duration is already in your list.")
                 .foregroundStyle(.red)
-        } else if hours >= Self.liveActivityLimitHours {
+        } else if totalMinutes / 60 >= Self.liveActivityLimitHours {
             Text("Live Activity countdowns end after \(Self.liveActivityLimitHours) hours. Apps still re-block on time.")
         }
-    }
-
-    private func wheel(
-        _ title: LocalizedStringKey,
-        unit: LocalizedStringKey,
-        selection: Binding<Int>,
-        options: [Int]
-    ) -> some View {
-        HStack(spacing: DS.Spacing.xs) {
-            Picker(title, selection: selection) {
-                ForEach(options, id: \.self) { value in
-                    Text(verbatim: "\(value)").tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-            .labelsHidden()
-            .accessibilityLabel(title)
-            Text(unit)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-        }
-        .frame(maxWidth: .infinity)
     }
 
     private func add() {

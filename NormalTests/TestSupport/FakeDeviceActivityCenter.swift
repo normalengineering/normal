@@ -5,6 +5,7 @@ final class FakeDeviceActivityCenter: DeviceActivityProviding {
     struct StartCall {
         let name: DeviceActivityName
         let schedule: DeviceActivitySchedule
+        let events: [DeviceActivityEvent.Name: DeviceActivityEvent]
     }
 
     var startCalls: [StartCall] = []
@@ -14,10 +15,10 @@ final class FakeDeviceActivityCenter: DeviceActivityProviding {
     func startMonitoring(
         _ activityName: DeviceActivityName,
         during schedule: DeviceActivitySchedule,
-        events _: [DeviceActivityEvent.Name: DeviceActivityEvent]
+        events: [DeviceActivityEvent.Name: DeviceActivityEvent]
     ) throws {
         if let startError { throw startError }
-        startCalls.append(StartCall(name: activityName, schedule: schedule))
+        startCalls.append(StartCall(name: activityName, schedule: schedule, events: events))
     }
 
     func stopMonitoring(_ activityNames: [DeviceActivityName]) {

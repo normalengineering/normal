@@ -5,6 +5,7 @@ protocol ShieldStoring: AnyObject {
     var denyAppRemoval: Bool { get set }
     func replace(with selection: FamilyActivitySelection, customDomains: [String])
     func clear()
+    func clearAllSettings()
     func union(with selection: FamilyActivitySelection, customDomains: [String])
     func subtract(with selection: FamilyActivitySelection, customDomains: [String])
     func clearCustomDomainFilter()
@@ -30,6 +31,10 @@ final class ManagedSettingsShieldStore: ShieldStoring {
     func clear() {
         store.clearShields()
         store.clearFilterDomains()
+    }
+
+    func clearAllSettings() {
+        store.clearAllSettings()
     }
 
     func union(with selection: FamilyActivitySelection, customDomains: [String]) {
@@ -103,6 +108,10 @@ final class InMemoryShieldStore: ShieldStoring {
 
     func replace(with _: FamilyActivitySelection, customDomains _: [String]) { shielded = true }
     func clear() { shielded = false }
+    func clearAllSettings() {
+        shielded = false
+        denyAppRemoval = false
+    }
     func union(with _: FamilyActivitySelection, customDomains _: [String]) { shielded = true }
     func subtract(with _: FamilyActivitySelection, customDomains _: [String]) { shielded = false }
     func clearCustomDomainFilter() {}

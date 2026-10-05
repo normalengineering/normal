@@ -15,6 +15,7 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     var applyShieldOnAllBlockAllPreventsAppDelete: Bool?
     var removeShieldOnAllCalled = false
     var removeShieldOnAllBlockAllPreventsAppDelete: Bool?
+    var removeAllRestrictionsCalled = false
     var addToShieldsCalled = false
     var addToShieldsSelection: FamilyActivitySelection?
     var addToShieldsCustomDomains: [String]?
@@ -69,6 +70,11 @@ final class FakeScreenTimeService: ScreenTimeProviding {
         removeShieldOnAllCalled = true
         removeShieldOnAllBlockAllPreventsAppDelete = blockAllPreventsAppDelete
         if blockAllPreventsAppDelete { disablePreventAppDelete() }
+    }
+
+    func removeAllRestrictions() {
+        removeAllRestrictionsCalled = true
+        disablePreventAppDelete()
     }
 
     func addToShields(selection: FamilyActivitySelection, customDomains: [String] = []) {
