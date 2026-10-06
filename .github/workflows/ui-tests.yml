@@ -15,11 +15,11 @@ concurrency:
 jobs:
   ui-tests:
     name: UI tests
-    runs-on: macos-15
+    runs-on: xcode-27
     timeout-minutes: 30
     env:
       SCHEME: Normal
-      SIMULATOR: iPhone 16 Pro
+      SIMULATOR: iPhone 17
       ONLY: ${{ inputs.only }}
     steps:
       - uses: actions/checkout@v4
