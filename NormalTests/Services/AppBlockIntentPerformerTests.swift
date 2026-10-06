@@ -25,7 +25,9 @@ struct AppBlockIntentPerformerTests {
         )
     }
 
-    private var context: ModelContext { container.mainContext }
+    private var context: ModelContext {
+        container.mainContext
+    }
 
     @discardableResult
     private func seed(

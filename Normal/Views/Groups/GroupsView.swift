@@ -24,7 +24,9 @@ struct GroupsView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
+    private var hasGlobalKey: Bool {
+        Key.hasGlobalKey(in: keys)
+    }
 
     var body: some View {
         NavigationStack {

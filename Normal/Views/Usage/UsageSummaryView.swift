@@ -27,16 +27,26 @@ struct UsageSummaryView: View {
     }
 
     private func title(reachedCount: Int) -> Text {
-        if limits.isEmpty { return Text("No Max Daily Limits") }
-        if reachedCount > 0 { return Text("\(reachedCount) of \(limits.count) Reached") }
+        if limits.isEmpty {
+            return Text("No Max Daily Limits")
+        }
+        if reachedCount > 0 {
+            return Text("\(reachedCount) of \(limits.count) Reached")
+        }
         return Text("\(limits.count) Max Daily Limits")
     }
 
     private func subtitle(reachedCount: Int, worstState: UsageLimitState) -> Text {
-        if limits.isEmpty { return Text("Hard cap on daily app use") }
+        if limits.isEmpty {
+            return Text("Hard cap on daily app use")
+        }
         let reset = usageLimitService.nextReset().formatted(date: .omitted, time: .shortened)
-        if usageLimitService.isDayOverridden() { return Text("Paused until \(reset)") }
-        if reachedCount > 0 { return Text("Resets at \(reset)") }
+        if usageLimitService.isDayOverridden() {
+            return Text("Paused until \(reset)")
+        }
+        if reachedCount > 0 {
+            return Text("Resets at \(reset)")
+        }
         return Text(worstState.label)
     }
 }

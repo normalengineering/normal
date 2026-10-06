@@ -6,7 +6,9 @@ struct QRScanWindowMetrics: Equatable {
     let scanLineWidth: CGFloat
     let cornerLength: CGFloat
 
-    var isVisible: Bool { side > 0 }
+    var isVisible: Bool {
+        side > 0
+    }
 
     init(container: CGSize) {
         let width = Self.sanitize(container.width)

@@ -8,7 +8,9 @@ struct GroupKeyRow: View {
 
     @State private var isEditing = false
 
-    private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
+    private var isBlocked: Bool {
+        screenTimeService.activeShieldCount() > 0
+    }
 
     var body: some View {
         Button { isEditing = true } label: {

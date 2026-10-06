@@ -16,7 +16,9 @@ enum UsageLimitTarget: Identifiable {
     }
 
     var limit: UsageLimit? {
-        if case let .existing(limit) = self { return limit }
+        if case let .existing(limit) = self {
+            return limit
+        }
         return nil
     }
 }
@@ -46,12 +48,21 @@ struct UsageLimitEditor: View {
         _selection = State(initialValue: target.limit?.selection ?? FamilyActivitySelection())
     }
 
-    private var existing: UsageLimit? { target.limit }
-    private var settings: Settings { allSettings.unwrapped }
+    private var existing: UsageLimit? {
+        target.limit
+    }
 
-    private var isTooShort: Bool { minutes < UsageLimit.minimumMinutes }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
-    private var hasApps: Bool { !selection.isEmpty }
+    private var isTooShort: Bool {
+        minutes < UsageLimit.minimumMinutes
+    }
+
+    private var hasApps: Bool {
+        !selection.isEmpty
+    }
 
     private var hasChange: Bool {
         minutes != existing?.minutesPerDay || selection != existing?.selection
@@ -115,11 +126,15 @@ struct UsageLimitEditor: View {
 
     private func form(now: Date) -> some View {
         Form {
-            if let notice = lockNotice(at: now) { lockSection(notice) }
+            if let notice = lockNotice(at: now) {
+                lockSection(notice)
+            }
             AppSelectLimitBannerView(selection: combinedSelection)
             appsSection
             timeSection
-            if existing != nil { deleteSection(now: now) }
+            if existing != nil {
+                deleteSection(now: now)
+            }
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

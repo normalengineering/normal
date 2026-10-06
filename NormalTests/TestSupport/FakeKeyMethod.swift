@@ -2,5 +2,7 @@
 
 struct FakeKeyMethod: KeyMethod {
     let result: KeyResult
-    func checkKey() async -> KeyResult { result }
+    func checkKey() async -> KeyResult {
+        result
+    }
 }

@@ -67,7 +67,9 @@ struct BlockGroupIntent: LiveActivityIntent {
     init() {}
 
     init(group: GroupEntity?) {
-        if let group { self.group = group }
+        if let group {
+            self.group = group
+        }
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {

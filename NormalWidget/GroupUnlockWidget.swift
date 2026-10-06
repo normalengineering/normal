@@ -20,7 +20,9 @@ struct GroupEntry: TimelineEntry {
         keyRawValue: nil
     )
 
-    var isConfigured: Bool { groupID != nil }
+    var isConfigured: Bool {
+        groupID != nil
+    }
 
     var actionURL: URL? {
         guard let groupID else { return nil }
@@ -37,7 +39,9 @@ struct GroupEntry: TimelineEntry {
 struct GroupUnlockProvider: AppIntentTimelineProvider {
     private let store = WidgetSharedStore()
 
-    func placeholder(in _: Context) -> GroupEntry { .placeholder }
+    func placeholder(in _: Context) -> GroupEntry {
+        .placeholder
+    }
 
     func snapshot(for configuration: SelectGroupIntent, in _: Context) async -> GroupEntry {
         entry(for: configuration)

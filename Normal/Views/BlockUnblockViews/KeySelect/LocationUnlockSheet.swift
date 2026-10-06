@@ -13,7 +13,9 @@ struct LocationUnlockSheet: View {
         self.onVerified = onVerified
     }
 
-    private var kind: LocationRadiusKind { model.kind }
+    private var kind: LocationRadiusKind {
+        model.kind
+    }
 
     var body: some View {
         NavigationStack {
@@ -146,7 +148,9 @@ struct LocationUnlockSheet: View {
                 }
             }
             Spacer()
-            if working { ProgressView() }
+            if working {
+                ProgressView()
+            }
         }
     }
 

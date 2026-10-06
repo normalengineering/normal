@@ -31,8 +31,13 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     var stubIsAppDeleteDisabled: Bool = false
     var stubIsAuthorizedNow: Bool = true
 
-    var isAppDeleteDisabled: Bool { stubIsAppDeleteDisabled }
-    var isAuthorizedNow: Bool { stubIsAuthorizedNow }
+    var isAppDeleteDisabled: Bool {
+        stubIsAppDeleteDisabled
+    }
+
+    var isAuthorizedNow: Bool {
+        stubIsAuthorizedNow
+    }
 
     func notifyUpdate() {
         notifyUpdateCallCount += 1
@@ -46,13 +51,20 @@ final class FakeScreenTimeService: ScreenTimeProviding {
     }
 
     func ensureAuthorized() async -> Bool {
-        if authorizationState == .authorized { return true }
+        if authorizationState == .authorized {
+            return true
+        }
         await requestAuthorization()
         return authorizationState == .authorized
     }
 
-    func enablePreventAppDelete() { enablePreventAppDeleteCalled = true }
-    func disablePreventAppDelete() { disablePreventAppDeleteCalled = true }
+    func enablePreventAppDelete() {
+        enablePreventAppDeleteCalled = true
+    }
+
+    func disablePreventAppDelete() {
+        disablePreventAppDeleteCalled = true
+    }
 
     func applyShieldOnAll(
         selection: FamilyActivitySelection,
@@ -63,13 +75,17 @@ final class FakeScreenTimeService: ScreenTimeProviding {
         applyShieldOnAllSelection = selection
         applyShieldOnAllCustomDomains = customDomains
         applyShieldOnAllBlockAllPreventsAppDelete = blockAllPreventsAppDelete
-        if blockAllPreventsAppDelete { enablePreventAppDelete() }
+        if blockAllPreventsAppDelete {
+            enablePreventAppDelete()
+        }
     }
 
     func removeShieldOnAll(blockAllPreventsAppDelete: Bool) {
         removeShieldOnAllCalled = true
         removeShieldOnAllBlockAllPreventsAppDelete = blockAllPreventsAppDelete
-        if blockAllPreventsAppDelete { disablePreventAppDelete() }
+        if blockAllPreventsAppDelete {
+            disablePreventAppDelete()
+        }
     }
 
     func removeAllRestrictions() {
@@ -91,8 +107,14 @@ final class FakeScreenTimeService: ScreenTimeProviding {
 
     func clearCustomDomainFilter() {}
 
-    func activeShieldCount() -> Int { stubActiveShieldCount }
-    func hasActiveCustomDomainFilter() -> Bool { false }
+    func activeShieldCount() -> Int {
+        stubActiveShieldCount
+    }
+
+    func hasActiveCustomDomainFilter() -> Bool {
+        false
+    }
+
     func blockStatus(selection _: FamilyActivitySelection?, customDomains _: [String]? = nil) -> BlockStatus {
         stubBlockStatus
     }

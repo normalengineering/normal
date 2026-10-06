@@ -17,7 +17,9 @@ struct KeyListCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var isLastKey: Bool { !Key.canDelete(key, in: keys) }
+    private var isLastKey: Bool {
+        !Key.canDelete(key, in: keys)
+    }
 
     var body: some View {
         GlassCard(spacing: DS.Spacing.lg) {

@@ -28,9 +28,13 @@ struct GroupFormSheet: View {
         allKeys.filter { $0.groupID == groupID }
     }
 
-    private var isNew: Bool { existing == nil }
+    private var isNew: Bool {
+        existing == nil
+    }
 
-    private var isReadOnly: Bool { !isNew && screenTimeService.activeShieldCount() > 0 }
+    private var isReadOnly: Bool {
+        !isNew && screenTimeService.activeShieldCount() > 0
+    }
 
     private var customDomainsEnabled: Bool {
         allSettings.first?.enableCustomDomains ?? false
@@ -92,7 +96,9 @@ struct GroupFormSheet: View {
                     }
                 }
 
-                if !groupKeys.isEmpty || !isReadOnly { groupKeysSection }
+                if !groupKeys.isEmpty || !isReadOnly {
+                    groupKeysSection
+                }
 
                 if !isNew, !isReadOnly {
                     Section {

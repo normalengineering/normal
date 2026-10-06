@@ -6,7 +6,9 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     case faq
     case donation
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var title: String {
         switch self {

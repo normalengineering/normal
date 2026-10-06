@@ -24,7 +24,9 @@ final class NavigationCoordinator {
         isSettingsPresented = true
     }
 
-    func dismissSettings() { isSettingsPresented = false }
+    func dismissSettings() {
+        isSettingsPresented = false
+    }
 
     func requestGroupUnlock(groupID: UUID, duration: UnlockDurationRequest, keyType: KeyType?) {
         pendingGroupAction = GroupActionRequest(
@@ -63,7 +65,9 @@ final class NavigationCoordinator {
         }
     }
 
-    func clearPendingGroupAction() { pendingGroupAction = nil }
+    func clearPendingGroupAction() {
+        pendingGroupAction = nil
+    }
 }
 
 extension EnvironmentValues {

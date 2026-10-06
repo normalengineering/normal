@@ -22,7 +22,9 @@ enum OnboardingStep: String, CaseIterable, Sendable {
         }
     }
 
-    var isTabWalkthrough: Bool { requiredTab != nil }
+    var isTabWalkthrough: Bool {
+        requiredTab != nil
+    }
 
     var title: LocalizedStringResource? {
         switch self {

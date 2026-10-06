@@ -10,7 +10,9 @@ struct GroupKeysViewer: View {
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
     private var groups: [AppGroup]
 
-    private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
+    private var isBlocked: Bool {
+        screenTimeService.activeShieldCount() > 0
+    }
 
     private var sections: [(group: AppGroup, keys: [Key])] {
         groups.compactMap { group in

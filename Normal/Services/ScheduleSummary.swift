@@ -5,7 +5,9 @@ struct ScheduleSummary: Equatable {
     let enabled: Int
     let activeNow: Int
 
-    var disabled: Int { total - enabled }
+    var disabled: Int {
+        total - enabled
+    }
 
     init(schedules: [BlockSchedule], now: Date = .now) {
         total = schedules.count

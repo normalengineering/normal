@@ -44,7 +44,9 @@ extension FamilyActivitySelection {
                        plural: String(localized: "\(categories) Categories")),
         ].compactMap(\.self)
 
-        if parts.isEmpty { return String(localized: "No items selected") }
+        if parts.isEmpty {
+            return String(localized: "No items selected")
+        }
         return parts.joined(separator: ", ")
     }
 
@@ -90,17 +92,31 @@ enum SelectedTokenKind: Hashable {
 
     nonisolated init?(_ hashable: AnyHashable) {
         let base = hashable.base
-        if let token = base as? ApplicationToken { self = .application(token); return }
-        if let token = base as? WebDomainToken { self = .webDomain(token); return }
-        if let token = base as? ActivityCategoryToken { self = .category(token); return }
+        if let token = base as? ApplicationToken {
+            self = .application(token); return
+        }
+        if let token = base as? WebDomainToken {
+            self = .webDomain(token); return
+        }
+        if let token = base as? ActivityCategoryToken {
+            self = .category(token); return
+        }
         return nil
     }
 }
 
 extension Optional where Wrapped == FamilyActivitySelection {
-    var isEmpty: Bool { self?.isEmpty ?? true }
-    var count: Int { self?.count ?? 0 }
-    var allTokens: [AnyHashable] { self?.allTokens ?? [] }
+    var isEmpty: Bool {
+        self?.isEmpty ?? true
+    }
+
+    var count: Int {
+        self?.count ?? 0
+    }
+
+    var allTokens: [AnyHashable] {
+        self?.allTokens ?? []
+    }
 }
 
 extension Set where Element: Hashable {
@@ -123,9 +139,15 @@ extension [AnyHashable] {
 
 private func stableSortKey(for hashable: AnyHashable) -> String {
     let base = hashable.base
-    if let token = base as? ApplicationToken { return encodedKey(token) }
-    if let token = base as? WebDomainToken { return encodedKey(token) }
-    if let token = base as? ActivityCategoryToken { return encodedKey(token) }
+    if let token = base as? ApplicationToken {
+        return encodedKey(token)
+    }
+    if let token = base as? WebDomainToken {
+        return encodedKey(token)
+    }
+    if let token = base as? ActivityCategoryToken {
+        return encodedKey(token)
+    }
     return String(describing: base)
 }
 

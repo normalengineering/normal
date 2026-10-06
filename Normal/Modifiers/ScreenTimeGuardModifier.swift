@@ -8,7 +8,9 @@ struct ScreenTimeGuardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.onChange(of: action != nil) { _, hasAction in
             guard hasAction, let pending = action else { return }
-            if screenTimeService.authorizationState == .authorized { return }
+            if screenTimeService.authorizationState == .authorized {
+                return
+            }
             deferred = pending
             action = nil
             Task {

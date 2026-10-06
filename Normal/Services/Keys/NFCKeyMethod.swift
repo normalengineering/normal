@@ -4,11 +4,6 @@ struct NFCKeyMethod: KeyMethod {
     let nfcService: any KeyScanning
     let keys: [Key]
 
-    init(nfcService: any KeyScanning, keys: [Key]) {
-        self.nfcService = nfcService
-        self.keys = keys
-    }
-
     func checkKey() async -> KeyResult {
         await performScanCheck(using: nfcService, against: keys)
     }
@@ -17,11 +12,6 @@ struct NFCKeyMethod: KeyMethod {
 struct QRKeyMethod: KeyMethod {
     let qrService: any KeyScanning
     let keys: [Key]
-
-    init(qrService: any KeyScanning, keys: [Key]) {
-        self.qrService = qrService
-        self.keys = keys
-    }
 
     func checkKey() async -> KeyResult {
         await performScanCheck(using: qrService, against: keys)

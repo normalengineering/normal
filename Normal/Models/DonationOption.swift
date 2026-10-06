@@ -4,7 +4,9 @@ enum DonationCadence: String, CaseIterable, Identifiable {
     case oneTime
     case monthly
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var title: String {
         switch self {
@@ -32,13 +34,17 @@ struct DonationOption: Identifiable, Equatable {
     let amount: Int
     let cadence: DonationCadence
 
-    var id: String { productID }
+    var id: String {
+        productID
+    }
 
     var productID: String {
         "\(DonationCatalog.productPrefix).\(cadence.productKeyword).\(amount)"
     }
 
-    var displayAmount: String { "$\(amount)" }
+    var displayAmount: String {
+        "$\(amount)"
+    }
 }
 
 enum DonationCatalog {

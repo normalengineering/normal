@@ -10,8 +10,13 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var usageDayState: UsageDayStateDTO = .empty
     var usageRegistration: String?
 
-    func loadTimedUnblocks() -> [TimedUnblockDTO] { timedUnblocks }
-    func saveTimedUnblocks(_ unblocks: [TimedUnblockDTO]) { timedUnblocks = unblocks }
+    func loadTimedUnblocks() -> [TimedUnblockDTO] {
+        timedUnblocks
+    }
+
+    func saveTimedUnblocks(_ unblocks: [TimedUnblockDTO]) {
+        timedUnblocks = unblocks
+    }
 
     func upsertTimedUnblock(_ unblock: TimedUnblockDTO) {
         timedUnblocks.removeAll { $0.id == unblock.id }
@@ -31,29 +36,69 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
         return main.endDate > .now
     }
 
-    func saveSchedules(_ dtos: [ScheduleDTO]) { schedules = dtos }
-    func loadSchedules() -> [ScheduleDTO] { schedules }
+    func saveSchedules(_ dtos: [ScheduleDTO]) {
+        schedules = dtos
+    }
 
-    func isScheduleOverrideActive() -> Bool { scheduleOverrideActive }
-    func setScheduleOverrideActive(_ active: Bool) { scheduleOverrideActive = active }
+    func loadSchedules() -> [ScheduleDTO] {
+        schedules
+    }
 
-    func isCustomDomainsEnabled() -> Bool { customDomainsEnabled }
-    func setCustomDomainsEnabled(_ enabled: Bool) { customDomainsEnabled = enabled }
+    func isScheduleOverrideActive() -> Bool {
+        scheduleOverrideActive
+    }
 
-    func saveUsageLimits(_ limits: [UsageLimitDTO]) { usageLimits = limits }
-    func loadUsageLimits() -> [UsageLimitDTO] { usageLimits }
+    func setScheduleOverrideActive(_ active: Bool) {
+        scheduleOverrideActive = active
+    }
 
-    func saveUsageDayState(_ state: UsageDayStateDTO) { usageDayState = state }
-    func loadUsageDayState() -> UsageDayStateDTO { usageDayState }
+    func isCustomDomainsEnabled() -> Bool {
+        customDomainsEnabled
+    }
 
-    func saveUsageRegistration(_ fingerprint: String?) { usageRegistration = fingerprint }
-    func loadUsageRegistration() -> String? { usageRegistration }
+    func setCustomDomainsEnabled(_ enabled: Bool) {
+        customDomainsEnabled = enabled
+    }
+
+    func saveUsageLimits(_ limits: [UsageLimitDTO]) {
+        usageLimits = limits
+    }
+
+    func loadUsageLimits() -> [UsageLimitDTO] {
+        usageLimits
+    }
+
+    func saveUsageDayState(_ state: UsageDayStateDTO) {
+        usageDayState = state
+    }
+
+    func loadUsageDayState() -> UsageDayStateDTO {
+        usageDayState
+    }
+
+    func saveUsageRegistration(_ fingerprint: String?) {
+        usageRegistration = fingerprint
+    }
+
+    func loadUsageRegistration() -> String? {
+        usageRegistration
+    }
 
     var usageLimitsIntervalStart: Date?
-    func saveUsageLimitsIntervalStart(_ date: Date) { usageLimitsIntervalStart = date }
-    func loadUsageLimitsIntervalStart() -> Date? { usageLimitsIntervalStart }
+    func saveUsageLimitsIntervalStart(_ date: Date) {
+        usageLimitsIntervalStart = date
+    }
+
+    func loadUsageLimitsIntervalStart() -> Date? {
+        usageLimitsIntervalStart
+    }
 
     var usageLimitConfig = UsageLimitConfig()
-    func saveUsageLimitConfig(_ config: UsageLimitConfig) { usageLimitConfig = config }
-    func loadUsageLimitConfig() -> UsageLimitConfig { usageLimitConfig }
+    func saveUsageLimitConfig(_ config: UsageLimitConfig) {
+        usageLimitConfig = config
+    }
+
+    func loadUsageLimitConfig() -> UsageLimitConfig {
+        usageLimitConfig
+    }
 }

@@ -12,7 +12,9 @@ struct TimedUnblockBannerView: View {
     @Binding var authAction: (@MainActor () -> Void)?
     @Binding var allowBypass: Bool
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var effectiveCustomDomains: [String] {
         settings.enableCustomDomains ? customDomains : []

@@ -157,9 +157,9 @@ struct BlockActionsTests {
     @Test func emergencyUnblockDiscardsEveryTimedUnblockIncludingUnloadedOnes() throws {
         let groupID = UUID()
         let timedUnblock = makeTimedUnblock()
-        store.timedUnblocks = [
-            try timedUnblockRecord(id: TimedUnblockService.mainID, activityName: SharedConstants.mainTimedUnblockActivityName, endingIn: -60),
-            try timedUnblockRecord(
+        store.timedUnblocks = try [
+            timedUnblockRecord(id: TimedUnblockService.mainID, activityName: SharedConstants.mainTimedUnblockActivityName, endingIn: -60),
+            timedUnblockRecord(
                 id: groupID.uuidString,
                 activityName: SharedConstants.groupTimedUnblockActivityName(for: groupID),
                 endingIn: 600

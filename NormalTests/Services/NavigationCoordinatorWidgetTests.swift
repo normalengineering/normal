@@ -44,10 +44,10 @@ struct NavigationCoordinatorWidgetTests {
     }
 
     @Test(arguments: ["999", "60", "90000", "abc"])
-    func handleFallsBackToAskingForInvalidDuration(_ value: String) {
+    func handleFallsBackToAskingForInvalidDuration(_ value: String) throws {
         let c = NavigationCoordinator()
         let id = UUID()
-        c.handle(url: URL(string: "normal://unlock?group=\(id.uuidString)&duration=\(value)")!)
+        try c.handle(url: #require(URL(string: "normal://unlock?group=\(id.uuidString)&duration=\(value)")))
 
         #expect(c.pendingGroupAction?.groupID == id)
         #expect(c.pendingGroupAction?.action == .unlock(duration: .ask, keyType: nil),
@@ -70,33 +70,33 @@ struct NavigationCoordinatorWidgetTests {
         #expect(c.pendingGroupAction?.action == .block)
     }
 
-    @Test func handleRejectsWrongScheme() {
+    @Test func handleRejectsWrongScheme() throws {
         let c = NavigationCoordinator()
-        c.handle(url: URL(string: "https://unlock?group=\(UUID().uuidString)")!)
+        try c.handle(url: #require(URL(string: "https://unlock?group=\(UUID().uuidString)")))
         #expect(c.pendingGroupAction == nil)
     }
 
-    @Test func handleRejectsWrongHost() {
+    @Test func handleRejectsWrongHost() throws {
         let c = NavigationCoordinator()
-        c.handle(url: URL(string: "normal://settings?group=\(UUID().uuidString)")!)
+        try c.handle(url: #require(URL(string: "normal://settings?group=\(UUID().uuidString)")))
         #expect(c.pendingGroupAction == nil)
     }
 
-    @Test func handleRejectsInvalidGroupID() {
+    @Test func handleRejectsInvalidGroupID() throws {
         let c = NavigationCoordinator()
-        c.handle(url: URL(string: "normal://unlock?group=not-a-uuid")!)
+        try c.handle(url: #require(URL(string: "normal://unlock?group=not-a-uuid")))
         #expect(c.pendingGroupAction == nil)
     }
 
-    @Test func handleRejectsMissingGroup() {
+    @Test func handleRejectsMissingGroup() throws {
         let c = NavigationCoordinator()
-        c.handle(url: URL(string: "normal://unlock?duration=1800")!)
+        try c.handle(url: #require(URL(string: "normal://unlock?duration=1800")))
         #expect(c.pendingGroupAction == nil)
     }
 
-    @Test func handleRejectsBlockWithoutGroup() {
+    @Test func handleRejectsBlockWithoutGroup() throws {
         let c = NavigationCoordinator()
-        c.handle(url: URL(string: "normal://block")!)
+        try c.handle(url: #require(URL(string: "normal://block")))
         #expect(c.pendingGroupAction == nil)
     }
 

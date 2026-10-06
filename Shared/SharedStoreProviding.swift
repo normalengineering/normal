@@ -36,12 +36,18 @@ extension SharedStoreProviding {
     }
 
     func resolveScheduleStart() -> ScheduleStartDecision {
-        if isMainTimedUnblockActive() { return .skip }
-        if isScheduleOverrideActive() { setScheduleOverrideActive(false) }
+        if isMainTimedUnblockActive() {
+            return .skip
+        }
+        if isScheduleOverrideActive() {
+            setScheduleOverrideActive(false)
+        }
         return .apply
     }
 
-    var usagePeriod: UsagePeriod { loadUsageLimitConfig().period }
+    var usagePeriod: UsagePeriod {
+        loadUsageLimitConfig().period
+    }
 
     func usageState(for id: UUID, on date: Date = .now) -> UsageLimitState {
         loadUsageDayState().state(for: id, on: date, period: usagePeriod)

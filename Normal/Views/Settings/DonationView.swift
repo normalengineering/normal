@@ -95,7 +95,9 @@ struct DonationView: View {
 
     private func isPurchasable(_ state: DonationService.PriceState) -> Bool {
         guard donationService.purchasingProductID == nil else { return false }
-        if case .available = state { return true }
+        if case .available = state {
+            return true
+        }
         return false
     }
 
@@ -130,7 +132,11 @@ struct DonationView: View {
     private var errorBinding: Binding<Bool> {
         Binding(
             get: { donationService.errorMessage != nil },
-            set: { if !$0 { donationService.errorMessage = nil } }
+            set: {
+                if !$0 {
+                    donationService.errorMessage = nil
+                }
+            }
         )
     }
 }

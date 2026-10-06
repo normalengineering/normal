@@ -35,7 +35,9 @@ final class LocationUnlockModel {
 
     func run() async {
         location = provider.cachedLocation
-        if verifyFromCache() { return }
+        if verifyFromCache() {
+            return
+        }
 
         while !Task.isCancelled {
             await checkOnce()

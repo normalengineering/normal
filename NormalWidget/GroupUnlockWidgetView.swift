@@ -5,7 +5,9 @@ struct GroupUnlockWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: GroupEntry
 
-    private var isUnblocked: Bool { entry.isUnblocked }
+    private var isUnblocked: Bool {
+        entry.isUnblocked
+    }
 
     var body: some View {
         if entry.isConfigured {

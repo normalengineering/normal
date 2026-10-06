@@ -7,8 +7,13 @@ struct UnblockDurationsView: View {
     @State private var pendingDefaultDeletion: TimedUnblockDuration?
     @State private var showLastDurationAlert = false
 
-    private var durations: [TimedUnblockDuration] { settings.unblockDurations }
-    private var isAtLimit: Bool { durations.count >= Settings.maxUnblockDurations }
+    private var durations: [TimedUnblockDuration] {
+        settings.unblockDurations
+    }
+
+    private var isAtLimit: Bool {
+        durations.count >= Settings.maxUnblockDurations
+    }
 
     var body: some View {
         List {
@@ -43,7 +48,11 @@ struct UnblockDurationsView: View {
             "Delete Default Duration?",
             isPresented: Binding(
                 get: { pendingDefaultDeletion != nil },
-                set: { if !$0 { pendingDefaultDeletion = nil } }
+                set: {
+                    if !$0 {
+                        pendingDefaultDeletion = nil
+                    }
+                }
             ),
             presenting: pendingDefaultDeletion
         ) { duration in
@@ -133,7 +142,9 @@ struct AddUnblockDurationSheet: View {
         duration.map(existing.contains) ?? false
     }
 
-    private var canAdd: Bool { duration != nil && !isDuplicate }
+    private var canAdd: Bool {
+        duration != nil && !isDuplicate
+    }
 
     var body: some View {
         NavigationStack {

@@ -1,12 +1,16 @@
 import SwiftUI
 
 struct KeyTypesFAQView: View {
-    private var isNFCAvailable: Bool { KeyType.nfc.isAvailableOnDevice }
+    private var isNFCAvailable: Bool {
+        KeyType.nfc.isAvailableOnDevice
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.lg) {
             Text(intro)
-            if !isNFCAvailable { iPadNote }
+            if !isNFCAvailable {
+                iPadNote
+            }
             KeyTypeExamplesView()
         }
         .font(.body)

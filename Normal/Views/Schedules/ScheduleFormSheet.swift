@@ -27,10 +27,17 @@ struct ScheduleFormSheet: View {
     @State private var error: Error?
     @State private var showDeleteConfirmation = false
 
-    private var isNew: Bool { existing == nil }
+    private var isNew: Bool {
+        existing == nil
+    }
 
-    private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
-    private var isReadOnly: Bool { !isNew && isBlocked }
+    private var isBlocked: Bool {
+        screenTimeService.activeShieldCount() > 0
+    }
+
+    private var isReadOnly: Bool {
+        !isNew && isBlocked
+    }
 
     private static let minimumDurationMinutes = 15
 
@@ -94,7 +101,9 @@ struct ScheduleFormSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                if !isNew { statusSection.disabled(isReadOnly) }
+                if !isNew {
+                    statusSection.disabled(isReadOnly)
+                }
                 nameSection.disabled(isReadOnly)
                 appSection
                 if customDomainsEnabled {
@@ -111,7 +120,9 @@ struct ScheduleFormSheet: View {
                 timeSection.disabled(isReadOnly)
                 weekdaySection.disabled(isReadOnly)
                 errorSection
-                if !isNew, !isReadOnly { deleteSection }
+                if !isNew, !isReadOnly {
+                    deleteSection
+                }
             }
             .navigationTitle(isReadOnly ? "Schedule" : (isNew ? "New Schedule" : "Edit Schedule"))
             .navigationBarTitleDisplayMode(.inline)
@@ -163,7 +174,6 @@ struct ScheduleFormSheet: View {
         }
     }
 
-    @ViewBuilder
     private var appSection: some View {
         Section("Apps") {
             if isReadOnly {

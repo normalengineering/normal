@@ -28,17 +28,26 @@ struct ScheduleCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
+    private var hasGlobalKey: Bool {
+        Key.hasGlobalKey(in: keys)
+    }
 
     private var needsSync: Bool {
         guard let main = selectedApps.first else { return false }
-        if !schedule.selection.isSubset(of: main.selection) { return true }
+        if !schedule.selection.isSubset(of: main.selection) {
+            return true
+        }
         if allSettings.first?.enableCustomDomains ?? false,
-           CustomDomains.needsResync(schedule.customDomains, main: main.customDomains) { return true }
+           CustomDomains.needsResync(schedule.customDomains, main: main.customDomains)
+        {
+            return true
+        }
         return false
     }
 
-    private var isLocked: Bool { isBlocked || !hasGlobalKey || needsSync }
+    private var isLocked: Bool {
+        isBlocked || !hasGlobalKey || needsSync
+    }
 
     var body: some View {
         GlassCard {
@@ -52,12 +61,22 @@ struct ScheduleCardView: View {
         }
         .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
         .onTapGesture {
-            if needsSync { isReselecting = true } else if !isLocked || isBlocked { isEditing = true }
+            if needsSync {
+                isReselecting = true
+            } else if !isLocked || isBlocked {
+                isEditing = true
+            }
         }
         .editDeleteContextMenu(
             isDisabled: isLocked && !needsSync,
             isDuplicateDisabled: needsSync,
-            onEdit: { if needsSync { isReselecting = true } else { isEditing = true } },
+            onEdit: {
+                if needsSync {
+                    isReselecting = true
+                } else {
+                    isEditing = true
+                }
+            },
             onDuplicate: duplicateSchedule,
             onDelete: { showDeleteConfirmation = true }
         )
@@ -137,7 +156,6 @@ struct ScheduleCardView: View {
             .accessibilityIdentifier("schedule.enabledToggle")
     }
 
-    @ViewBuilder
     private var timingRow: some View {
         HStack(spacing: DS.Spacing.lg) {
             if schedule.isTimed {

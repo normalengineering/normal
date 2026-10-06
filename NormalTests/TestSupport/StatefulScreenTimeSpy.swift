@@ -12,8 +12,13 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
 
     private(set) var invariantViolated = false
 
-    var isAppDeleteDisabled: Bool { appDeleteDisabled }
-    var isAuthorizedNow: Bool { authorizationState == .authorized }
+    var isAppDeleteDisabled: Bool {
+        appDeleteDisabled
+    }
+
+    var isAuthorizedNow: Bool {
+        authorizationState == .authorized
+    }
 
     private func checkInvariant() {
         if appDeleteDisabled, !shieldActive {
@@ -21,10 +26,18 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         }
     }
 
-    func notifyUpdate() { lastUpdate = .now }
+    func notifyUpdate() {
+        lastUpdate = .now
+    }
+
     func checkAuthorizationStatus() async {}
-    func requestAuthorization() async { authorizationState = .authorized }
-    func ensureAuthorized() async -> Bool { true }
+    func requestAuthorization() async {
+        authorizationState = .authorized
+    }
+
+    func ensureAuthorized() async -> Bool {
+        true
+    }
 
     func enablePreventAppDelete() {
         appDeleteDisabled = true
@@ -42,13 +55,17 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         blockAllPreventsAppDelete: Bool
     ) {
         shieldActive = true
-        if blockAllPreventsAppDelete { appDeleteDisabled = true }
+        if blockAllPreventsAppDelete {
+            appDeleteDisabled = true
+        }
         checkInvariant()
     }
 
     func removeShieldOnAll(blockAllPreventsAppDelete: Bool) {
         shieldActive = false
-        if blockAllPreventsAppDelete { appDeleteDisabled = false }
+        if blockAllPreventsAppDelete {
+            appDeleteDisabled = false
+        }
         checkInvariant()
     }
 
@@ -69,8 +86,14 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
 
     func clearCustomDomainFilter() {}
 
-    func activeShieldCount() -> Int { shieldActive ? 1 : 0 }
-    func hasActiveCustomDomainFilter() -> Bool { false }
+    func activeShieldCount() -> Int {
+        shieldActive ? 1 : 0
+    }
+
+    func hasActiveCustomDomainFilter() -> Bool {
+        false
+    }
+
     func blockStatus(selection _: FamilyActivitySelection?, customDomains _: [String]? = nil) -> BlockStatus {
         shieldActive ? .all : .none
     }

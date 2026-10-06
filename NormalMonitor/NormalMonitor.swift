@@ -60,7 +60,8 @@ final class NormalMonitor: DeviceActivityMonitor {
         else { return nil }
 
         if let start = sharedStore.loadUsageLimitsIntervalStart(),
-           Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds {
+           Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds
+        {
             return nil
         }
         guard sharedStore.usagePeriod.couldHaveMetered(minutes: minutes(limit), by: .now) else { return nil }

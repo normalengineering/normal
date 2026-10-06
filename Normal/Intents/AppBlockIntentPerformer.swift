@@ -33,7 +33,9 @@ final class AppBlockIntentPerformer: BlockIntentPerforming {
         )
     }
 
-    private var context: ModelContext { container.mainContext }
+    private var context: ModelContext {
+        container.mainContext
+    }
 
     func blockAll() throws -> BlockOutcome {
         logger.info("Block intent: all")

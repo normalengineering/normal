@@ -54,7 +54,9 @@ final class NFCService: NSObject {
     private var continuation: CheckedContinuation<String, Error>?
     private var validator: ((String) -> Bool)?
 
-    override private init() { super.init() }
+    override private init() {
+        super.init()
+    }
 
     func scan() async throws -> String {
         try await scan(validate: nil)

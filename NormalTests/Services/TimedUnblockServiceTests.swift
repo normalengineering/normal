@@ -280,11 +280,11 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.first?.endDate == originalEnd)
     }
 
-    @Test func restoresActiveUnblocksFromStore() {
+    @Test func restoresActiveUnblocksFromStore() throws {
         let activity = FakeDeviceActivityCenter()
         let store = FakeSharedStore()
         let futureEnd = Date.now.addingTimeInterval(.hours(1))
-        let dto = try! TimedUnblockDTO(
+        let dto = try TimedUnblockDTO(
             id: TimedUnblockService.mainID,
             selectionData: FamilyActivitySelection().toData(),
             endDate: futureEnd,
@@ -360,10 +360,10 @@ struct TimedUnblockServiceTests {
         #expect(screenTime.applyShieldOnAllBlockAllPreventsAppDelete == true)
     }
 
-    @Test func reconcileReblocksExpiredGroupViaUnion() {
+    @Test func reconcileReblocksExpiredGroupViaUnion() throws {
         let store = FakeSharedStore()
         let groupId = UUID()
-        store.timedUnblocks = [try! TimedUnblockDTO(
+        store.timedUnblocks = try [TimedUnblockDTO(
             id: groupId.uuidString,
             selectionData: FamilyActivitySelection().toData(),
             endDate: Date.now.addingTimeInterval(-.minutes(1)),
@@ -385,18 +385,18 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.isEmpty)
     }
 
-    @Test func reconcileSkipsExpiredGroupWhenMainStillActive() {
+    @Test func reconcileSkipsExpiredGroupWhenMainStillActive() throws {
         let store = FakeSharedStore()
         let groupId = UUID()
-        store.timedUnblocks = [
-            try! TimedUnblockDTO(
+        store.timedUnblocks = try [
+            TimedUnblockDTO(
                 id: TimedUnblockService.mainID,
                 selectionData: FamilyActivitySelection().toData(),
                 endDate: Date.now.addingTimeInterval(.minutes(30)),
                 activityName: SharedConstants.mainTimedUnblockActivityName,
                 isGroupUnblock: false
             ),
-            try! TimedUnblockDTO(
+            TimedUnblockDTO(
                 id: groupId.uuidString,
                 selectionData: FamilyActivitySelection().toData(),
                 endDate: Date.now.addingTimeInterval(-.minutes(1)),
@@ -419,9 +419,9 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.map(\.id) == [TimedUnblockService.mainID])
     }
 
-    @Test func reconcileLeavesActiveUnblockArmedWithoutReblocking() {
+    @Test func reconcileLeavesActiveUnblockArmedWithoutReblocking() throws {
         let store = FakeSharedStore()
-        store.timedUnblocks = [try! TimedUnblockDTO(
+        store.timedUnblocks = try [TimedUnblockDTO(
             id: TimedUnblockService.mainID,
             selectionData: FamilyActivitySelection().toData(),
             endDate: Date.now.addingTimeInterval(.minutes(30)),
@@ -604,8 +604,8 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.first?.customDomains == ["reddit.com"])
     }
 
-    // Home's "Unblock All" with a default duration skips the sheet; it once dropped custom domains,
-    // so websites never reblocked at expiry. Both Home paths now go through this overload.
+    /// Home's "Unblock All" with a default duration skips the sheet; it once dropped custom domains,
+    /// so websites never reblocked at expiry. Both Home paths now go through this overload.
     @Test func startMainFromModelsPersistsCustomDomainsWhenEnabled() throws {
         let (service, _, store) = makeService()
         let settings = Settings()

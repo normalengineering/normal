@@ -7,8 +7,13 @@ struct DurationWheelPicker: View {
     var minuteStep = 5
     var identifierPrefix: String?
 
-    private var hourOptions: [Int] { Array(0 ... (maxMinutes / 60)) }
-    private var minuteOptions: [Int] { Array(stride(from: 0, to: 60, by: minuteStep)) }
+    private var hourOptions: [Int] {
+        Array(0 ... (maxMinutes / 60))
+    }
+
+    private var minuteOptions: [Int] {
+        Array(stride(from: 0, to: 60, by: minuteStep))
+    }
 
     var body: some View {
         HStack(spacing: 0) {

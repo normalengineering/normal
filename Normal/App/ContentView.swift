@@ -16,7 +16,9 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @State private var navigationCoordinator = NavigationCoordinator()
 
-    private var settings: Settings? { allSettings.first }
+    private var settings: Settings? {
+        allSettings.first
+    }
 
     var body: some View {
         ZStack {
@@ -32,7 +34,9 @@ struct ContentView: View {
             SettingsView(initialTab: navigationCoordinator.settingsInitialTab)
         }
         .onChange(of: onboardingService.requiredTab) { _, newTab in
-            if let newTab { selectedTab = newTab }
+            if let newTab {
+                selectedTab = newTab
+            }
         }
         .onChange(of: onboardingService.isOnboardingActive, onOnboardingCompleted)
         .onChange(of: usageLimits.count) { _, _ in reregisterUsageLimits() }

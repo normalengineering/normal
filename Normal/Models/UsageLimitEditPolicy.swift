@@ -34,7 +34,9 @@ nonisolated enum UsageLimitEditDecision: Equatable, Sendable {
     case locked(until: Date)
 
     var isAllowed: Bool {
-        if case .allowed = self { return true }
+        if case .allowed = self {
+            return true
+        }
         return false
     }
 }
@@ -46,7 +48,9 @@ nonisolated enum UsageLimitLockState: Equatable, Sendable {
     case locked(until: Date)
 
     var lockedUntil: Date? {
-        if case let .locked(until) = self { return until }
+        if case let .locked(until) = self {
+            return until
+        }
         return nil
     }
 }
@@ -65,7 +69,9 @@ nonisolated enum UsageLimitEditPolicy {
     static func lockState(anchor: Date?, now: Date = .now) -> UsageLimitLockState {
         guard let anchor else { return .unlocked }
         let graceEnds = anchor + graceInterval
-        if now < graceEnds { return .grace(until: graceEnds) }
+        if now < graceEnds {
+            return .grace(until: graceEnds)
+        }
         let unlock = anchor + cooldownInterval
         return now < unlock ? .locked(until: unlock) : .unlocked
     }

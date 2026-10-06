@@ -3,8 +3,13 @@ import AppIntents
 
 struct DismissUnblockActivityIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Dismiss block reminder"
-    static var openAppWhenRun: Bool { false }
-    static var isDiscoverable: Bool { false }
+    static var openAppWhenRun: Bool {
+        false
+    }
+
+    static var isDiscoverable: Bool {
+        false
+    }
 
     @Parameter(title: "Unblock ID")
     var unblockID: String

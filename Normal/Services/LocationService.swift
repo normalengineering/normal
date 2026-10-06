@@ -39,7 +39,9 @@ final class LocationService: NSObject, LocationProviding {
     static let shared = LocationService()
 
     var authorizationStatus: CLAuthorizationStatus {
-        if UITestSupport.isActive { return .authorizedWhenInUse }
+        if UITestSupport.isActive {
+            return .authorizedWhenInUse
+        }
         return manager.authorizationStatus
     }
 
@@ -79,7 +81,9 @@ final class LocationService: NSObject, LocationProviding {
 
     private func waitForAuthorization() async -> CLAuthorizationStatus {
         let current = manager.authorizationStatus
-        if current != .notDetermined { return current }
+        if current != .notDetermined {
+            return current
+        }
         manager.requestWhenInUseAuthorization()
         return await withCheckedContinuation { cont in
             authContinuations.append(cont)

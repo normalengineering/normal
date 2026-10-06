@@ -10,8 +10,12 @@ nonisolated enum TagDecision: Equatable, Sendable {
         hasMRTDApplication: Bool
     ) -> TagDecision {
         guard let hexId else { return .reject(.unsupportedTag) }
-        if hasRandomIdentifier { return .reject(.unstableIdentifier) }
-        if hasMRTDApplication { return .reject(.unstableIdentifier) }
+        if hasRandomIdentifier {
+            return .reject(.unstableIdentifier)
+        }
+        if hasMRTDApplication {
+            return .reject(.unstableIdentifier)
+        }
         return .proceed(hexId: hexId)
     }
 }

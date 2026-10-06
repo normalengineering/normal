@@ -1,11 +1,15 @@
 import SwiftUI
 
 struct KeyTypeExamplesView: View {
-    private var isNFCAvailable: Bool { KeyType.nfc.isAvailableOnDevice }
+    private var isNFCAvailable: Bool {
+        KeyType.nfc.isAvailableOnDevice
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.xl) {
-            if isNFCAvailable { nfcCard }
+            if isNFCAvailable {
+                nfcCard
+            }
             qrCard
             locationCard
             placementCard

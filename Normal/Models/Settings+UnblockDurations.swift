@@ -53,7 +53,9 @@ extension Settings {
         guard current.count > 1 else { return .lastRemaining }
         let wasDefault = isDefault(duration)
         customUnblockDurationSeconds = current.filter { $0 != duration }.map(\.seconds)
-        if wasDefault { defaultDuration = nil }
+        if wasDefault {
+            defaultDuration = nil
+        }
         return wasDefault ? .removedDefault : .removed
     }
 }

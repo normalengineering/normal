@@ -11,7 +11,9 @@ struct LocationKeyInfoSheet: View {
 
     @State private var showDeleteConfirmation = false
 
-    private var tint: Color { key.radiusKind?.zoneColor ?? .accentColor }
+    private var tint: Color {
+        key.radiusKind?.zoneColor ?? .accentColor
+    }
 
     private var distanceText: String? {
         guard let currentLocation, let coordinate = key.coordinate else { return nil }

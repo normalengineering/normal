@@ -110,7 +110,6 @@ struct TimedUnblockLiveActivity: Widget {
             .background(.orange.opacity(0.15), in: Circle())
     }
 
-    @ViewBuilder
     private func atEnd<V: View>(
         _ context: ActivityViewContext<TimedUnblockActivityAttributes>,
         @ViewBuilder _ content: @escaping (_ finished: Bool) -> V
@@ -127,7 +126,6 @@ struct TimedUnblockLiveActivity: Widget {
             .multilineTextAlignment(.trailing)
     }
 
-    @ViewBuilder
     private func leadingIcon(
         _ context: ActivityViewContext<TimedUnblockActivityAttributes>
     ) -> some View {

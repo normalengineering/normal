@@ -17,7 +17,9 @@ final class FakeDeviceActivityCenter: DeviceActivityProviding {
         during schedule: DeviceActivitySchedule,
         events: [DeviceActivityEvent.Name: DeviceActivityEvent]
     ) throws {
-        if let startError { throw startError }
+        if let startError {
+            throw startError
+        }
         startCalls.append(StartCall(name: activityName, schedule: schedule, events: events))
     }
 

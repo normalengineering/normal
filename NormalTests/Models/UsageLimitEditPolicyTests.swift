@@ -218,7 +218,7 @@ struct UsageLimitModelTests {
 
         #expect(dto.id == limit.id)
         #expect(dto.minutesPerDay == 45)
-        #expect(dto.selectionData == (try own.toData()))
+        #expect(try dto.selectionData == (own.toData()))
     }
 
     @Test func limitsKeepTheirOrder() {

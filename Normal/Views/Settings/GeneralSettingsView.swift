@@ -35,8 +35,8 @@ struct GeneralSettingsView: View {
             Text("Custom Domains")
         } footer: {
             Text(hasActiveFilter
-                 ? "Custom domains are currently being blocked. Unblock all apps before disabling this setting."
-                 : "Adds a section to App Select, allowing you to type custom website domains to block.")
+                ? "Custom domains are currently being blocked. Unblock all apps before disabling this setting."
+                : "Adds a section to App Select, allowing you to type custom website domains to block.")
         }
     }
 

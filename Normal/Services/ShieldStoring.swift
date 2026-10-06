@@ -73,13 +73,17 @@ final class ManagedSettingsShieldStore: ShieldStoring {
         let webDisjoint = selection.webDomainTokens.isDisjoint(with: currentWeb)
         let catsDisjoint = selection.categoryTokens.isDisjoint(with: currentCats)
         let domainsDisjoint = targetDomains.isDisjoint(with: currentDomains)
-        if appsDisjoint && webDisjoint && catsDisjoint && domainsDisjoint { return .none }
+        if appsDisjoint && webDisjoint && catsDisjoint && domainsDisjoint {
+            return .none
+        }
 
         let appsSubset = selection.applicationTokens.isSubset(of: currentApps)
         let webSubset = selection.webDomainTokens.isSubset(of: currentWeb)
         let catsSubset = selection.categoryTokens.isSubset(of: currentCats)
         let domainsSubset = targetDomains.isSubset(of: currentDomains)
-        if appsSubset && webSubset && catsSubset && domainsSubset { return .all }
+        if appsSubset && webSubset && catsSubset && domainsSubset {
+            return .all
+        }
 
         return .some
     }
@@ -106,17 +110,41 @@ final class InMemoryShieldStore: ShieldStoring {
         denyAppRemoval = UITestSupport.startBlocked
     }
 
-    func replace(with _: FamilyActivitySelection, customDomains _: [String]) { shielded = true }
-    func clear() { shielded = false }
+    func replace(with _: FamilyActivitySelection, customDomains _: [String]) {
+        shielded = true
+    }
+
+    func clear() {
+        shielded = false
+    }
+
     func clearAllSettings() {
         shielded = false
         denyAppRemoval = false
     }
-    func union(with _: FamilyActivitySelection, customDomains _: [String]) { shielded = true }
-    func subtract(with _: FamilyActivitySelection, customDomains _: [String]) { shielded = false }
+
+    func union(with _: FamilyActivitySelection, customDomains _: [String]) {
+        shielded = true
+    }
+
+    func subtract(with _: FamilyActivitySelection, customDomains _: [String]) {
+        shielded = false
+    }
+
     func clearCustomDomainFilter() {}
-    func shieldedCount() -> Int { shielded ? 1 : 0 }
-    func status(for _: FamilyActivitySelection?, customDomains _: [String]?) -> BlockStatus { shielded ? .all : .none }
-    func isShielded(_: SelectedTokenKind) -> Bool { shielded }
-    func hasActiveCustomDomainFilter() -> Bool { shielded }
+    func shieldedCount() -> Int {
+        shielded ? 1 : 0
+    }
+
+    func status(for _: FamilyActivitySelection?, customDomains _: [String]?) -> BlockStatus {
+        shielded ? .all : .none
+    }
+
+    func isShielded(_: SelectedTokenKind) -> Bool {
+        shielded
+    }
+
+    func hasActiveCustomDomainFilter() -> Bool {
+        shielded
+    }
 }

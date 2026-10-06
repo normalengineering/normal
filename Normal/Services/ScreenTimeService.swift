@@ -64,7 +64,9 @@ final class ScreenTimeService: ScreenTimeProviding {
     }
 
     func ensureAuthorized() async -> Bool {
-        if authorizationState == .authorized { return true }
+        if authorizationState == .authorized {
+            return true
+        }
         await requestAuthorization()
         return authorizationState == .authorized
     }

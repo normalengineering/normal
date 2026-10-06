@@ -89,7 +89,9 @@ final class Key: Identifiable {
         return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
-    var isGlobal: Bool { groupID == nil }
+    var isGlobal: Bool {
+        groupID == nil
+    }
 
     static func matchingKeyExists(keys: [Key], unhashedId: String) -> Bool {
         keys.contains { $0.matches(unhashedId: unhashedId) }

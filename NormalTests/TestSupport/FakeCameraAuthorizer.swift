@@ -11,7 +11,9 @@ final class FakeCameraAuthorizer: CameraAuthorizing {
         self.grantOnRequest = grantOnRequest
     }
 
-    func authorizationStatus() -> AVAuthorizationStatus { status }
+    func authorizationStatus() -> AVAuthorizationStatus {
+        status
+    }
 
     func requestAccess() async -> Bool {
         requestCount += 1

@@ -37,19 +37,29 @@ nonisolated struct TimedUnblockDuration: Hashable, Comparable, Identifiable, Sen
         return valid.isEmpty ? presets : valid
     }
 
-    var id: Int { seconds }
+    var id: Int {
+        seconds
+    }
 
-    var timeInterval: TimeInterval { TimeInterval(seconds) }
+    var timeInterval: TimeInterval {
+        TimeInterval(seconds)
+    }
 
-    var hours: Int { seconds / 3600 }
+    var hours: Int {
+        seconds / 3600
+    }
 
-    var minutes: Int { seconds % 3600 / 60 }
+    var minutes: Int {
+        seconds % 3600 / 60
+    }
 
     var label: String {
         Duration.seconds(seconds).formatted(.units(allowed: [.hours, .minutes], width: .wide))
     }
 
-    static func < (lhs: Self, rhs: Self) -> Bool { lhs.seconds < rhs.seconds }
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.seconds < rhs.seconds
+    }
 }
 
 nonisolated enum UnlockDurationRequest: Equatable, Sendable {
@@ -74,7 +84,8 @@ nonisolated enum UnlockDurationRequest: Equatable, Sendable {
             return
         }
         if let seconds = Int(queryValue), String(seconds) == queryValue,
-           let duration = TimedUnblockDuration(validating: seconds) {
+           let duration = TimedUnblockDuration(validating: seconds)
+        {
             self = .fixed(duration)
         } else {
             self = .ask

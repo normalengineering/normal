@@ -9,7 +9,9 @@ struct ScheduleSummaryTests {
         calendar.date(from: DateComponents(year: 2025, month: 1, day: 15, hour: 12, minute: 0))!
     }
 
-    private var today: Int { calendar.component(.weekday, from: now) }
+    private var today: Int {
+        calendar.component(.weekday, from: now)
+    }
 
     private func schedule(
         enabled: Bool,

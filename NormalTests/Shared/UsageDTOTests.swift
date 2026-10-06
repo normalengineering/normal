@@ -9,8 +9,13 @@ struct UsageDTOTests {
         return calendar
     }
 
-    private var newYork: Calendar { calendar("America/New_York") }
-    private var nyPeriod: UsagePeriod { UsagePeriod(calendar: newYork) }
+    private var newYork: Calendar {
+        calendar("America/New_York")
+    }
+
+    private var nyPeriod: UsagePeriod {
+        UsagePeriod(calendar: newYork)
+    }
 
     private func newYorkPeriod(resetAt hour: Int, _ minute: Int = 0) -> UsagePeriod {
         UsagePeriod(resetMinutes: hour * 60 + minute, calendar: newYork)

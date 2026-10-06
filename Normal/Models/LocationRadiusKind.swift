@@ -4,7 +4,9 @@ enum LocationRadiusKind: String, Codable, CaseIterable, Identifiable, Sendable {
     case unblock = "UNBLOCK"
     case block = "BLOCK"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var label: String {
         switch self {
@@ -20,7 +22,9 @@ enum LocationRadiusKind: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    var icon: String { "location.fill" }
+    var icon: String {
+        "location.fill"
+    }
 
     var zoneColor: Color {
         switch self {

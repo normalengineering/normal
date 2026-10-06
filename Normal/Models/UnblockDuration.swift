@@ -6,7 +6,9 @@ enum UnblockDuration: Int, CaseIterable, Codable, Identifiable, Sendable {
     case oneHour = 3600
     case fourHours = 14400
 
-    var id: Int { rawValue }
+    var id: Int {
+        rawValue
+    }
 
     var label: String {
         switch self {

@@ -36,7 +36,6 @@ struct KeysView: View {
         }
     }
 
-    @ViewBuilder
     private var content: some View {
         Group {
             if keys.isEmpty {

@@ -18,11 +18,19 @@ nonisolated enum WidgetGroupState: Equatable, Sendable {
     case unblocked(until: Date?)
 
     var isUnblocked: Bool {
-        if case .unblocked = self { true } else { false }
+        if case .unblocked = self {
+            true
+        } else {
+            false
+        }
     }
 
     var countdownEnd: Date? {
-        if case let .unblocked(until) = self { until } else { nil }
+        if case let .unblocked(until) = self {
+            until
+        } else {
+            nil
+        }
     }
 
     static func resolve(timedUnblockEnd: Date?, blockStatus: WidgetBlockStatus?, now: Date) -> WidgetGroupState {

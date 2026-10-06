@@ -25,7 +25,9 @@ struct KeySelectModifier: ViewModifier {
         let id = UUID()
     }
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var scopedKeys: [Key] {
         Key.scoped(keys, toGroup: keyGroupID)
@@ -38,7 +40,9 @@ struct KeySelectModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onChange(of: action != nil) { _, hasAction in
-                if hasAction { applyDecision() }
+                if hasAction {
+                    applyDecision()
+                }
             }
             .alert("No Keys Available", isPresented: $showNoKeysAlert) {
                 Button("OK", role: .cancel) { action = nil }
@@ -71,7 +75,9 @@ struct KeySelectModifier: ViewModifier {
             )
             .navigationDestination(isPresented: $showBypassConfirm) {
                 BypassConfirmView { skipFuture in
-                    if skipFuture { settings.skipBlockWithoutKeyConfirmation = true }
+                    if skipFuture {
+                        settings.skipBlockWithoutKeyConfirmation = true
+                    }
                     bypassNow()
                 }
             }
@@ -98,7 +104,9 @@ struct KeySelectModifier: ViewModifier {
     }
 
     private var sheetDetents: Set<PresentationDetent> {
-        if showQRScanner { return [.large] }
+        if showQRScanner {
+            return [.large]
+        }
         return [.medium]
     }
 
@@ -169,7 +177,9 @@ struct KeySelectModifier: ViewModifier {
     }
 
     private func onSheetDismiss() {
-        if qrService.isScanning { qrService.cancel() }
+        if qrService.isScanning {
+            qrService.cancel()
+        }
 
         if pendingLocationAction != nil {
             locationToken = PresentationToken()

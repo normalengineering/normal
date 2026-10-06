@@ -3,7 +3,7 @@ import Foundation
 import Testing
 
 struct DTOBackCompatTests {
-    // Mirrors the pre-customDomains shape of TimedUnblockDTO.
+    /// Mirrors the pre-customDomains shape of TimedUnblockDTO.
     private struct LegacyTimedUnblockDTO: Codable {
         let id: String
         let selectionData: Data
@@ -13,7 +13,7 @@ struct DTOBackCompatTests {
         let blockAllPreventsAppDelete: Bool?
     }
 
-    // Mirrors the pre-customDomains shape of ScheduleDTO.
+    /// Mirrors the pre-customDomains shape of ScheduleDTO.
     private struct LegacyScheduleDTO: Codable {
         let id: UUID
         let name: String

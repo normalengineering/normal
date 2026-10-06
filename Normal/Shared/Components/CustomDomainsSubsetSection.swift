@@ -5,7 +5,9 @@ struct CustomDomainSubsetRow: View {
     @Binding var selected: [String]
     var isEditable: Bool = true
 
-    private var isOn: Bool { selected.contains(domain) }
+    private var isOn: Bool {
+        selected.contains(domain)
+    }
 
     var body: some View {
         Button(action: toggle) {

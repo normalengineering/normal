@@ -16,7 +16,9 @@ struct AppSelectView: View {
     @State private var selection = FamilyActivitySelection()
     @State private var customDomains: [String] = []
 
-    private var mainSelection: SelectedApps? { selectedApps.first }
+    private var mainSelection: SelectedApps? {
+        selectedApps.first
+    }
 
     private var customDomainsEnabled: Bool {
         allSettings.first?.enableCustomDomains ?? false
@@ -26,8 +28,13 @@ struct AppSelectView: View {
         customDomainsEnabled ? customDomains : []
     }
 
-    private var isBlocked: Bool { screenTimeService.activeShieldCount() > 0 }
-    private var isAuthorized: Bool { screenTimeService.authorizationState == .authorized }
+    private var isBlocked: Bool {
+        screenTimeService.activeShieldCount() > 0
+    }
+
+    private var isAuthorized: Bool {
+        screenTimeService.authorizationState == .authorized
+    }
 
     private var footerText: Text? {
         if !isAuthorized {

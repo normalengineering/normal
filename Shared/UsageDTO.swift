@@ -19,7 +19,9 @@ nonisolated enum UsageLimitState: String, Codable, Sendable, CaseIterable, Compa
         }
     }
 
-    static func < (lhs: Self, rhs: Self) -> Bool { lhs.rank < rhs.rank }
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.rank < rhs.rank
+    }
 }
 
 /// A daily usage limit, flattened for the monitor extension.
@@ -32,12 +34,6 @@ nonisolated struct UsageLimitDTO: Codable, Sendable, Identifiable {
     let id: UUID
     let selectionData: Data
     let minutesPerDay: Int
-
-    init(id: UUID, selectionData: Data, minutesPerDay: Int) {
-        self.id = id
-        self.selectionData = selectionData
-        self.minutesPerDay = minutesPerDay
-    }
 }
 
 nonisolated struct UsageLimitConfig: Codable, Sendable, Equatable {
@@ -49,7 +45,9 @@ nonisolated struct UsageLimitConfig: Codable, Sendable, Equatable {
         self.preventsAppDelete = preventsAppDelete
     }
 
-    var period: UsagePeriod { UsagePeriod(resetMinutes: resetMinutes) }
+    var period: UsagePeriod {
+        UsagePeriod(resetMinutes: resetMinutes)
+    }
 }
 
 nonisolated struct UsageDayStateDTO: Codable, Sendable, Equatable {
@@ -59,9 +57,13 @@ nonisolated struct UsageDayStateDTO: Codable, Sendable, Equatable {
     private var encodedExpiresAt: Date?
     private var encodedIsOverridden: Bool?
 
-    var expiresAt: Date? { encodedExpiresAt }
+    var expiresAt: Date? {
+        encodedExpiresAt
+    }
 
-    var isOverridden: Bool { encodedIsOverridden ?? false }
+    var isOverridden: Bool {
+        encodedIsOverridden ?? false
+    }
 
     static let empty = UsageDayStateDTO(dayKey: "", states: [:])
 
@@ -133,14 +135,18 @@ nonisolated struct UsagePeriod: Equatable, Sendable {
 
     func start(containing date: Date) -> Date {
         let sameDay = reset(onDayOf: date)
-        if sameDay <= date { return sameDay }
+        if sameDay <= date {
+            return sameDay
+        }
         guard let dayBefore = calendar.date(byAdding: .day, value: -1, to: date) else { return sameDay }
         return reset(onDayOf: dayBefore)
     }
 
     func nextReset(after date: Date) -> Date {
         let sameDay = reset(onDayOf: date)
-        if sameDay > date { return sameDay }
+        if sameDay > date {
+            return sameDay
+        }
         guard let dayAfter = calendar.date(byAdding: .day, value: 1, to: date) else { return sameDay }
         return reset(onDayOf: dayAfter)
     }

@@ -13,14 +13,23 @@ struct CustomDomainsEditor: View {
     private struct FieldMessage: Equatable {
         var text: String
         var isError: Bool
-        static func error(_ text: String) -> Self { .init(text: text, isError: true) }
-        static func warning(_ text: String) -> Self { .init(text: text, isError: false) }
+        static func error(_ text: String) -> Self {
+            .init(text: text, isError: true)
+        }
+
+        static func warning(_ text: String) -> Self {
+            .init(text: text, isError: false)
+        }
     }
 
     var body: some View {
         Form {
-            if isEditable { inputSection }
-            if !domains.isEmpty { domainsSection }
+            if isEditable {
+                inputSection
+            }
+            if !domains.isEmpty {
+                domainsSection
+            }
         }
         .navigationTitle("Custom Domains")
         .navigationBarTitleDisplayMode(.inline)

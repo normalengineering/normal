@@ -17,8 +17,13 @@ struct HomeView: View {
     @State private var allowBypass = false
     @State private var showTimedUnblockSheet = false
 
-    private var mainSelection: SelectedApps? { selectedApps.first }
-    private var settings: Settings { allSettings.unwrapped }
+    private var mainSelection: SelectedApps? {
+        selectedApps.first
+    }
+
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private func customDomains(for selection: SelectedApps) -> [String] {
         settings.enableCustomDomains ? selection.customDomains : []

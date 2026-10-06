@@ -24,14 +24,18 @@ struct KeyFormSheetSetupSection: View {
 
     var body: some View {
         Section("Setup") {
-            if hasMultipleTypes { typePickerStep }
+            if hasMultipleTypes {
+                typePickerStep
+            }
             switch keyType {
             case .nfc, .qr: scanStep
             case .location: locationStep
             }
         }
         .onAppear {
-            if let lockedKind { radiusKind = lockedKind }
+            if let lockedKind {
+                radiusKind = lockedKind
+            }
         }
 
         if keyType == .location {

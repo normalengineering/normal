@@ -98,7 +98,7 @@ struct UnblockDurationMigrationTests {
                 for: schema, configurations: ModelConfiguration(schema: schema, url: url)
             )
             let settings = Normal.Settings()
-            settings.addUnblockDuration(try #require(TimedUnblockDuration(validating: 5700)))
+            try settings.addUnblockDuration(#require(TimedUnblockDuration(validating: 5700)))
             settings.defaultDuration = TimedUnblockDuration(validating: 5700)
             container.mainContext.insert(settings)
             try container.mainContext.save()

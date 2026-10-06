@@ -9,7 +9,9 @@ struct UsageView: View {
 
     @State private var editing: UsageLimitTarget?
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     var body: some View {
         TimelineView(UsageLockSchedule(dates: limits.flatMap(\.lockRefreshDates))) { context in
@@ -98,14 +100,18 @@ struct UsageResetTimeView: View {
         _time = State(initialValue: time ?? .now)
     }
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var newMinutes: Int {
         let parts = Calendar.current.dateComponents([.hour, .minute], from: time)
         return (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
     }
 
-    private var hasChange: Bool { newMinutes != settings.dailyLimitResetMinutes }
+    private var hasChange: Bool {
+        newMinutes != settings.dailyLimitResetMinutes
+    }
 
     private func decision(at now: Date) -> UsageLimitEditDecision {
         limits.isEmpty ? .allowed(.tightening) : usageLimitService.decideResetChange(now: now)

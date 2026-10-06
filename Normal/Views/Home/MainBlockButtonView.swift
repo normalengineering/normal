@@ -13,7 +13,9 @@ struct MainBlockButtonView: View {
     let onBlock: @MainActor () -> Void
     let onUnblock: @MainActor () -> Void
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var customDomains: [String] {
         settings.enableCustomDomains ? mainSelection.customDomains : []
@@ -31,12 +33,18 @@ struct MainBlockButtonView: View {
         blockStatus != .none && !timedUnblockService.isMainUnblockActive
     }
 
-    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: keys) }
+    private var hasGlobalKey: Bool {
+        Key.hasGlobalKey(in: keys)
+    }
 
     var body: some View {
         Section {
-            if canShowBlock { blockRow }
-            if canShowUnblock { unblockRow }
+            if canShowBlock {
+                blockRow
+            }
+            if canShowUnblock {
+                unblockRow
+            }
         } footer: {
             if canShowBlock, !hasGlobalKey {
                 Text("Add a key in the Keys tab before blocking apps.")

@@ -28,7 +28,9 @@ struct LocationPickerSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if permissionDenied { LocationPermissionBanner() }
+                if permissionDenied {
+                    LocationPermissionBanner()
+                }
 
                 LocationPickerMapView(
                     kind: kind,
@@ -95,7 +97,9 @@ struct LocationPickerSheet: View {
     private func initialResolve() async {
         if currentLocation == nil, let cached = locationService.cachedLocation {
             currentLocation = cached
-            if pin == nil, existingZones.isEmpty { pin = cached.coordinate }
+            if pin == nil, existingZones.isEmpty {
+                pin = cached.coordinate
+            }
         }
         do {
             let location = try await locationService.currentLocation()

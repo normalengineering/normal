@@ -36,9 +36,9 @@ struct UsageLimitServiceTests {
     /// `FamilyActivitySelection` cannot be populated with real tokens in a unit
     /// test, so DTOs are built directly where a non-empty selection matters.
     private func dto(id: UUID = UUID(), minutes: Int) throws -> UsageLimitDTO {
-        UsageLimitDTO(
+        try UsageLimitDTO(
             id: id,
-            selectionData: try FamilyActivitySelection().toData(),
+            selectionData: FamilyActivitySelection().toData(),
             minutesPerDay: minutes
         )
     }
@@ -72,7 +72,7 @@ struct UsageLimitServiceTests {
     /// armed — otherwise the threshold never fires and the limit looks active
     /// while doing nothing.
     @Test func aLimitWithAnEmptySelectionIsNotArmable() throws {
-        let spec = try #require(UsageLimitService.eventSpecs(for: [try dto(minutes: 60)]).first)
+        let spec = try #require(try UsageLimitService.eventSpecs(for: [dto(minutes: 60)]).first)
 
         #expect(spec.isArmable == false)
     }

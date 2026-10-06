@@ -94,11 +94,15 @@ final class UsageLimitService {
         let minutes: Int
         let selection: FamilyActivitySelection
 
-        var name: DeviceActivityEvent.Name { DeviceActivityEvent.Name(eventName) }
+        var name: DeviceActivityEvent.Name {
+            DeviceActivityEvent.Name(eventName)
+        }
 
         /// A selection with no tokens has nothing to meter. Registering it
         /// would leave a limit that looks armed but can never fire.
-        var isArmable: Bool { !selection.isEmpty }
+        var isArmable: Bool {
+            !selection.isEmpty
+        }
 
         var event: DeviceActivityEvent {
             DeviceActivityEvent(

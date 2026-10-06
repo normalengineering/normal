@@ -20,7 +20,9 @@ struct SettingsView: View {
         _selectedTab = State(initialValue: initialTab)
     }
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var availableKeyTypes: [KeyType] {
         KeyType.allCases.filter { type in keys.contains { $0.type == type } }

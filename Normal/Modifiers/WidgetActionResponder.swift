@@ -39,7 +39,9 @@ private struct WidgetActionResponder: ViewModifier {
                 keyGroupID: actionGroup?.id
             )
             .sheet(isPresented: $showDurationSheet) {
-                if let actionGroup { GroupTimedUnblockSheet(group: actionGroup) }
+                if let actionGroup {
+                    GroupTimedUnblockSheet(group: actionGroup)
+                }
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }

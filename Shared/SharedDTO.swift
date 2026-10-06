@@ -10,7 +10,9 @@ struct TimedUnblockDTO: Codable, Sendable, Identifiable {
     let blockAllPreventsAppDelete: Bool?
 
     private let encodedCustomDomains: [String]?
-    var customDomains: [String] { encodedCustomDomains ?? [] }
+    var customDomains: [String] {
+        encodedCustomDomains ?? []
+    }
 
     let startDate: Date?
 
@@ -47,7 +49,9 @@ struct ScheduleDTO: Codable, Sendable, Identifiable {
     let isTimed: Bool
 
     private let encodedCustomDomains: [String]?
-    var customDomains: [String] { encodedCustomDomains ?? [] }
+    var customDomains: [String] {
+        encodedCustomDomains ?? []
+    }
 
     init(
         id: UUID,

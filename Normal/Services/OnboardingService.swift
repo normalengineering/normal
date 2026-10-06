@@ -9,11 +9,17 @@ final class OnboardingService {
     var isOnboardingActive: Bool = true
     var highlightFrames: [OnboardingStep: CGRect] = [:]
 
-    var requiredTab: AppTab? { currentStep.requiredTab }
+    var requiredTab: AppTab? {
+        currentStep.requiredTab
+    }
 
-    var isTabWalkthrough: Bool { currentStep.isTabWalkthrough }
+    var isTabWalkthrough: Bool {
+        currentStep.isTabWalkthrough
+    }
 
-    var highlightFrame: CGRect? { highlightFrames[currentStep] }
+    var highlightFrame: CGRect? {
+        highlightFrames[currentStep]
+    }
 
     func next() {
         let upcoming = currentStep.next()

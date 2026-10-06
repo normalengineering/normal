@@ -23,7 +23,9 @@ struct GroupListCardView: View {
     @State private var isReselecting = false
     @State private var showDeleteConfirmation = false
 
-    private var settings: Settings { allSettings.unwrapped }
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var customDomains: [String] {
         settings.enableCustomDomains ? appGroup.customDomains : []
@@ -33,7 +35,9 @@ struct GroupListCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var hasGlobalKey: Bool { Key.hasGlobalKey(in: allKeys) }
+    private var hasGlobalKey: Bool {
+        Key.hasGlobalKey(in: allKeys)
+    }
 
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: appGroup.selection, customDomains: customDomains)
@@ -53,9 +57,14 @@ struct GroupListCardView: View {
 
     private var needsSync: Bool {
         guard let main = selectedApps.first else { return false }
-        if !appGroup.selection.isSubset(of: main.selection) { return true }
+        if !appGroup.selection.isSubset(of: main.selection) {
+            return true
+        }
         if settings.enableCustomDomains,
-           CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains) { return true }
+           CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains)
+        {
+            return true
+        }
         return false
     }
 
@@ -63,19 +72,33 @@ struct GroupListCardView: View {
         GlassCard {
             header
             tokenStrip
-            if needsSync { syncWarningText }
+            if needsSync {
+                syncWarningText
+            }
             if !needsSync, showsTimedUnblock, let endDate = unblockEndDate, endDate > .now {
                 timedUnblockRow(endDate: endDate)
             }
-            if !needsSync && !showsTimedUnblock { actionRow }
+            if !needsSync && !showsTimedUnblock {
+                actionRow
+            }
         }
         .opacity(needsSync ? DS.Opacity.dim : 1)
         .onTapGesture {
-            if needsSync { isReselecting = true } else { isEditing = true }
+            if needsSync {
+                isReselecting = true
+            } else {
+                isEditing = true
+            }
         }
         .editDeleteContextMenu(
             isDisabled: isBlocked,
-            onEdit: { if needsSync { isReselecting = true } else { isEditing = true } },
+            onEdit: {
+                if needsSync {
+                    isReselecting = true
+                } else {
+                    isEditing = true
+                }
+            },
             onDelete: { showDeleteConfirmation = true }
         )
         .sheet(isPresented: $isEditing) {

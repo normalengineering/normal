@@ -11,7 +11,9 @@ struct StatusDetailView: View {
 
     let mainSelection: SelectedApps
 
-    private var selection: FamilyActivitySelection { mainSelection.selection }
+    private var selection: FamilyActivitySelection {
+        mainSelection.selection
+    }
 
     private var customDomains: [String] {
         (allSettings.first?.enableCustomDomains ?? false) ? mainSelection.customDomains : []
@@ -28,12 +30,16 @@ struct StatusDetailView: View {
     var body: some View {
         List {
             overallSection
-            if !limits.isEmpty { limitsSection }
+            if !limits.isEmpty {
+                limitsSection
+            }
             tokenSection("Apps", kinds: selection.applicationTokens.sortedStably.map(SelectedTokenKind.application))
             tokenSection("Websites", kinds: selection.webDomainTokens.sortedStably.map(SelectedTokenKind.webDomain))
             tokenSection("Categories", kinds: selection.categoryTokens.sortedStably.map(SelectedTokenKind.category))
             customDomainsSection
-            if !schedules.isEmpty { schedulesSection }
+            if !schedules.isEmpty {
+                schedulesSection
+            }
         }
         .navigationTitle("Status")
         .navigationBarTitleDisplayMode(.inline)

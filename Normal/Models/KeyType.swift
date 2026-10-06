@@ -5,7 +5,9 @@ enum KeyType: String, Codable, CaseIterable, Identifiable, Sendable {
     case qr = "QR"
     case location = "LOCATION"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var icon: String {
         switch self {

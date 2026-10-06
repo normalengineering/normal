@@ -31,9 +31,13 @@ struct KeyFormSheet: View {
     @State private var showLastKeyAlert = false
     @State private var showKeyTypeLockedAlert = false
 
-    private var isNew: Bool { existing == nil }
+    private var isNew: Bool {
+        existing == nil
+    }
 
-    private var isReadOnly: Bool { !isNew && screenTimeService.activeShieldCount() > 0 }
+    private var isReadOnly: Bool {
+        !isNew && screenTimeService.activeShieldCount() > 0
+    }
 
     private var isLastKey: Bool {
         guard let existing else { return false }
@@ -41,7 +45,9 @@ struct KeyFormSheet: View {
     }
 
     private var navigationTitle: String {
-        if isNew { return "New Key" }
+        if isNew {
+            return "New Key"
+        }
         return isReadOnly ? "Key" : "Edit Key"
     }
 
@@ -92,7 +98,9 @@ struct KeyFormSheet: View {
                 } else {
                     Section("Key Type") {
                         Button {
-                            if !isReadOnly { showKeyTypeLockedAlert = true }
+                            if !isReadOnly {
+                                showKeyTypeLockedAlert = true
+                            }
                         } label: {
                             HStack {
                                 Label(keyType.label, systemImage: keyType.icon)
