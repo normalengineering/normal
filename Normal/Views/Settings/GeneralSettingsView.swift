@@ -42,6 +42,23 @@ struct GeneralSettingsView: View {
 
     private var unblockingSection: some View {
         Section {
+            NavigationLink {
+                UnblockDurationsView(settings: settings)
+            } label: {
+                CountRow(title: "Unblock Durations", count: settings.unblockDurations.count)
+            }
+            .accessibilityIdentifier("settings.unblockDurationsLink")
+
+            Picker("Default Duration", selection: Binding(
+                get: { settings.defaultDuration },
+                set: { settings.defaultDuration = $0 }
+            )) {
+                Text("None").tag(TimedUnblockDuration?.none)
+                ForEach(settings.unblockDurations) { duration in
+                    Text(duration.label).tag(TimedUnblockDuration?.some(duration))
+                }
+            }
+
             Picker(
                 "Default Key",
                 selection: Binding(
@@ -57,23 +74,6 @@ struct GeneralSettingsView: View {
                 Text("None").tag(KeyType?.none)
                 ForEach(availableKeyTypes) { type in
                     Label(type.label, systemImage: type.icon).tag(KeyType?.some(type))
-                }
-            }
-
-            NavigationLink {
-                UnblockDurationsView(settings: settings)
-            } label: {
-                CountRow(title: "Unblock Durations", count: settings.unblockDurations.count)
-            }
-            .accessibilityIdentifier("settings.unblockDurationsLink")
-
-            Picker("Default Duration", selection: Binding(
-                get: { settings.defaultDuration },
-                set: { settings.defaultDuration = $0 }
-            )) {
-                Text("None").tag(TimedUnblockDuration?.none)
-                ForEach(settings.unblockDurations) { duration in
-                    Text(duration.label).tag(TimedUnblockDuration?.some(duration))
                 }
             }
 
