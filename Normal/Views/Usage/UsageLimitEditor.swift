@@ -206,7 +206,7 @@ struct UsageLimitEditor: View {
 
     private var explanation: LocalizedStringKey {
         let reset = usageLimitService.nextReset().formatted(date: .omitted, time: .shortened)
-        return "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even while everything else is unblocked. Time already used today counts; if you're already past it, the limit starts at the next reset."
+        return "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even if unblocked with a key. Time already used today counts; if you're already past it, the limit starts at the next reset."
     }
 
     private func lockNotice(at now: Date) -> (text: Text, color: Color)? {

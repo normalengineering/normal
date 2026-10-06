@@ -61,7 +61,7 @@ struct UsageView: View {
                 .accessibilityHint("Edit limit")
             }
         } footer: {
-            Text("Once a limit runs out, its apps stay blocked until the reset, even while everything else is unblocked.")
+            Text("Once a limit runs out, its apps stay blocked until the reset, even if unblocked with a key.")
         }
     }
 
