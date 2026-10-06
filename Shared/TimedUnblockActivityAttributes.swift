@@ -1,7 +1,7 @@
 import ActivityKit
 import Foundation
 
-struct TimedUnblockActivityAttributes: ActivityAttributes {
+nonisolated struct TimedUnblockActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         var endDate: Date
     }

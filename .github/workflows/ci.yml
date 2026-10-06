@@ -13,10 +13,10 @@ concurrency:
 jobs:
   unit-tests:
     name: Unit tests
-    runs-on: macos-15
+    runs-on: xcode-27
     env:
       SCHEME: Normal
-      SIMULATOR: iPhone 16 Pro
+      SIMULATOR: iPhone 17
     steps:
       - uses: actions/checkout@v4
 
