@@ -45,7 +45,7 @@ private struct WidgetActionResponder: ViewModifier {
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }
-            .onChange(of: groups) { _, _ in syncGroups() }
+            .onChange(of: WidgetSync.groupDTOs(groups)) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
             .onChange(of: unblockDurations) { _, _ in syncWidget() }
