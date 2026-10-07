@@ -49,6 +49,10 @@ final class UsageLimitService {
             logger.error("Dropped \(limits.count - dtos.count, privacy: .public) limit(s) that failed to encode")
         }
         sharedStore.saveUsageLimits(dtos)
+        let previous = sharedStore.loadUsageLimitConfig()
+        if previous.resetMinutes != config.resetMinutes {
+            sharedStore.moveUsageDay(from: previous.period, to: config.period, on: date)
+        }
         sharedStore.saveUsageLimitConfig(config)
         syncShields(on: date)
 

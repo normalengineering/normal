@@ -230,6 +230,22 @@ struct UsageLimitServiceTests {
         #expect(h.shield.shieldedLimitIDs.isEmpty)
     }
 
+    @Test func movingTheResetPastTheCurrentTimeLiftsASpentLimitAtTheNewReset() {
+        let h = makeService()
+        let limit = UsageLimit(minutesPerDay: 30)
+        let midnight = Calendar.current.startOfDay(for: day)
+        let spentAt = midnight + .hours(15)
+        h.service.registerAll([limit], config: config, on: spentAt)
+        h.store.recordUsageState(.reached, for: limit.id, on: spentAt)
+
+        let later = UsageLimitConfig(resetMinutes: 16 * 60)
+        h.service.registerAll([limit], config: later, on: spentAt + .minutes(30))
+        #expect(h.shield.shieldedLimitIDs == [limit.id])
+
+        h.service.registerAll([limit], config: later, on: midnight + .hours(16) + .minutes(1))
+        #expect(h.shield.shieldedLimitIDs.isEmpty)
+    }
+
     @Test func deletingASpentLimitLiftsItsShield() {
         let h = makeService()
         let limit = UsageLimit(minutesPerDay: 30)
