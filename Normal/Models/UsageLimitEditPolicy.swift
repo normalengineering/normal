@@ -68,11 +68,14 @@ nonisolated enum UsageLimitEditPolicy {
 
     static func lockState(anchor: Date?, now: Date = .now) -> UsageLimitLockState {
         guard let anchor else { return .unlocked }
+        let unlock = anchor + cooldownInterval
+        if now < anchor {
+            return .locked(until: unlock)
+        }
         let graceEnds = anchor + graceInterval
         if now < graceEnds {
             return .grace(until: graceEnds)
         }
-        let unlock = anchor + cooldownInterval
         return now < unlock ? .locked(until: unlock) : .unlocked
     }
 

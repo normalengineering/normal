@@ -151,6 +151,24 @@ struct UsageLimitEditPolicyTests {
         #expect(current == anchor)
     }
 
+    @Test(arguments: [
+        UsageLimitEdit.adjust(from: 30, to: 60, dropsCoverage: false),
+        .adjust(from: 60, to: 60, dropsCoverage: true),
+        .delete(minutes: 30),
+        .changeReset,
+    ])
+    func windingTheClockBackBeforeTheAnchorDoesNotReopenGrace(edit: UsageLimitEdit) {
+        let decision = UsageLimitEditPolicy.decide(edit, anchor: anchor, now: anchor - .days(1))
+        #expect(decision == .locked(until: anchor + .days(7)))
+    }
+
+    @Test func restoringTheClockAfterAFutureAnchorStaysLocked() {
+        #expect(
+            UsageLimitEditPolicy.lockState(anchor: anchor, now: anchor - 1)
+                == .locked(until: anchor + .days(7))
+        )
+    }
+
     // MARK: - Anchor bookkeeping
 
     @Test func onlyCooldownElapsedStartsANewWeek() {
