@@ -41,7 +41,11 @@ struct NormalApp: App {
                 context.insert(Key(name: "Test Key", type: .qr, rawValue: UITestSupport.stubScanValue))
             }
             if UITestSupport.seedGroupKey {
-                let group = AppGroup(name: "Test Group", selection: FamilyActivitySelection())
+                let group = AppGroup(
+                    id: UITestSupport.seedGroupID,
+                    name: "Test Group",
+                    selection: FamilyActivitySelection()
+                )
                 context.insert(group)
                 context.insert(Key(name: "Group Key", type: .qr, rawValue: "GROUP-VALUE", groupID: group.id))
             }
