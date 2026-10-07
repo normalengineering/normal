@@ -144,6 +144,25 @@ final class BlockingUITests: XCTestCase {
         require(app.buttons["group.blockButton"], "Group should be unblocked again")
     }
 
+    func testUnlockLinkDuringBypassConfirmationFallsBackToKeySelection() throws {
+        let app = launch(["-uiTestSeedGroupKey"])
+        let groupID = "6E0A1C9B-2D4F-4B7A-9C3E-5F8D1A2B3C4D"
+
+        app.open(try XCTUnwrap(URL(string: "normal://block?group=\(groupID)")))
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Block link should offer bypass")
+        bypass.tap()
+        let confirm = app.buttons["keySelect.confirmBlockWithoutKey"]
+        require(confirm, "Bypass confirmation should appear")
+
+        app.open(try XCTUnwrap(URL(string: "normal://unlock?group=\(groupID)&duration=3600")))
+
+        XCTAssertTrue(confirm.waitForNonExistence(timeout: timeout), "Unlock link should dismiss the bypass confirmation")
+        require(app.buttons["keySelect.row.QR"], "Unlock link should ask for a key")
+        XCTAssertFalse(bypass.exists, "Unlock should not offer a keyless path")
+        XCTAssertTrue(app.buttons["group.blockButton"].exists, "Group state should be untouched")
+    }
+
     func testSeededScheduleAppears() {
         let app = launch(["-uiTestSeedSchedule"])
 
