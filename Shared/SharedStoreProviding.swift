@@ -78,6 +78,10 @@ extension SharedStoreProviding {
         saveUsageDayState(.fresh(on: date, period: period))
     }
 
+    func moveUsageDay(from old: UsagePeriod, to new: UsagePeriod, on date: Date = .now) {
+        mutateUsageDayState { $0.moving(from: old, to: new, on: date) }
+    }
+
     func overrideUsageDay(on date: Date = .now) {
         saveUsageDayState(loadUsageDayState().overriding(on: date, period: usagePeriod))
     }

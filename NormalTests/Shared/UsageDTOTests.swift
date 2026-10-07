@@ -233,15 +233,53 @@ struct UsageDTOTests {
         #expect(state.state(for: id, on: date("2026-03-15T05:00:00-04:00"), period: later) == .under)
     }
 
-    @Test func movingTheResetEarlierCannotRefundASpentRecord() {
+    @Test func movingTheResetEarlierReleasesASpentRecordAtTheNewReset() {
         let noon = date("2026-03-14T12:00:00-04:00")
         let later = newYorkPeriod(resetAt: 4)
         let state = UsageDayStateDTO
             .fresh(on: noon, period: later)
             .recording(.reached, for: id, on: noon, period: later)
+            .moving(from: later, to: nyPeriod, on: noon + .hours(1))
 
-        #expect(state.state(for: id, on: date("2026-03-15T01:00:00-04:00"), period: nyPeriod) == .reached)
-        #expect(state.state(for: id, on: date("2026-03-15T09:00:00-04:00"), period: nyPeriod) == .under)
+        #expect(state.state(for: id, on: date("2026-03-14T23:00:00-04:00"), period: nyPeriod) == .reached)
+        #expect(state.state(for: id, on: date("2026-03-15T00:30:00-04:00"), period: nyPeriod) == .under)
+    }
+
+    @Test func movingTheResetPastTheCurrentTimeReleasesASpentRecordAtTheNewReset() {
+        let spentAt = date("2026-03-14T15:00:00-04:00")
+        let later = newYorkPeriod(resetAt: 16)
+        let state = UsageDayStateDTO
+            .fresh(on: spentAt, period: nyPeriod)
+            .recording(.reached, for: id, on: spentAt, period: nyPeriod)
+            .moving(from: nyPeriod, to: later, on: date("2026-03-14T15:30:00-04:00"))
+
+        #expect(state.state(for: id, on: date("2026-03-14T15:59:00-04:00"), period: later) == .reached)
+        #expect(state.state(for: id, on: date("2026-03-14T16:01:00-04:00"), period: later) == .under)
+    }
+
+    @Test func movingTheResetDoesNotReviveAnExpiredRecord() {
+        let yesterday = date("2026-03-13T12:00:00-04:00")
+        let now = date("2026-03-14T15:30:00-04:00")
+        let later = newYorkPeriod(resetAt: 16)
+        let state = UsageDayStateDTO
+            .fresh(on: yesterday, period: nyPeriod)
+            .recording(.reached, for: id, on: yesterday, period: nyPeriod)
+            .moving(from: nyPeriod, to: later, on: now)
+
+        #expect(state.state(for: id, on: now, period: later) == .under)
+    }
+
+    @Test func movingTheResetKeepsTheOverride() {
+        let noon = date("2026-03-14T12:00:00-04:00")
+        let later = newYorkPeriod(resetAt: 16)
+        let state = UsageDayStateDTO
+            .fresh(on: noon, period: nyPeriod)
+            .overriding(on: noon, period: nyPeriod)
+            .moving(from: nyPeriod, to: later, on: noon)
+
+        #expect(state.isOverridden)
+        #expect(state.isStale(on: date("2026-03-14T15:59:00-04:00"), period: later) == false)
+        #expect(state.isStale(on: date("2026-03-14T16:01:00-04:00"), period: later))
     }
 
     @Test func aReportClaimingMoreUseThanTimeSinceTheResetIsImplausible() {

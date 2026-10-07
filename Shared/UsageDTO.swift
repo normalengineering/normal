@@ -117,6 +117,14 @@ nonisolated struct UsageDayStateDTO: Codable, Sendable, Equatable {
         return updated
     }
 
+    func moving(from old: UsagePeriod, to new: UsagePeriod, on date: Date) -> Self {
+        guard !isStale(on: date, period: old) else { return .fresh(on: date, period: new) }
+        var updated = self
+        updated.dayKey = new.key(for: date)
+        updated.encodedExpiresAt = new.nextReset(after: date)
+        return updated
+    }
+
     func overriding(on date: Date, period: UsagePeriod = UsagePeriod()) -> Self {
         var updated = Self.fresh(on: date, period: period)
         updated.encodedIsOverridden = true
