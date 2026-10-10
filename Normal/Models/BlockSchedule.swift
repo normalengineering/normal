@@ -39,6 +39,12 @@ final class BlockSchedule: Identifiable {
         return date.formatted(date: .omitted, time: .shortened)
     }
 
+    static let minimumDurationMinutes = 15
+
+    var effectiveDurationMinutes: Int {
+        max(durationMinutes, Self.minimumDurationMinutes)
+    }
+
     var formattedDuration: String {
         DurationFormat.compact(minutes: durationMinutes)
     }
@@ -99,7 +105,7 @@ final class BlockSchedule: Identifiable {
             containing: now,
             startHour: startHour,
             startMinute: startMinute,
-            durationMinutes: durationMinutes,
+            durationMinutes: effectiveDurationMinutes,
             weekdays: weekdays,
             calendar: calendar
         ) != nil
@@ -113,7 +119,7 @@ final class BlockSchedule: Identifiable {
             selectionData: data,
             startHour: startHour,
             startMinute: startMinute,
-            durationMinutes: durationMinutes,
+            durationMinutes: effectiveDurationMinutes,
             weekdays: weekdays,
             shouldBlock: shouldBlock,
             isTimed: isTimed,

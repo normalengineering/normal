@@ -130,11 +130,13 @@ final class ScheduleService {
         start.minute = schedule.startMinute
         start.second = 0
 
-        let endMinutes = schedule.startHour * 60 + schedule.startMinute + schedule.durationMinutes
+        let startSeconds = (schedule.startHour * 60 + schedule.startMinute) * 60
+        let durationSeconds = min(schedule.effectiveDurationMinutes * 60, 86400 - 1)
+        let endSeconds = (startSeconds + durationSeconds) % 86400
         var end = DateComponents()
-        end.hour = (endMinutes / 60) % 24
-        end.minute = endMinutes % 60
-        end.second = 0
+        end.hour = endSeconds / 3600
+        end.minute = endSeconds % 3600 / 60
+        end.second = endSeconds % 60
 
         return DeviceActivitySchedule(intervalStart: start, intervalEnd: end, repeats: true)
     }

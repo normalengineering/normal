@@ -1,3 +1,4 @@
+import DeviceActivity
 import FamilyControls
 import Foundation
 @testable import Normal
@@ -335,5 +336,62 @@ struct ScheduleServiceTests {
 
         service.mirrorCustomDomainsEnabled(false)
         #expect(!store.isCustomDomainsEnabled())
+    }
+
+    private func registeredSchedule(
+        startHour: Int,
+        startMinute: Int,
+        durationMinutes: Int,
+        isTimed: Bool
+    ) throws -> DeviceActivitySchedule {
+        let (service, activity, _) = makeService()
+        let schedule = BlockSchedule(
+            name: "S",
+            selection: FamilyActivitySelection(),
+            startHour: startHour, startMinute: startMinute,
+            durationMinutes: durationMinutes,
+            weekdays: [4],
+            shouldBlock: true,
+            isTimed: isTimed,
+            isEnabled: true
+        )
+        try service.sync(schedule, screenTimeService: FakeScreenTimeService())
+        return try #require(activity.startCalls.last?.schedule)
+    }
+
+    @Test func registersRequestedWindow() throws {
+        let registered = try registeredSchedule(startHour: 22, startMinute: 30, durationMinutes: 240, isTimed: true)
+        #expect(registered.intervalStart == DateComponents(hour: 22, minute: 30, second: 0))
+        #expect(registered.intervalEnd == DateComponents(hour: 2, minute: 30, second: 0))
+        #expect(registered.repeats)
+    }
+
+    @Test func permanentScheduleShorterThanMinimumRegistersMinimumWindow() throws {
+        let registered = try registeredSchedule(startHour: 9, startMinute: 55, durationMinutes: 5, isTimed: false)
+        #expect(registered.intervalStart == DateComponents(hour: 9, minute: 55, second: 0))
+        #expect(registered.intervalEnd == DateComponents(hour: 10, minute: 10, second: 0))
+    }
+
+    @Test func fullDayScheduleEndsOneSecondBeforeStart() throws {
+        let registered = try registeredSchedule(startHour: 9, startMinute: 0, durationMinutes: 1440, isTimed: true)
+        #expect(registered.intervalStart == DateComponents(hour: 9, minute: 0, second: 0))
+        #expect(registered.intervalEnd == DateComponents(hour: 8, minute: 59, second: 59))
+    }
+
+    @Test func shortPermanentScheduleUsesMinimumWindowForActivityAndDTO() throws {
+        let s = BlockSchedule(
+            name: "S",
+            selection: FamilyActivitySelection(),
+            startHour: 9, startMinute: 0,
+            durationMinutes: 5,
+            weekdays: [4],
+            shouldBlock: true,
+            isTimed: false,
+            isEnabled: true
+        )
+        #expect(s.isActive(at: date(weekday: 4, hour: 9, minute: 10), calendar: Self.utc))
+        #expect(!s.isActive(at: date(weekday: 4, hour: 9, minute: 15), calendar: Self.utc))
+        #expect(try #require(s.toDTO()).durationMinutes == 15)
+        #expect(s.durationMinutes == 5)
     }
 }
