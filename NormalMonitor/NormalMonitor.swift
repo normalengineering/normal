@@ -94,11 +94,13 @@ final class NormalMonitor: DeviceActivityMonitor {
 
     private func handleScheduleIntervalStart(activityName: String) {
         guard let schedule = findSchedule(activityName: activityName),
-              schedule.isActive(at: .now.addingTimeInterval(Self.scheduleStartToleranceSeconds)),
+              let windowStart = schedule.activeWindowStart(
+                  at: .now.addingTimeInterval(Self.scheduleStartToleranceSeconds)
+              ),
               let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return }
 
-        guard sharedStore.resolveScheduleStart() == .apply else { return }
+        guard sharedStore.resolveScheduleStart(windowStart: windowStart) == .apply else { return }
 
         let domains = gatedDomains(schedule.customDomains)
         if schedule.shouldBlock {

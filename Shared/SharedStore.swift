@@ -63,6 +63,20 @@ struct SharedStore: SharedStoreProviding, Sendable {
 
     func setScheduleOverrideActive(_ active: Bool) {
         defaults.set(active, forKey: SharedConstants.DefaultsKey.scheduleOverride)
+        if active {
+            defaults.set(
+                Date.now.timeIntervalSinceReferenceDate,
+                forKey: SharedConstants.DefaultsKey.scheduleOverrideSince
+            )
+        } else {
+            defaults.removeObject(forKey: SharedConstants.DefaultsKey.scheduleOverrideSince)
+        }
+    }
+
+    func loadScheduleOverrideSince() -> Date? {
+        guard let value = defaults.object(forKey: SharedConstants.DefaultsKey.scheduleOverrideSince) as? Double
+        else { return nil }
+        return Date(timeIntervalSinceReferenceDate: value)
     }
 
     func isCustomDomainsEnabled() -> Bool {

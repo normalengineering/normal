@@ -183,6 +183,28 @@ struct ScheduleServiceTests {
                 "Foreground re-application must not consume the override; only a fresh start does")
     }
 
+    @Test func overrideSetBeforeWindowStartedDoesNotSuppressIt() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        store.scheduleOverrideActive = true
+        store.scheduleOverrideSince = .now.addingTimeInterval(-.hours(3))
+
+        try service.sync(activeNowSchedule(), screenTimeService: screenTime)
+
+        #expect(screenTime.addToShieldsCalled)
+    }
+
+    @Test func legacyOverrideWithoutTimestampSuppressesActiveSchedule() throws {
+        let (service, _, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        store.scheduleOverrideActive = true
+
+        try service.sync(activeNowSchedule(), screenTimeService: screenTime)
+
+        #expect(!screenTime.addToShieldsCalled)
+        #expect(store.isScheduleOverrideActive())
+    }
+
     @Test func setScheduleOverrideWritesFlag() {
         let (service, _, store) = makeService()
 

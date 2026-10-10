@@ -102,10 +102,10 @@ final class ScheduleService {
         _ schedule: BlockSchedule,
         screenTimeService: any ScreenTimeProviding
     ) {
-        guard schedule.isActive(at: .now) else { return }
+        guard let windowStart = schedule.activeWindowStart(at: .now) else { return }
         let domains = effectiveDomains(schedule)
         if schedule.shouldBlock {
-            guard !sharedStore.isUnblockAllInEffect() else { return }
+            guard !sharedStore.suppressesSchedule(windowStart: windowStart) else { return }
             screenTimeService.addToShields(selection: schedule.selection, customDomains: domains)
         } else {
             screenTimeService.removeFromShields(selection: schedule.selection, customDomains: domains)
