@@ -83,8 +83,15 @@ extension ScheduleDTO {
         startHour * 60 + startMinute + durationMinutes >= 24 * 60
     }
 
-    func startApplies(on date: Date, calendar: Calendar = .current) -> Bool {
-        weekdays.contains(calendar.component(.weekday, from: date))
+    func isActive(at date: Date, calendar: Calendar = .current) -> Bool {
+        ScheduleWindow.start(
+            containing: date,
+            startHour: startHour,
+            startMinute: startMinute,
+            durationMinutes: durationMinutes,
+            weekdays: weekdays,
+            calendar: calendar
+        ) != nil
     }
 
     func endApplies(on date: Date, calendar: Calendar = .current) -> Bool {
@@ -109,5 +116,32 @@ extension FamilyActivitySelection {
         merged.webDomainTokens.formUnion(other.webDomainTokens)
         merged.categoryTokens.formUnion(other.categoryTokens)
         return merged
+    }
+}
+
+nonisolated enum ScheduleWindow {
+    static func start(
+        containing date: Date,
+        startHour: Int,
+        startMinute: Int,
+        durationMinutes: Int,
+        weekdays: Set<Int>,
+        calendar: Calendar = .current
+    ) -> Date? {
+        let startOfToday = calendar.startOfDay(for: date)
+        for dayOffset in [0, -1] {
+            guard let day = calendar.date(byAdding: .day, value: dayOffset, to: startOfToday),
+                  let start = calendar.date(
+                      bySettingHour: startHour, minute: startMinute, second: 0, of: day
+                  )
+            else { continue }
+            let end = start.addingTimeInterval(TimeInterval(durationMinutes * 60))
+            if weekdays.contains(calendar.component(.weekday, from: start)),
+               date >= start, date < end
+            {
+                return start
+            }
+        }
+        return nil
     }
 }
