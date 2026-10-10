@@ -37,12 +37,28 @@ struct ScheduleActiveDayTests {
         2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7,
     ]
 
-    @Test func nonWrappingMondayToFridayStartOnlyOnWeekdays() {
+    @Test func nonWrappingMondayToFridayActiveOnlyOnWeekdays() {
         let s = schedule(weekdays: [2, 3, 4, 5, 6])
         for (day, weekday) in weekdayOfDay {
             let expected = (2 ... 6).contains(weekday)
-            #expect(s.startApplies(on: date(day: day), calendar: cal) == expected)
+            #expect(s.isActive(at: date(day: day, hour: 9), calendar: cal) == expected)
         }
+    }
+
+    @Test func nonWrappingInactiveOutsideWindow() {
+        let s = schedule(weekdays: [2, 3, 4, 5, 6])
+        #expect(!s.isActive(at: date(day: 3, hour: 8), calendar: cal))
+        #expect(!s.isActive(at: date(day: 3, hour: 10), calendar: cal))
+    }
+
+    @Test func wrappingStartAfterMidnightUsesDayWindowStarted() {
+        // Tuesday-only 22:00–02:00. June 4 2024 is a Tuesday.
+        let s = schedule(weekdays: [3], startHour: 22, durationMinutes: 240)
+
+        #expect(!s.isActive(at: date(day: 4, hour: 1), calendar: cal))
+        #expect(s.isActive(at: date(day: 4, hour: 23), calendar: cal))
+        #expect(s.isActive(at: date(day: 5, hour: 1), calendar: cal))
+        #expect(!s.isActive(at: date(day: 5, hour: 23), calendar: cal))
     }
 
     @Test func nonWrappingEndDoesNotFireOnUnselectedDays() {
@@ -62,8 +78,8 @@ struct ScheduleActiveDayTests {
     @Test func wrappingFridayNightEndFiresSaturdayNotOtherDays() {
         let s = schedule(weekdays: [6], startHour: 23, startMinute: 0, durationMinutes: 120)
 
-        #expect(s.startApplies(on: date(day: 7), calendar: cal))
-        #expect(!s.startApplies(on: date(day: 8), calendar: cal))
+        #expect(s.isActive(at: date(day: 7, hour: 23), calendar: cal))
+        #expect(!s.isActive(at: date(day: 8, hour: 23), calendar: cal))
         #expect(s.endApplies(on: date(day: 8), calendar: cal))
         #expect(!s.endApplies(on: date(day: 7), calendar: cal))
         #expect(!s.endApplies(on: date(day: 2), calendar: cal))

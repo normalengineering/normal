@@ -95,22 +95,14 @@ final class BlockSchedule: Identifiable {
 
     func isActive(at now: Date, calendar: Calendar = .current) -> Bool {
         guard isEnabled else { return false }
-
-        let startOfToday = calendar.startOfDay(for: now)
-        for dayOffset in [0, -1] {
-            guard let day = calendar.date(byAdding: .day, value: dayOffset, to: startOfToday),
-                  let start = calendar.date(
-                      bySettingHour: startHour, minute: startMinute, second: 0, of: day
-                  )
-            else { continue }
-            let end = start + .minutes(durationMinutes)
-            if weekdays.contains(calendar.component(.weekday, from: start)),
-               now >= start, now < end
-            {
-                return true
-            }
-        }
-        return false
+        return ScheduleWindow.start(
+            containing: now,
+            startHour: startHour,
+            startMinute: startMinute,
+            durationMinutes: durationMinutes,
+            weekdays: weekdays,
+            calendar: calendar
+        ) != nil
     }
 
     func toDTO() -> ScheduleDTO? {

@@ -9,6 +9,7 @@ final class NormalMonitor: DeviceActivityMonitor {
     private let limitStore = ManagedSettingsStore(named: .dailyLimits)
 
     private static let thresholdGraceSeconds: TimeInterval = 10
+    private static let scheduleStartToleranceSeconds: TimeInterval = 60
 
     override func intervalDidStart(for activity: DeviceActivityName) {
         let name = activity.rawValue
@@ -93,7 +94,7 @@ final class NormalMonitor: DeviceActivityMonitor {
 
     private func handleScheduleIntervalStart(activityName: String) {
         guard let schedule = findSchedule(activityName: activityName),
-              schedule.startApplies(on: .now),
+              schedule.isActive(at: .now.addingTimeInterval(Self.scheduleStartToleranceSeconds)),
               let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return }
 
