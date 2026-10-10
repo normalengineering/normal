@@ -84,6 +84,10 @@ extension ScheduleDTO {
     }
 
     func isActive(at date: Date, calendar: Calendar = .current) -> Bool {
+        activeWindowStart(at: date, calendar: calendar) != nil
+    }
+
+    func activeWindowStart(at date: Date, calendar: Calendar = .current) -> Date? {
         ScheduleWindow.start(
             containing: date,
             startHour: startHour,
@@ -91,7 +95,7 @@ extension ScheduleDTO {
             durationMinutes: durationMinutes,
             weekdays: weekdays,
             calendar: calendar
-        ) != nil
+        )
     }
 
     func endApplies(on date: Date, calendar: Calendar = .current) -> Bool {

@@ -116,16 +116,57 @@ struct SharedStoreTests {
 
     @Test func resolveScheduleStartAppliesWhenNothingActive() {
         let (store, _) = makeStore()
-        #expect(store.resolveScheduleStart() == .apply)
+        #expect(store.resolveScheduleStart(windowStart: .now) == .apply)
     }
 
     @Test func resolveScheduleStartConsumesPermanentOverrideThenApplies() {
         let (store, _) = makeStore()
         store.setScheduleOverrideActive(true)
+        let nextWindow = Date.now.addingTimeInterval(.minutes(1))
 
-        #expect(store.resolveScheduleStart() == .apply, "The start proceeds (override ends here)")
+        #expect(store.resolveScheduleStart(windowStart: nextWindow) == .apply, "The start proceeds (override ends here)")
         #expect(!store.isScheduleOverrideActive(), "...and the one-shot override is consumed")
-        #expect(store.resolveScheduleStart() == .apply, "Subsequent starts apply normally")
+        #expect(store.resolveScheduleStart(windowStart: nextWindow) == .apply, "Subsequent starts apply normally")
+    }
+
+    @Test func refiredStartOfWindowBegunBeforeOverrideSkipsWithoutConsuming() {
+        let (store, _) = makeStore()
+        let runningWindow = Date.now.addingTimeInterval(-.hours(1))
+        store.setScheduleOverrideActive(true)
+
+        #expect(store.resolveScheduleStart(windowStart: runningWindow) == .skip)
+        #expect(store.resolveScheduleStart(windowStart: runningWindow) == .skip)
+        #expect(store.isScheduleOverrideActive())
+        #expect(store.suppressesSchedule(windowStart: runningWindow))
+    }
+
+    @Test func overrideDoesNotSuppressWindowStartedAfterIt() {
+        let (store, _) = makeStore()
+        store.setScheduleOverrideActive(true)
+
+        #expect(!store.suppressesSchedule(windowStart: .now.addingTimeInterval(.minutes(1))))
+    }
+
+    @Test func legacyOverrideWithoutTimestampKeepsOneShotSemantics() {
+        let (store, defaults) = makeStore()
+        defaults.set(true, forKey: SharedConstants.DefaultsKey.scheduleOverride)
+        let runningWindow = Date.now.addingTimeInterval(-.hours(1))
+
+        #expect(store.suppressesSchedule(windowStart: runningWindow))
+        #expect(store.resolveScheduleStart(windowStart: runningWindow) == .apply)
+        #expect(!store.isScheduleOverrideActive())
+    }
+
+    @Test func settingOverrideWritesLegacyFlagAndTimestamp() {
+        let (store, defaults) = makeStore()
+
+        store.setScheduleOverrideActive(true)
+        #expect(defaults.bool(forKey: SharedConstants.DefaultsKey.scheduleOverride))
+        #expect(store.loadScheduleOverrideSince() != nil)
+
+        store.setScheduleOverrideActive(false)
+        #expect(!defaults.bool(forKey: SharedConstants.DefaultsKey.scheduleOverride))
+        #expect(store.loadScheduleOverrideSince() == nil)
     }
 
     @Test func resolveScheduleStartSkipsDuringTimedUnblockWithoutConsumingOverride() {
@@ -133,7 +174,8 @@ struct SharedStoreTests {
         store.upsertTimedUnblock(makeDTO(id: "main"))
         store.setScheduleOverrideActive(true)
 
-        #expect(store.resolveScheduleStart() == .skip, "A live timed unblock wins for its whole window")
+        #expect(store.resolveScheduleStart(windowStart: .now.addingTimeInterval(.minutes(1))) == .skip,
+                "A live timed unblock wins for its whole window")
         #expect(store.isScheduleOverrideActive(),
                 "A timed-unblock skip must not consume the permanent override")
     }

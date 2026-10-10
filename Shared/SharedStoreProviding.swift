@@ -11,6 +11,7 @@ nonisolated protocol SharedStoreProviding: Sendable {
     func loadSchedules() -> [ScheduleDTO]
     func isScheduleOverrideActive() -> Bool
     func setScheduleOverrideActive(_ active: Bool)
+    func loadScheduleOverrideSince() -> Date?
     func isCustomDomainsEnabled() -> Bool
     func setCustomDomainsEnabled(_ enabled: Bool)
     func saveUsageLimits(_ limits: [UsageLimitDTO])
@@ -35,13 +36,24 @@ extension SharedStoreProviding {
         isMainTimedUnblockActive() || isScheduleOverrideActive()
     }
 
-    func resolveScheduleStart() -> ScheduleStartDecision {
+    func suppressesSchedule(windowStart: Date) -> Bool {
+        if isMainTimedUnblockActive() {
+            return true
+        }
+        guard isScheduleOverrideActive() else { return false }
+        guard let since = loadScheduleOverrideSince() else { return true }
+        return windowStart < since
+    }
+
+    func resolveScheduleStart(windowStart: Date) -> ScheduleStartDecision {
         if isMainTimedUnblockActive() {
             return .skip
         }
-        if isScheduleOverrideActive() {
-            setScheduleOverrideActive(false)
+        guard isScheduleOverrideActive() else { return .apply }
+        if let since = loadScheduleOverrideSince(), windowStart < since {
+            return .skip
         }
+        setScheduleOverrideActive(false)
         return .apply
     }
 

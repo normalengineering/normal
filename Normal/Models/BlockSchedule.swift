@@ -100,7 +100,11 @@ final class BlockSchedule: Identifiable {
     }
 
     func isActive(at now: Date, calendar: Calendar = .current) -> Bool {
-        guard isEnabled else { return false }
+        activeWindowStart(at: now, calendar: calendar) != nil
+    }
+
+    func activeWindowStart(at now: Date, calendar: Calendar = .current) -> Date? {
+        guard isEnabled else { return nil }
         return ScheduleWindow.start(
             containing: now,
             startHour: startHour,
@@ -108,7 +112,7 @@ final class BlockSchedule: Identifiable {
             durationMinutes: effectiveDurationMinutes,
             weekdays: weekdays,
             calendar: calendar
-        ) != nil
+        )
     }
 
     func toDTO() -> ScheduleDTO? {
