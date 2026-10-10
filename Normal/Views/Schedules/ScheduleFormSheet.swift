@@ -39,10 +39,8 @@ struct ScheduleFormSheet: View {
         !isNew && isBlocked
     }
 
-    private static let minimumDurationMinutes = 15
-
     private var isDurationTooShort: Bool {
-        isTimed && computedDurationMinutes < Self.minimumDurationMinutes
+        isTimed && computedDurationMinutes < BlockSchedule.minimumDurationMinutes
     }
 
     private var customDomainsEnabled: Bool {
@@ -237,7 +235,7 @@ struct ScheduleFormSheet: View {
         } footer: {
             if isTimed {
                 if isDurationTooShort {
-                    Text("Duration must be at least \(Self.minimumDurationMinutes) minutes.")
+                    Text("Duration must be at least \(BlockSchedule.minimumDurationMinutes) minutes.")
                         .foregroundStyle(.red)
                 } else {
                     Text("Duration: \(formattedComputedDuration)")
