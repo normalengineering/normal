@@ -68,6 +68,14 @@ struct SharedStore: SharedStoreProviding, Sendable {
         defaults.set(enabled, forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
     }
 
+    func isAdultContentEnabled() -> Bool {
+        defaults.bool(forKey: SharedConstants.DefaultsKey.adultContentEnabled)
+    }
+
+    func setAdultContentEnabled(_ enabled: Bool) {
+        defaults.set(enabled, forKey: SharedConstants.DefaultsKey.adultContentEnabled)
+    }
+
     func saveUsageLimits(_ limits: [UsageLimitDTO]) {
         let data = try? PropertyListEncoder().encode(limits)
         defaults.set(data, forKey: SharedConstants.DefaultsKey.usageLimits)

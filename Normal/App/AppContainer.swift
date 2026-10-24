@@ -39,10 +39,19 @@ struct AppContainer: View {
             .environment(emergencyUnblockService)
             .environment(donationService)
             .environment(usageLimitService)
-            .task { mirrorCustomDomainsEnabled() }
+            .task {
+                mirrorCustomDomainsEnabled()
+                if let enabled = allSettings.first?.blockAdultContent {
+                    screenTimeService.setAdultContentBlocked(enabled)
+                }
+            }
             .onChange(of: allSettings.first?.enableCustomDomains ?? false) { _, enabled in
                 scheduleService.mirrorCustomDomainsEnabled(enabled)
                 screenTimeService.reconcile()
+            }
+            .onChange(of: allSettings.first?.blockAdultContent) { _, enabled in
+                guard let enabled else { return }
+                screenTimeService.setAdultContentBlocked(enabled)
             }
     }
 

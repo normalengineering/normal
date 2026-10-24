@@ -97,6 +97,42 @@ struct ShieldReconcilerTests {
         #expect(store.manualBlockState?.applications.blockedTokens == [TokenFixtures.app(4)])
     }
 
+    @Test func keepsCustomDomainsBlockedAlongsideAdultContent() {
+        let store = FakeSharedStore()
+        store.customDomainsEnabled = true
+        store.adultContentEnabled = true
+        store.manualBlockState = ManualBlockState()
+        let shields = RecordingShields()
+
+        ShieldReconciler.reconcile(sharedStore: store, shields: shields, monitoredActivities: []) {
+            $0.block(FamilyActivitySelection(), customDomains: ["reddit.com"], at: .now)
+        }
+
+        #expect(shields.current.customDomains == ["reddit.com"])
+        #expect(shields.current.blocksAdultContent)
+    }
+
+    @Test func togglingAdultContentLeavesOtherShieldsAlone() {
+        let store = FakeSharedStore()
+        store.customDomainsEnabled = true
+        var current = blocking([1])
+        current.customDomains = ["reddit.com"]
+        let shields = RecordingShields(current)
+
+        store.adultContentEnabled = true
+        ShieldReconciler.reconcile(sharedStore: store, shields: shields, monitoredActivities: [])
+        #expect(shields.current.blocksAdultContent)
+        #expect(shields.current.applications == [TokenFixtures.app(1)])
+        #expect(shields.current.customDomains == ["reddit.com"])
+
+        store.adultContentEnabled = false
+        ShieldReconciler.reconcile(sharedStore: store, shields: shields, monitoredActivities: [])
+        #expect(!shields.current.blocksAdultContent)
+        #expect(shields.current.applications == [TokenFixtures.app(1)])
+        #expect(shields.current.customDomains == ["reddit.com"])
+        #expect(shields.applyCount == 2)
+    }
+
     @Test func concurrentReconcilesNeverOverlap() async {
         let lockURL = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).lock")
         defer { try? FileManager.default.removeItem(at: lockURL) }

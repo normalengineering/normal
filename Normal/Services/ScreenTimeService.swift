@@ -152,7 +152,17 @@ final class ScreenTimeService: ScreenTimeProviding {
             state.setAppDeletionBlocked(false, at: now)
         }
         shield.clearAllSettings()
+        if sharedStore.isAdultContentEnabled() {
+            var plan = ShieldPlan()
+            plan.blocksAdultContent = true
+            shield.apply(plan)
+        }
         notifyUpdate()
+    }
+
+    func setAdultContentBlocked(_ enabled: Bool) {
+        sharedStore.setAdultContentEnabled(enabled)
+        reconcile()
     }
 
     func reconcile() {

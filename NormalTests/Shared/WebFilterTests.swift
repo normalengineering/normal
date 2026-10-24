@@ -20,4 +20,13 @@ struct WebFilterTests {
         let policy = WebFilter.policy(for: domains("a.com"))
         #expect(policy == .specific(domains("a.com")))
     }
+
+    @Test func policyIsAutoWhenBlockingAdultContentWithNoDomains() {
+        #expect(WebFilter.policy(for: [], blockingAdultContent: true) == .auto([]))
+    }
+
+    @Test func policyKeepsCustomDomainsWhenBlockingAdultContent() {
+        let policy = WebFilter.policy(for: domains("a.com", "b.com"), blockingAdultContent: true)
+        #expect(policy == .auto(domains("a.com", "b.com")))
+    }
 }
