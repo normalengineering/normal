@@ -82,6 +82,34 @@ struct ScreenTimeServiceTests {
         #expect(!shields.currentShields().blocksAdultContent)
     }
 
+    @Test func hidingBlockedAppsFollowsTheBlockedApps() {
+        let (service, shields) = makeService()
+        service.setHidingBlockedApps(true)
+        #expect(service.isHidingBlockedApps)
+        #expect(shields.currentShields().hiddenApplications.isEmpty)
+
+        service.blockAll(selection: TokenFixtures.selection(apps: [1, 2]), blockAllPreventsAppDelete: false)
+        #expect(shields.currentShields().hiddenApplications == [TokenFixtures.app(1), TokenFixtures.app(2)])
+
+        service.unblock(selection: TokenFixtures.selection(apps: [2]))
+        #expect(shields.currentShields().hiddenApplications == [TokenFixtures.app(1)])
+
+        service.unblockAll(blockAllPreventsAppDelete: false)
+        #expect(shields.currentShields().hiddenApplications.isEmpty)
+    }
+
+    @Test func turningOffHidingKeepsAppsBlocked() {
+        let (service, shields) = makeService()
+        service.setHidingBlockedApps(true)
+        service.blockAll(selection: TokenFixtures.selection(apps: [1]), blockAllPreventsAppDelete: false)
+
+        service.setHidingBlockedApps(false)
+
+        #expect(!service.isHidingBlockedApps)
+        #expect(shields.currentShields().hiddenApplications.isEmpty)
+        #expect(shields.currentShields().applications == [TokenFixtures.app(1)])
+    }
+
     @Test func blockStatusReflectsTheReconciledShield() {
         let (service, _) = makeService()
         service.blockAll(selection: TokenFixtures.selection(apps: [1, 2]), blockAllPreventsAppDelete: false)

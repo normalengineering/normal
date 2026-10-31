@@ -133,6 +133,17 @@ struct ShieldReconcilerTests {
         #expect(shields.applyCount == 2)
     }
 
+    @Test func hiddenAppsMatchShieldedAppsWhenEnabled() {
+        let store = FakeSharedStore()
+        store.hideBlockedAppsEnabled = true
+        let shields = RecordingShields(blocking([1, 2]))
+
+        ShieldReconciler.reconcile(sharedStore: store, shields: shields, monitoredActivities: [])
+
+        #expect(shields.current.hiddenApplications == [TokenFixtures.app(1), TokenFixtures.app(2)])
+        #expect(shields.current.applications == [TokenFixtures.app(1), TokenFixtures.app(2)])
+    }
+
     @Test func concurrentReconcilesNeverOverlap() async {
         let lockURL = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).lock")
         defer { try? FileManager.default.removeItem(at: lockURL) }

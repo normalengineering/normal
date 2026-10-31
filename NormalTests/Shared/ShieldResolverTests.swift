@@ -208,6 +208,54 @@ struct ShieldResolverTests {
         #expect(blockedApps(manual(blocking: [1, 2]), [block], unblocks: [unblock], at: at(12, 30)) == apps(1, 2, 3))
     }
 
+    private func hiddenApps(
+        _ manual: ManualBlockState,
+        unblocks: [TimedUnblockDTO] = [],
+        at date: Date
+    ) -> Set<ApplicationToken> {
+        ShieldResolver.plan(
+            manual: manual,
+            enabledSchedules: [],
+            timedUnblocks: unblocks,
+            customDomainsEnabled: true,
+            hideBlockedAppsEnabled: true,
+            at: date,
+            calendar: cal
+        ).hiddenApplications
+    }
+
+    @Test func hiddenAppsReappearDuringGroupTimedUnblock() throws {
+        let unblock = try timedUnblock(apps: [2], group: true, endDate: at(12, 30))
+
+        #expect(hiddenApps(manual(blocking: [1, 2]), unblocks: [unblock], at: at(12, 15)) == apps(1))
+        #expect(hiddenApps(manual(blocking: [1, 2]), unblocks: [unblock], at: at(12, 30)) == apps(1, 2))
+    }
+
+    @Test func hiddenAppsReappearDuringMainTimedUnblock() throws {
+        let unblock = try timedUnblock(apps: [1, 2], group: false, endDate: at(12, 30))
+
+        #expect(hiddenApps(manual(blocking: [1, 2]), unblocks: [unblock], at: at(12, 15)).isEmpty)
+        #expect(hiddenApps(manual(blocking: [1, 2]), unblocks: [unblock], at: at(12, 30)) == apps(1, 2))
+    }
+
+    @Test func categoryBlocksAreNotHidden() {
+        var state = ManualBlockState()
+        state.blockAll(TokenFixtures.selection(apps: [1], categories: [2]), customDomains: [], at: .distantPast)
+
+        let plan = ShieldResolver.plan(
+            manual: state,
+            enabledSchedules: [],
+            timedUnblocks: [],
+            customDomainsEnabled: true,
+            hideBlockedAppsEnabled: true,
+            at: at(12),
+            calendar: cal
+        )
+
+        #expect(plan.categories == [TokenFixtures.category(2)])
+        #expect(plan.hiddenApplications == apps(1))
+    }
+
     @Test func timedUnblockAllRestoresManualStateIncludingBlocksMadeDuringIt() throws {
         var state = manual(blocking: [1, 2, 3], at: at(8))
         state.unblock(TokenFixtures.selection(apps: [3]), customDomains: [], at: at(9))

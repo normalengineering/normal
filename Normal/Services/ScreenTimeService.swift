@@ -49,6 +49,11 @@ final class ScreenTimeService: ScreenTimeProviding {
         return shield.currentShields().blocksAdultContent
     }
 
+    var isHidingBlockedApps: Bool {
+        _ = lastUpdate
+        return sharedStore.isHideBlockedAppsEnabled()
+    }
+
     func notifyUpdate() {
         lastUpdate = .now
     }
@@ -163,6 +168,11 @@ final class ScreenTimeService: ScreenTimeProviding {
 
     func setAdultContentBlocked(_ blocked: Bool) {
         sharedStore.setAdultContentEnabled(blocked)
+        reconcile()
+    }
+
+    func setHidingBlockedApps(_ hidden: Bool) {
+        sharedStore.setHideBlockedAppsEnabled(hidden)
         reconcile()
     }
 

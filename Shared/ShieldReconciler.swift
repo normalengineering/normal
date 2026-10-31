@@ -65,6 +65,7 @@ nonisolated enum ShieldReconciler {
                 timedUnblocks: timedUnblocks,
                 customDomainsEnabled: sharedStore.isCustomDomainsEnabled(),
                 adultContentEnabled: sharedStore.isAdultContentEnabled(),
+                hideBlockedAppsEnabled: sharedStore.isHideBlockedAppsEnabled(),
                 at: date
             )
             if plan.differs(from: current) {
@@ -82,6 +83,7 @@ nonisolated extension ShieldPlan {
             || categories != current.categories
             || customDomains != current.customDomains
             || blocksAdultContent != current.blocksAdultContent
+            || hiddenApplications != current.hiddenApplications
             || (denyAppRemoval != nil && denyAppRemoval != current.denyAppRemoval)
     }
 }
@@ -94,6 +96,7 @@ extension ManagedSettingsStore: ShieldApplying {
         plan.categories = shield.applicationCategories.tokenSet
         plan.customDomains = Set(filterDomains().compactMap(\.domain))
         plan.blocksAdultContent = blocksAdultContent
+        plan.hiddenApplications = Set(application.blockedApplications?.compactMap(\.token) ?? [])
         plan.denyAppRemoval = application.denyAppRemoval ?? false
         return plan
     }
@@ -101,6 +104,9 @@ extension ManagedSettingsStore: ShieldApplying {
     func apply(_ plan: ShieldPlan) {
         replaceShields(with: plan.selection)
         replaceFilter(domains: Array(plan.customDomains), blockingAdultContent: plan.blocksAdultContent)
+        application.blockedApplications = plan.hiddenApplications.isEmpty
+            ? nil
+            : Set(plan.hiddenApplications.map { Application(token: $0) })
         if let deny = plan.denyAppRemoval {
             application.denyAppRemoval = deny
         }

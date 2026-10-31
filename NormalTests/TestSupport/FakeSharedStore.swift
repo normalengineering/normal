@@ -8,6 +8,7 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var scheduleOverrideSince: Date?
     var customDomainsEnabled = false
     var adultContentEnabled = false
+    var hideBlockedAppsEnabled = false
     var usageLimits: [UsageLimitDTO] = []
     var usageDayState: UsageDayStateDTO = .empty
     var usageRegistration: String?
@@ -65,6 +66,14 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
 
     func setAdultContentEnabled(_ enabled: Bool) {
         adultContentEnabled = enabled
+    }
+
+    func isHideBlockedAppsEnabled() -> Bool {
+        hideBlockedAppsEnabled
+    }
+
+    func setHideBlockedAppsEnabled(_ enabled: Bool) {
+        hideBlockedAppsEnabled = enabled
     }
 
     func saveUsageLimits(_ limits: [UsageLimitDTO]) {
