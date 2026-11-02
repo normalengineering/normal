@@ -651,10 +651,9 @@ struct TimedUnblockServiceTests {
 
     /// Home's "Unblock All" with a default duration skips the sheet; it once dropped custom domains,
     /// so websites never reblocked at expiry. Both Home paths now go through this overload.
-    @Test func startMainFromModelsPersistsCustomDomainsWhenEnabled() throws {
+    @Test func startMainFromModelsPersistsCustomDomains() throws {
         let (service, _, store) = makeService()
         let settings = Settings()
-        settings.enableCustomDomains = true
         let mainSelection = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["reddit.com"])
 
         try service.startMain(
@@ -665,22 +664,6 @@ struct TimedUnblockServiceTests {
         )
 
         #expect(store.timedUnblocks.first?.customDomains == ["reddit.com"])
-    }
-
-    @Test func startMainFromModelsOmitsCustomDomainsWhenFeatureDisabled() throws {
-        let (service, _, store) = makeService()
-        let settings = Settings()
-        settings.enableCustomDomains = false
-        let mainSelection = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["reddit.com"])
-
-        try service.startMain(
-            duration: .oneHour,
-            mainSelection: mainSelection,
-            settings: settings,
-            screenTimeService: FakeScreenTimeService()
-        )
-
-        #expect(store.timedUnblocks.first?.customDomains == [])
     }
 
     @Test func startMainFromModelsCarriesPreventAppDeleteSetting() throws {

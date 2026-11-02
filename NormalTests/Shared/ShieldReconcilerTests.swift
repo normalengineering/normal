@@ -99,7 +99,6 @@ struct ShieldReconcilerTests {
 
     @Test func keepsCustomDomainsBlockedAlongsideAdultContent() {
         let store = FakeSharedStore()
-        store.customDomainsEnabled = true
         store.adultContentEnabled = true
         store.manualBlockState = ManualBlockState()
         let shields = RecordingShields()
@@ -114,7 +113,6 @@ struct ShieldReconcilerTests {
 
     @Test func togglingAdultContentLeavesOtherShieldsAlone() {
         let store = FakeSharedStore()
-        store.customDomainsEnabled = true
         var current = blocking([1])
         current.customDomains = ["reddit.com"]
         let shields = RecordingShields(current)

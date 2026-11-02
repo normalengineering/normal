@@ -4,7 +4,7 @@ import SwiftUI
 struct AppSelectLimitBannerView: View {
     let selection: FamilyActivitySelection
     var customDomains: [String] = []
-    var customDomainsEnabled = false
+    var includesCustomDomains = false
 
     static let warningThreshold = ScreenTimeLimits.maxBlockedItems
 
@@ -13,7 +13,7 @@ struct AppSelectLimitBannerView: View {
     }
 
     private var exampleText: String {
-        customDomainsEnabled
+        includesCustomDomains
             ? "5 Apps + 1 Category + 5 Websites + 10 Custom Domains = 21 items"
             : "5 Apps + 1 Category + 5 Websites = 11 items"
     }
@@ -36,7 +36,7 @@ struct AppSelectLimitBannerView: View {
                     }
 
                     Text(
-                        customDomainsEnabled
+                        includesCustomDomains
                             ? "Apple's Screen Time framework caps how many items can be blocked at once. 50+ items can't be blocked. Each app, website, category, and custom domain counts as one item."
                             : "Apple's Screen Time framework caps how many items can be blocked at once. 50+ items can't be blocked. Each app, website, and category counts as one item."
                     )

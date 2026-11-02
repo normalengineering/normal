@@ -36,7 +36,6 @@ struct AppBlockIntentPerformerTests {
     ) throws -> Settings {
         let settings = Settings()
         settings.hasCompletedOnboarding = onboarded
-        settings.enableCustomDomains = true
         context.insert(settings)
         context.insert(SelectedApps(selection: FamilyActivitySelection(), customDomains: mainDomains))
         if globalKey {

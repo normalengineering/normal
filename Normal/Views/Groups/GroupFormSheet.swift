@@ -9,7 +9,6 @@ struct GroupFormSheet: View {
     @Environment(TimedUnblockService.self) private var timedUnblockService
 
     @Query private var allGroups: [AppGroup]
-    @Query private var allSettings: [Settings]
     @Query private var selectedApps: [SelectedApps]
     @Query(sort: [SortDescriptor(\Key.sortIndex)]) private var allKeys: [Key]
 
@@ -36,10 +35,6 @@ struct GroupFormSheet: View {
         !isNew && screenTimeService.activeShieldCount() > 0
     }
 
-    private var customDomainsEnabled: Bool {
-        allSettings.first?.enableCustomDomains ?? false
-    }
-
     private var availableDomains: [String] {
         selectedApps.first?.customDomains ?? []
     }
@@ -48,13 +43,9 @@ struct GroupFormSheet: View {
         CustomDomains.subset(customDomains, of: availableDomains)
     }
 
-    private var effectiveCustomDomains: [String] {
-        customDomainsEnabled ? storedCustomDomains : []
-    }
-
     private var canSave: Bool {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
-        return selection.count > 0 || !effectiveCustomDomains.isEmpty
+        return selection.count > 0 || !storedCustomDomains.isEmpty
     }
 
     init(existing: AppGroup? = nil) {
@@ -86,14 +77,12 @@ struct GroupFormSheet: View {
                     }
                 }
 
-                if customDomainsEnabled {
-                    Section {
-                        CustomDomainsSubsetLink(
-                            available: availableDomains,
-                            selected: $customDomains,
-                            isEditable: !isReadOnly
-                        )
-                    }
+                Section {
+                    CustomDomainsSubsetLink(
+                        available: availableDomains,
+                        selected: $customDomains,
+                        isEditable: !isReadOnly
+                    )
                 }
 
                 if !groupKeys.isEmpty || !isReadOnly {
@@ -214,7 +203,7 @@ struct GroupFormSheet: View {
             timedUnblockService.updateGroupSelection(
                 groupId: existing.id,
                 selection: selection,
-                customDomains: effectiveCustomDomains
+                customDomains: storedCustomDomains
             )
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allGroups, sortIndex: \.sortIndex)

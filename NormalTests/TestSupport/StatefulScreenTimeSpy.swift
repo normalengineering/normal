@@ -100,10 +100,6 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         shieldActive ? 1 : 0
     }
 
-    func hasActiveCustomDomainFilter() -> Bool {
-        false
-    }
-
     func blockStatus(selection _: FamilyActivitySelection?, customDomains _: [String]? = nil) -> BlockStatus {
         shieldActive ? .all : .none
     }

@@ -6,7 +6,7 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     var schedules: [ScheduleDTO] = []
     var scheduleOverrideActive = false
     var scheduleOverrideSince: Date?
-    var customDomainsEnabled = false
+    var customDomainsEnabled: Bool?
     var adultContentEnabled = false
     var hideBlockedAppsEnabled = false
     var usageLimits: [UsageLimitDTO] = []
@@ -53,11 +53,11 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
     }
 
     func isCustomDomainsEnabled() -> Bool {
-        customDomainsEnabled
+        customDomainsEnabled ?? true
     }
 
-    func setCustomDomainsEnabled(_ enabled: Bool) {
-        customDomainsEnabled = enabled
+    func clearCustomDomainsEnabled() {
+        customDomainsEnabled = nil
     }
 
     func isAdultContentEnabled() -> Bool {

@@ -11,7 +11,7 @@ nonisolated protocol SharedStoreProviding: Sendable {
     func isScheduleOverrideActive() -> Bool
     func loadScheduleOverrideSince() -> Date?
     func isCustomDomainsEnabled() -> Bool
-    func setCustomDomainsEnabled(_ enabled: Bool)
+    func clearCustomDomainsEnabled()
     func isAdultContentEnabled() -> Bool
     func setAdultContentEnabled(_ enabled: Bool)
     func isHideBlockedAppsEnabled() -> Bool
