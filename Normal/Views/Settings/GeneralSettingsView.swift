@@ -11,12 +11,9 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         List {
-            unblockingSection
             blockingSection
-            UsageSummaryView()
-            customDomainsSection
-            AdultContentToggleView(defaultKeyType: settings.defaultKeyType)
-            HideBlockedAppsToggleView()
+            unblockingSection
+            websitesSection
             appearanceSection
             aboutSection
             #if DEBUG
@@ -31,19 +28,19 @@ struct GeneralSettingsView: View {
         screenTimeService.hasActiveCustomDomainFilter()
     }
 
-    private var customDomainsSection: some View {
+    private var websitesSection: some View {
         Section {
             Toggle(
-                "Block Custom Websites",
+                "Enable Custom Websites",
                 isOn: Bindable(settings).enableCustomDomains
             )
             .disabled(hasActiveFilter)
         } header: {
-            Text("Custom Domains")
+            Text("Websites")
         } footer: {
-            Text(hasActiveFilter
-                ? "Custom domains are currently being blocked. Unblock all apps before disabling this setting."
-                : "Adds a section to App Select, allowing you to type custom website domains to block.")
+            if hasActiveFilter {
+                Text("Unblock all apps to turn this off.")
+            }
         }
     }
 
@@ -88,28 +85,30 @@ struct GeneralSettingsView: View {
                 "Live Activity",
                 isOn: Bindable(settings).showTimedUnblockLiveActivity
             )
-
-            Toggle(
-                "Skip Block Without Key Confirmation",
-                isOn: Bindable(settings).skipBlockWithoutKeyConfirmation
-            )
         } header: {
             Text("Unblocking")
-        } footer: {
-            Text("Defaults allow to skip selection steps for faster unblocking. Live Activity shows a Lock Screen and Dynamic Island countdown for timed unblocks, for up to 8 hours.")
         }
     }
 
     private var blockingSection: some View {
         Section {
+            UsageSummaryView()
+
+            AdultContentToggleView(defaultKeyType: settings.defaultKeyType)
+
             Toggle(
                 "Prevent App Deletion on Block All",
                 isOn: Bindable(settings).blockAllPreventsAppDelete
             )
+
+            Toggle(
+                "Skip Block Without Key Confirmation",
+                isOn: Bindable(settings).skipBlockWithoutKeyConfirmation
+            )
+
+            HideBlockedAppsToggleView()
         } header: {
-            Text("Blocking All Apps")
-        } footer: {
-            Text("When enabled 'Block All' and prevent app deletion are linked.")
+            Text("Blocking")
         }
     }
 
@@ -132,9 +131,7 @@ struct GeneralSettingsView: View {
                 isOn: Bindable(settings).hideDonateButton
             )
         } header: {
-            Text("Navigation & Appearance")
-        } footer: {
-            Text("Default Page opens when you launch the app. Hiding the Donate button hides it from the main toolbar.")
+            Text("Appearance")
         }
     }
 
