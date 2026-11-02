@@ -21,7 +21,6 @@ struct KeyProtectedToggle: View {
 
     var body: some View {
         Toggle(title, isOn: binding)
-            .tint(.accentColor)
             .protectedAction($authAction, allowBypass: pendingValue == true, defaultKeyType: defaultKeyType)
     }
 }
