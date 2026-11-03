@@ -4,7 +4,6 @@ import SwiftUI
 struct MainBlockButtonView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
-    @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
 
     let mainSelection: SelectedApps
@@ -13,12 +12,8 @@ struct MainBlockButtonView: View {
     let onBlock: @MainActor () -> Void
     let onUnblock: @MainActor () -> Void
 
-    private var settings: Settings {
-        allSettings.unwrapped
-    }
-
     private var customDomains: [String] {
-        settings.enableCustomDomains ? mainSelection.customDomains : []
+        mainSelection.customDomains
     }
 
     private var blockStatus: BlockStatus {

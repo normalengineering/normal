@@ -403,7 +403,7 @@ struct BlockingScenarioTests {
         #expect(h.blocked.isEmpty && !h.appDeletionBlocked)
     }
 
-    @Test func customDomainsFollowTheSameRulesAndTheFeatureToggle() throws {
+    @Test func customDomainsFollowTheSameRulesAndTheLegacyDisabledFlag() throws {
         let h = BlockingHarness(customDomains: ["a.com", "b.com"])
         h.blockAll()
         try h.addSchedule([], domains: ["a.com"], from: (12, 0), minutes: 60, block: false)
@@ -412,7 +412,7 @@ struct BlockingScenarioTests {
         h.wake(at: h.at(12, 30))
         #expect(h.blockedDomains == ["b.com"])
 
-        h.store.setCustomDomainsEnabled(false)
+        h.store.customDomainsEnabled = false
         h.wake(at: h.at(12, 31))
         #expect(h.blockedDomains.isEmpty)
     }

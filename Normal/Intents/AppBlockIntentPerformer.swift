@@ -38,12 +38,12 @@ final class AppBlockIntentPerformer: BlockIntentPerforming {
         let settings = try validatedSettings()
         guard let mainSelection = try context.fetch(FetchDescriptor<SelectedApps>()).first,
               !mainSelection.selection.isEmpty
-              || (settings.enableCustomDomains && !mainSelection.customDomains.isEmpty)
+              || !mainSelection.customDomains.isEmpty
         else { throw BlockIntentError.noAppsSelected }
 
         let status = screenTimeService.blockStatus(
             selection: mainSelection.selection,
-            customDomains: settings.enableCustomDomains ? mainSelection.customDomains : []
+            customDomains: mainSelection.customDomains
         )
         let wasAlreadyBlocked = status == .all && timedUnblockService.activeUnblocks.isEmpty
 
@@ -67,7 +67,7 @@ final class AppBlockIntentPerformer: BlockIntentPerforming {
 
         let status = screenTimeService.blockStatus(
             selection: group.selection,
-            customDomains: settings.enableCustomDomains ? group.customDomains : []
+            customDomains: group.customDomains
         )
         let wasAlreadyBlocked = status == .all && !timedUnblockService.isGroupUnblockActive(groupId: id)
 

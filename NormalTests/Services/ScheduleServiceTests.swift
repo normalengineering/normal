@@ -381,16 +381,6 @@ struct ScheduleServiceTests {
                 "Inactive before the start")
     }
 
-    @Test func mirrorCustomDomainsEnabledWritesFlag() {
-        let (service, _, store) = makeService()
-
-        service.mirrorCustomDomainsEnabled(true)
-        #expect(store.isCustomDomainsEnabled())
-
-        service.mirrorCustomDomainsEnabled(false)
-        #expect(!store.isCustomDomainsEnabled())
-    }
-
     private func registeredSchedule(
         startHour: Int,
         startMinute: Int,

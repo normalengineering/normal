@@ -206,9 +206,4 @@ final class ScreenTimeService: ScreenTimeProviding {
         _ = lastUpdate
         return shield.isShielded(token)
     }
-
-    func hasActiveCustomDomainFilter() -> Bool {
-        _ = lastUpdate
-        return shield.hasActiveCustomDomainFilter()
-    }
 }

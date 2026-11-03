@@ -8,13 +8,12 @@ enum WidgetSync {
         settings: Settings?,
         screenTimeService: any ScreenTimeProviding
     ) {
-        let customDomainsEnabled = settings?.enableCustomDomains ?? false
         let blockStatuses = Dictionary(uniqueKeysWithValues: groups.map { group in
             (
                 group.id.uuidString,
                 screenTimeService.blockStatus(
                     selection: group.selection,
-                    customDomains: customDomainsEnabled ? group.customDomains : []
+                    customDomains: group.customDomains
                 ).widget.rawValue
             )
         })

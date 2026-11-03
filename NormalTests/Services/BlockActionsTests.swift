@@ -18,36 +18,35 @@ struct BlockActionsTests {
         ScheduleService(activityCenter: activity, sharedStore: store)
     }
 
-    private func makeSettings(customDomains: Bool = false, preventsAppDelete: Bool = true) -> Settings {
+    private func makeSettings(preventsAppDelete: Bool = true) -> Settings {
         let settings = Settings()
-        settings.enableCustomDomains = customDomains
         settings.blockAllPreventsAppDelete = preventsAppDelete
         return settings
     }
 
     // MARK: - blockAll
 
-    @Test func blockAllAppliesShieldWithGatedDomains() {
+    @Test func blockAllAppliesShieldWithoutPreventingDelete() {
         let main = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["example.com"])
 
         BlockActions.blockAll(
             mainSelection: main,
-            settings: makeSettings(customDomains: false, preventsAppDelete: false),
+            settings: makeSettings(preventsAppDelete: false),
             screenTimeService: screenTime,
             timedUnblockService: makeTimedUnblock()
         )
 
         #expect(screenTime.blockAllCalled)
-        #expect(screenTime.blockAllCustomDomains == [])
+        #expect(screenTime.blockAllCustomDomains == ["example.com"])
         #expect(screenTime.blockAllPreventsAppDelete == false)
     }
 
-    @Test func blockAllIncludesDomainsAndPreventsDeleteWhenEnabled() {
+    @Test func blockAllIncludesDomainsAndPreventsDelete() {
         let main = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["example.com"])
 
         BlockActions.blockAll(
             mainSelection: main,
-            settings: makeSettings(customDomains: true, preventsAppDelete: true),
+            settings: makeSettings(preventsAppDelete: true),
             screenTimeService: screenTime,
             timedUnblockService: makeTimedUnblock()
         )
@@ -83,7 +82,7 @@ struct BlockActionsTests {
 
         BlockActions.blockGroup(
             group,
-            settings: makeSettings(customDomains: true),
+            settings: makeSettings(),
             screenTimeService: screenTime,
             timedUnblockService: makeTimedUnblock()
         )

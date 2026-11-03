@@ -2,7 +2,6 @@ import SwiftData
 import SwiftUI
 
 struct GeneralSettingsView: View {
-    @Environment(ScreenTimeService.self) private var screenTimeService
     let settings: Settings
     let availableKeyTypes: [KeyType]
 
@@ -13,7 +12,6 @@ struct GeneralSettingsView: View {
         List {
             blockingSection
             unblockingSection
-            websitesSection
             appearanceSection
             aboutSection
             #if DEBUG
@@ -21,26 +19,6 @@ struct GeneralSettingsView: View {
                     NavigationLink("Callback Log") { CallbackLogView() }
                 }
             #endif
-        }
-    }
-
-    private var hasActiveFilter: Bool {
-        screenTimeService.hasActiveCustomDomainFilter()
-    }
-
-    private var websitesSection: some View {
-        Section {
-            Toggle(
-                "Enable Custom Websites",
-                isOn: Bindable(settings).enableCustomDomains
-            )
-            .disabled(hasActiveFilter)
-        } header: {
-            Text("Websites")
-        } footer: {
-            if hasActiveFilter {
-                Text("Unblock all apps to turn this off.")
-            }
         }
     }
 

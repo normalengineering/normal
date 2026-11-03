@@ -25,7 +25,7 @@ struct HomeView: View {
     }
 
     private func customDomains(for selection: SelectedApps) -> [String] {
-        settings.enableCustomDomains ? selection.customDomains : []
+        selection.customDomains
     }
 
     var body: some View {

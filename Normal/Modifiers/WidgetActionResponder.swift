@@ -22,14 +22,6 @@ private struct WidgetActionResponder: ViewModifier {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
     }
 
-    private var customDomainsEnabled: Bool {
-        allSettings.first?.enableCustomDomains ?? false
-    }
-
-    private func customDomains(for group: AppGroup) -> [String] {
-        customDomainsEnabled ? group.customDomains : []
-    }
-
     func body(content: Content) -> some View {
         content
             .protectedAction(
@@ -102,7 +94,7 @@ private struct WidgetActionResponder: ViewModifier {
                 duration: duration,
                 groupId: group.id,
                 selection: group.selection,
-                customDomains: customDomains(for: group),
+                customDomains: group.customDomains,
                 screenTimeService: screenTimeService
             )
         } else {

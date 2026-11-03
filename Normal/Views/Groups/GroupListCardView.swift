@@ -28,7 +28,7 @@ struct GroupListCardView: View {
     }
 
     private var customDomains: [String] {
-        settings.enableCustomDomains ? appGroup.customDomains : []
+        appGroup.customDomains
     }
 
     private var isBlocked: Bool {
@@ -60,12 +60,7 @@ struct GroupListCardView: View {
         if !appGroup.selection.isSubset(of: main.selection) {
             return true
         }
-        if settings.enableCustomDomains,
-           CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains)
-        {
-            return true
-        }
-        return false
+        return CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains)
     }
 
     var body: some View {
@@ -186,7 +181,7 @@ struct GroupListCardView: View {
                 timedUnblockService.updateGroupSelection(
                     groupId: appGroup.id,
                     selection: appGroup.selection,
-                    customDomains: settings.enableCustomDomains ? newValue : []
+                    customDomains: newValue
                 )
             }
         )

@@ -64,10 +64,6 @@ final class ScheduleService {
             .hasSameWindow(as: makeDeviceSchedule(for: schedule)) == true
     }
 
-    func mirrorCustomDomainsEnabled(_ enabled: Bool) {
-        sharedStore.setCustomDomainsEnabled(enabled)
-    }
-
     func remove(
         _ schedule: BlockSchedule,
         remaining: [BlockSchedule],
