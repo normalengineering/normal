@@ -11,7 +11,6 @@ struct HideBlockedAppsToggleView: View {
                 set: { screenTimeService.setHidingBlockedApps($0) }
             )
         )
-        .tint(.accentColor)
         .accessibilityIdentifier("settings.hideBlockedAppsToggle")
     }
 }
