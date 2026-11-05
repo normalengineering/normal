@@ -10,7 +10,7 @@ enum BlockActions {
         timedUnblockService.clearAll()
         screenTimeService.blockAll(
             selection: mainSelection.selection,
-            customDomains: mainSelection.customDomains,
+            customDomains: settings.enableCustomDomains ? mainSelection.customDomains : [],
             blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
         )
     }
@@ -21,7 +21,7 @@ enum BlockActions {
         screenTimeService: any ScreenTimeProviding,
         timedUnblockService: TimedUnblockService
     ) {
-        let customDomains = group.customDomains
+        let customDomains = settings.enableCustomDomains ? group.customDomains : []
         if timedUnblockService.isGroupUnblockActive(groupId: group.id) {
             timedUnblockService.cancelGroup(groupId: group.id)
         }

@@ -1,6 +1,8 @@
+import SwiftData
 import SwiftUI
 
 struct AppContainer: View {
+    @Query private var allSettings: [Settings]
     @State private var screenTimeService: ScreenTimeService
     @State private var timedUnblockService: TimedUnblockService
     @State private var nfcService = NFCService.shared
@@ -37,5 +39,14 @@ struct AppContainer: View {
             .environment(emergencyUnblockService)
             .environment(donationService)
             .environment(usageLimitService)
+            .task { mirrorCustomDomainsEnabled() }
+            .onChange(of: allSettings.first?.enableCustomDomains ?? false) { _, enabled in
+                scheduleService.mirrorCustomDomainsEnabled(enabled)
+                screenTimeService.reconcile()
+            }
+    }
+
+    private func mirrorCustomDomainsEnabled() {
+        scheduleService.mirrorCustomDomainsEnabled(allSettings.first?.enableCustomDomains ?? false)
     }
 }

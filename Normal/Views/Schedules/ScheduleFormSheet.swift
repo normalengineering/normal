@@ -9,6 +9,7 @@ struct ScheduleFormSheet: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
 
     @Query private var allSchedules: [BlockSchedule]
+    @Query private var allSettings: [Settings]
     @Query private var selectedApps: [SelectedApps]
 
     let existing: BlockSchedule?
@@ -43,6 +44,10 @@ struct ScheduleFormSheet: View {
         isTimed && computedDurationMinutes < BlockSchedule.minimumDurationMinutes
     }
 
+    private var customDomainsEnabled: Bool {
+        allSettings.first?.enableCustomDomains ?? false
+    }
+
     private var availableDomains: [String] {
         selectedApps.first?.customDomains ?? []
     }
@@ -51,9 +56,13 @@ struct ScheduleFormSheet: View {
         CustomDomains.subset(customDomains, of: availableDomains)
     }
 
+    private var effectiveCustomDomains: [String] {
+        customDomainsEnabled ? storedCustomDomains : []
+    }
+
     private var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
-            && (selection.count > 0 || !storedCustomDomains.isEmpty)
+            && (selection.count > 0 || !effectiveCustomDomains.isEmpty)
             && !selectedWeekdays.isEmpty
             && !isDurationTooShort
     }
@@ -96,12 +105,14 @@ struct ScheduleFormSheet: View {
                 }
                 nameSection.disabled(isReadOnly)
                 appSection
-                Section {
-                    CustomDomainsSubsetLink(
-                        available: availableDomains,
-                        selected: $customDomains,
-                        isEditable: !isReadOnly
-                    )
+                if customDomainsEnabled {
+                    Section {
+                        CustomDomainsSubsetLink(
+                            available: availableDomains,
+                            selected: $customDomains,
+                            isEditable: !isReadOnly
+                        )
+                    }
                 }
                 modeSection.disabled(isReadOnly)
                 timingSection.disabled(isReadOnly)

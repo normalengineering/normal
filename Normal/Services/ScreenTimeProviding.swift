@@ -33,6 +33,7 @@ protocol ScreenTimeProviding: AnyObject {
     func reconcile()
     func activeShieldCount() -> Int
     func blockStatus(selection: FamilyActivitySelection?, customDomains: [String]?) -> BlockStatus
+    func hasActiveCustomDomainFilter() -> Bool
 }
 
 extension ScreenTimeProviding {

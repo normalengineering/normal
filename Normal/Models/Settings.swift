@@ -15,6 +15,7 @@ final class Settings {
     var defaultTab: AppTab?
     var hideDonateButton: Bool = false
     var showTimedUnblockLiveActivity: Bool = false
+    var enableCustomDomains: Bool = false
     var skipBlockWithoutKeyConfirmation: Bool = false
     var dailyLimitResetMinutes: Int = 0
 

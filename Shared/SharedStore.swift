@@ -61,11 +61,11 @@ struct SharedStore: SharedStoreProviding, Sendable {
     }
 
     func isCustomDomainsEnabled() -> Bool {
-        defaults.object(forKey: SharedConstants.DefaultsKey.customDomainsEnabled) as? Bool ?? true
+        defaults.bool(forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
     }
 
-    func clearCustomDomainsEnabled() {
-        defaults.removeObject(forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
+    func setCustomDomainsEnabled(_ enabled: Bool) {
+        defaults.set(enabled, forKey: SharedConstants.DefaultsKey.customDomainsEnabled)
     }
 
     func isAdultContentEnabled() -> Bool {

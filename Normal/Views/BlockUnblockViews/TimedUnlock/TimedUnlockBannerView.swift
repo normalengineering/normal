@@ -17,7 +17,7 @@ struct TimedUnblockBannerView: View {
     }
 
     private var effectiveCustomDomains: [String] {
-        customDomains
+        settings.enableCustomDomains ? customDomains : []
     }
 
     var body: some View {

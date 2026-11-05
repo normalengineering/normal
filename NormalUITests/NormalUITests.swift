@@ -180,8 +180,22 @@ final class NormalUITests: XCTestCase {
     }
 
     @MainActor
-    func testCustomDomainsEditorAddsDomain() {
+    func testCustomDomainsEditorHiddenWhenToggleOff() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+
+        let appSelectTab = app.tabBars.buttons["App Select"]
+        require(appSelectTab, "App Select tab should be reachable")
+        appSelectTab.tap()
+
+        XCTAssertFalse(
+            app.buttons["appSelect.customDomainsLink"].waitForExistence(timeout: 3),
+            "Custom Domains entry should be hidden while the setting is off"
+        )
+    }
+
+    @MainActor
+    func testCustomDomainsEditorAddsDomainWhenToggleOn() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains"])
 
         let appSelectTab = app.tabBars.buttons["App Select"]
         require(appSelectTab, "App Select tab should be reachable")
@@ -205,7 +219,7 @@ final class NormalUITests: XCTestCase {
 
     @MainActor
     func testCustomDomainsEditorIsReadOnlyWhileBlocked() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestStartBlocked"])
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains", "-uiTestStartBlocked"])
 
         let appSelectTab = app.tabBars.buttons["App Select"]
         require(appSelectTab, "App Select tab should be reachable")

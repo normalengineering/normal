@@ -7,6 +7,7 @@ struct StatusDetailView: View {
     @Environment(UsageLimitService.self) private var usageLimitService
     @Query(sort: [SortDescriptor(\BlockSchedule.sortIndex)]) private var schedules: [BlockSchedule]
     @Query(sort: [SortDescriptor(\UsageLimit.sortIndex)]) private var limits: [UsageLimit]
+    @Query private var allSettings: [Settings]
 
     let mainSelection: SelectedApps
 
@@ -15,7 +16,7 @@ struct StatusDetailView: View {
     }
 
     private var customDomains: [String] {
-        mainSelection.customDomains
+        (allSettings.first?.enableCustomDomains ?? false) ? mainSelection.customDomains : []
     }
 
     private var overallStatus: BlockStatus {

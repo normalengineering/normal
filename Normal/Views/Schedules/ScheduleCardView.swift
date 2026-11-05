@@ -10,11 +10,12 @@ struct ScheduleCardView: View {
     @Query private var allSchedules: [BlockSchedule]
     @Query private var keys: [Key]
     @Query private var selectedApps: [SelectedApps]
+    @Query private var allSettings: [Settings]
 
     let schedule: BlockSchedule
 
     private var customDomains: [String] {
-        schedule.customDomains
+        (allSettings.first?.enableCustomDomains ?? false) ? schedule.customDomains : []
     }
 
     @State private var isEditing = false
@@ -36,7 +37,12 @@ struct ScheduleCardView: View {
         if !schedule.selection.isSubset(of: main.selection) {
             return true
         }
-        return CustomDomains.needsResync(schedule.customDomains, main: main.customDomains)
+        if allSettings.first?.enableCustomDomains ?? false,
+           CustomDomains.needsResync(schedule.customDomains, main: main.customDomains)
+        {
+            return true
+        }
+        return false
     }
 
     private var isLocked: Bool {
