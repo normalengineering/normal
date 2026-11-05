@@ -333,7 +333,7 @@ extension TimedUnblockService {
         try startMain(
             duration: duration,
             selection: mainSelection.selection,
-            customDomains: mainSelection.customDomains,
+            customDomains: settings.enableCustomDomains ? mainSelection.customDomains : [],
             screenTimeService: screenTimeService,
             blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
         )

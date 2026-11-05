@@ -18,35 +18,36 @@ struct BlockActionsTests {
         ScheduleService(activityCenter: activity, sharedStore: store)
     }
 
-    private func makeSettings(preventsAppDelete: Bool = true) -> Settings {
+    private func makeSettings(customDomains: Bool = false, preventsAppDelete: Bool = true) -> Settings {
         let settings = Settings()
+        settings.enableCustomDomains = customDomains
         settings.blockAllPreventsAppDelete = preventsAppDelete
         return settings
     }
 
     // MARK: - blockAll
 
-    @Test func blockAllAppliesShieldWithoutPreventingDelete() {
+    @Test func blockAllAppliesShieldWithGatedDomains() {
         let main = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["example.com"])
 
         BlockActions.blockAll(
             mainSelection: main,
-            settings: makeSettings(preventsAppDelete: false),
+            settings: makeSettings(customDomains: false, preventsAppDelete: false),
             screenTimeService: screenTime,
             timedUnblockService: makeTimedUnblock()
         )
 
         #expect(screenTime.blockAllCalled)
-        #expect(screenTime.blockAllCustomDomains == ["example.com"])
+        #expect(screenTime.blockAllCustomDomains == [])
         #expect(screenTime.blockAllPreventsAppDelete == false)
     }
 
-    @Test func blockAllIncludesDomainsAndPreventsDelete() {
+    @Test func blockAllIncludesDomainsAndPreventsDeleteWhenEnabled() {
         let main = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["example.com"])
 
         BlockActions.blockAll(
             mainSelection: main,
-            settings: makeSettings(preventsAppDelete: true),
+            settings: makeSettings(customDomains: true, preventsAppDelete: true),
             screenTimeService: screenTime,
             timedUnblockService: makeTimedUnblock()
         )
@@ -82,7 +83,7 @@ struct BlockActionsTests {
 
         BlockActions.blockGroup(
             group,
-            settings: makeSettings(),
+            settings: makeSettings(customDomains: true),
             screenTimeService: screenTime,
             timedUnblockService: makeTimedUnblock()
         )

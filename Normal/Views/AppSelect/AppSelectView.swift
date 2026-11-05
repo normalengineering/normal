@@ -9,6 +9,7 @@ struct AppSelectView: View {
 
     @Query private var selectedApps: [SelectedApps]
     @Query private var appGroups: [AppGroup]
+    @Query private var allSettings: [Settings]
 
     @State private var showSelectionChangeAlert = false
     @State private var isFamilyActivityPickerPresented = false
@@ -17,6 +18,14 @@ struct AppSelectView: View {
 
     private var mainSelection: SelectedApps? {
         selectedApps.first
+    }
+
+    private var customDomainsEnabled: Bool {
+        allSettings.first?.enableCustomDomains ?? false
+    }
+
+    private var effectiveCustomDomains: [String] {
+        customDomainsEnabled ? customDomains : []
     }
 
     private var isBlocked: Bool {
@@ -48,8 +57,8 @@ struct AppSelectView: View {
             List {
                 AppSelectLimitBannerView(
                     selection: selection,
-                    customDomains: customDomains,
-                    includesCustomDomains: true
+                    customDomains: effectiveCustomDomains,
+                    customDomainsEnabled: customDomainsEnabled
                 )
                 Section(header: Text("Selection"), footer: footerText) {
                     Button(buttonTitle, action: onUpdateSelectionButton)
@@ -59,18 +68,20 @@ struct AppSelectView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Section(footer: Text("Select websites to block in web browsers and apps that show web content.")) {
-                    NavigationLink {
-                        CustomDomainsEditor(
-                            domains: $customDomains,
-                            otherItemCount: selection.count,
-                            isEditable: !isBlocked
-                        )
-                    } label: {
-                        CountRow(title: "Custom Domains", count: customDomains.count)
-                            .opacity(isBlocked ? DS.Opacity.dim : 1)
+                if customDomainsEnabled {
+                    Section(footer: Text("Select websites to block in web browsers and apps that show web content.")) {
+                        NavigationLink {
+                            CustomDomainsEditor(
+                                domains: $customDomains,
+                                otherItemCount: selection.count,
+                                isEditable: !isBlocked
+                            )
+                        } label: {
+                            CountRow(title: "Custom Domains", count: customDomains.count)
+                                .opacity(isBlocked ? DS.Opacity.dim : 1)
+                        }
+                        .accessibilityIdentifier("appSelect.customDomainsLink")
                     }
-                    .accessibilityIdentifier("appSelect.customDomainsLink")
                 }
                 SelectionListView(selection: selection)
             }
@@ -115,7 +126,7 @@ struct AppSelectView: View {
         }
         timedUnblockService.updateMainSelection(
             new,
-            customDomains: customDomains,
+            customDomains: effectiveCustomDomains,
             screenTimeService: screenTimeService
         )
     }
@@ -129,7 +140,7 @@ struct AppSelectView: View {
         }
         timedUnblockService.updateMainSelection(
             selection,
-            customDomains: customDomains,
+            customDomains: effectiveCustomDomains,
             screenTimeService: screenTimeService
         )
     }

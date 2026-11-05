@@ -9,7 +9,7 @@ struct GroupTimedUnblockSheet: View {
     let group: AppGroup
 
     private var customDomains: [String] {
-        group.customDomains
+        (allSettings.first?.enableCustomDomains ?? false) ? group.customDomains : []
     }
 
     var body: some View {
