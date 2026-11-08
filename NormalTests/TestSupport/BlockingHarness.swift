@@ -54,6 +54,10 @@ final class BlockingHarness {
         )
         main = SelectedApps(selection: TokenFixtures.selection(apps: mainApps), customDomains: customDomains)
         settings.blockAllPreventsAppDelete = false
+        if !customDomains.isEmpty {
+            settings.enableCustomDomains = true
+            store.setCustomDomainsEnabled(true)
+        }
     }
 
     func at(_ hour: Int, _ minute: Int = 0, dayOffset: Int = 0) -> Date {

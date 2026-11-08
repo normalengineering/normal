@@ -84,4 +84,19 @@ struct CustomDomainMigrationTests {
         #expect(group.customDomains == ["x.com"])
         #expect(schedule.customDomains == ["news.com"])
     }
+
+    @Test func settingsEnableCustomDomainsDefaultsFalseAfterReopen() throws {
+        let url = storeURL()
+        defer { removeStore(at: url) }
+
+        do {
+            let container = try makeContainer(at: url)
+            container.mainContext.insert(Settings())
+            try container.mainContext.save()
+        }
+
+        let reopened = try makeContainer(at: url)
+        let settings = try #require(try reopened.mainContext.fetch(FetchDescriptor<Settings>()).first)
+        #expect(settings.enableCustomDomains == false)
+    }
 }

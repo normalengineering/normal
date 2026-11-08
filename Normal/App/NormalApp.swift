@@ -28,14 +28,11 @@ struct NormalApp: App {
         if (try? context.fetchCount(descriptor)) == 0 {
             let settings = Settings()
             settings.hasCompletedOnboarding = UITestSupport.skipOnboarding
+            settings.enableCustomDomains = UITestSupport.customDomains
             settings.skipBlockWithoutKeyConfirmation = UITestSupport.skipBypassConfirm
             settings.customUnblockDurationSeconds = UITestSupport.unblockDurationSeconds
             settings.defaultUnblockSeconds = UITestSupport.defaultDurationSeconds
             context.insert(settings)
-        }
-
-        if !UITestSupport.isActive, !UITestSupport.isUnitTestHost {
-            CustomDomainsMigration.run(context: context, sharedStore: SharedStore())
         }
 
         if UITestSupport.isActive {

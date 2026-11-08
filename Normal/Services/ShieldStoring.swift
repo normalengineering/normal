@@ -21,6 +21,10 @@ extension ShieldStoring {
     func isShielded(_ token: SelectedTokenKind) -> Bool {
         currentShields().isShielded(token)
     }
+
+    func hasActiveCustomDomainFilter() -> Bool {
+        !currentShields().customDomains.isEmpty
+    }
 }
 
 extension ShieldPlan {

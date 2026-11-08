@@ -6,6 +6,7 @@ import SwiftUI
 struct SelectAppsForGroupSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var selectedApps: [SelectedApps]
+    @Query private var allSettings: [Settings]
 
     @Binding var selection: FamilyActivitySelection
     var customDomains: Binding<[String]>?
@@ -25,7 +26,9 @@ struct SelectAppsForGroupSheet: View {
     }
 
     private var showsDomains: Bool {
-        customDomains != nil && !mainDomains.isEmpty
+        customDomains != nil
+            && (allSettings.first?.enableCustomDomains ?? false)
+            && !mainDomains.isEmpty
     }
 
     private var hasContent: Bool {

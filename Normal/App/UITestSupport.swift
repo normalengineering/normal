@@ -18,6 +18,8 @@ enum UITestSupport {
 
     static let startBlocked = arguments.contains("-uiTestStartBlocked")
 
+    static let customDomains = arguments.contains("-uiTestCustomDomains")
+
     static let seedGroupKey = arguments.contains("-uiTestSeedGroupKey")
 
     static let seedGroupID = UUID(uuidString: "6E0A1C9B-2D4F-4B7A-9C3E-5F8D1A2B3C4D")!

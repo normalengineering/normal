@@ -1,12 +1,14 @@
+import SwiftData
 import SwiftUI
 
 struct BlockStatusView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Query private var allSettings: [Settings]
 
     let mainSelection: SelectedApps
 
     private var customDomains: [String] {
-        mainSelection.customDomains
+        (allSettings.first?.enableCustomDomains ?? false) ? mainSelection.customDomains : []
     }
 
     private var status: BlockStatus {
