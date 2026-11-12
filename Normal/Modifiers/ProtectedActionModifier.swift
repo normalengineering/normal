@@ -5,6 +5,7 @@ struct ProtectedActionModifier: ViewModifier {
     var allowBypass: Bool
     var defaultKeyType: KeyType?
     var keyGroupID: UUID?
+    var requestID: UUID?
 
     func body(content: Content) -> some View {
         content
@@ -13,7 +14,8 @@ struct ProtectedActionModifier: ViewModifier {
                 action: $action,
                 allowBypass: allowBypass,
                 defaultKeyType: defaultKeyType,
-                keyGroupID: keyGroupID
+                keyGroupID: keyGroupID,
+                requestID: requestID
             )
     }
 }
@@ -23,13 +25,15 @@ extension View {
         _ action: Binding<(@MainActor () -> Void)?>,
         allowBypass: Bool = false,
         defaultKeyType: KeyType? = nil,
-        keyGroupID: UUID? = nil
+        keyGroupID: UUID? = nil,
+        requestID: UUID? = nil
     ) -> some View {
         modifier(ProtectedActionModifier(
             action: action,
             allowBypass: allowBypass,
             defaultKeyType: defaultKeyType,
-            keyGroupID: keyGroupID
+            keyGroupID: keyGroupID,
+            requestID: requestID
         ))
     }
 }

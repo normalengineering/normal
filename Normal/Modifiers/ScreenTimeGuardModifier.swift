@@ -14,7 +14,7 @@ struct ScreenTimeGuardModifier: ViewModifier {
             deferred = pending
             action = nil
             Task {
-                if await screenTimeService.ensureAuthorized() {
+                if await screenTimeService.ensureAuthorized(), action == nil {
                     action = deferred
                 }
                 deferred = nil
