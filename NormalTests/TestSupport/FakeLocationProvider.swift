@@ -13,15 +13,18 @@ final class FakeLocationProvider: LocationProviding {
     var outcome: Outcome
     var authorizationStatus: CLAuthorizationStatus
     var cachedLocation: CLLocation?
+    var recentLocation: CLLocation?
 
     init(
         outcome: Outcome,
         authorizationStatus: CLAuthorizationStatus = .authorizedWhenInUse,
-        cachedLocation: CLLocation? = nil
+        cachedLocation: CLLocation? = nil,
+        recentLocation: CLLocation? = nil
     ) {
         self.outcome = outcome
         self.authorizationStatus = authorizationStatus
         self.cachedLocation = cachedLocation
+        self.recentLocation = recentLocation
     }
 
     convenience init(at coordinate: CLLocationCoordinate2D) {

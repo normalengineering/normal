@@ -30,6 +30,7 @@ enum LocationKeyError: Error, Equatable {
 protocol LocationProviding: AnyObject {
     var authorizationStatus: CLAuthorizationStatus { get }
     var cachedLocation: CLLocation? { get }
+    var recentLocation: CLLocation? { get }
     func currentLocation() async throws -> CLLocation
 }
 
@@ -52,7 +53,18 @@ final class LocationService: NSObject, LocationProviding {
         return manager.location
     }
 
+    var recentLocation: CLLocation? {
+        if UITestSupport.isActive {
+            return CLLocation(latitude: 37.33182, longitude: -122.03118)
+        }
+        guard let lastFix, lastFix.receivedAt.duration(to: .now) <= .seconds(LocationFixPolicy.maxAge) else {
+            return nil
+        }
+        return lastFix.location
+    }
+
     private let manager = CLLocationManager()
+    private var lastFix: (location: CLLocation, receivedAt: ContinuousClock.Instant)?
     private var locationContinuations: [CheckedContinuation<CLLocation, Error>] = []
     private var authContinuations: [CheckedContinuation<CLAuthorizationStatus, Never>] = []
 
@@ -91,6 +103,9 @@ final class LocationService: NSObject, LocationProviding {
     }
 
     private func flushLocation(_ result: Result<CLLocation, Error>) {
+        if case let .success(location) = result {
+            lastFix = (location, .now)
+        }
         let pending = locationContinuations
         locationContinuations.removeAll()
         for c in pending {

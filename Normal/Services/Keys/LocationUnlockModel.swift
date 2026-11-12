@@ -23,8 +23,6 @@ final class LocationUnlockModel {
     private let provider: any LocationProviding
     private let pollInterval: Duration
 
-    private static let maxCacheAge: TimeInterval = 30
-
     init(keys: [Key], provider: any LocationProviding, pollInterval: Duration = .seconds(2)) {
         let locationKeys = Key.locationKeys(in: keys)
         self.locationKeys = locationKeys
@@ -51,9 +49,7 @@ final class LocationUnlockModel {
     }
 
     func verifyFromCache() -> Bool {
-        guard let cached = provider.cachedLocation,
-              cached.timestamp.timeIntervalSinceNow > -Self.maxCacheAge
-        else { return false }
+        guard let cached = provider.recentLocation, LocationFixPolicy.inApp.accepts(cached) else { return false }
         location = cached
         hasValidLocation = true
         guard Key.locationKeyVerifies(keys: locationKeys, location: cached) else { return false }
@@ -64,6 +60,10 @@ final class LocationUnlockModel {
     func checkOnce() async {
         do {
             let fix = try await provider.currentLocation()
+            guard LocationFixPolicy.inApp.accepts(fix) else {
+                phase = .unavailable
+                return
+            }
             location = fix
             hasValidLocation = true
             phase = Key.locationKeyVerifies(keys: locationKeys, location: fix) ? .verified : .outOfRange
