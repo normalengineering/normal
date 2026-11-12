@@ -33,10 +33,11 @@ extension Settings {
         }
     }
 
-    func duration(for request: UnlockDurationRequest) -> TimedUnblockDuration? {
+    func unblockLength(for request: UnlockDurationRequest) -> UnblockLength? {
         switch request {
-        case let .fixed(duration): duration
-        case .useDefault: defaultDuration
+        case let .fixed(duration): .timed(duration)
+        case .permanent: .permanent
+        case .useDefault: defaultDuration.map(UnblockLength.timed)
         case .ask: nil
         }
     }

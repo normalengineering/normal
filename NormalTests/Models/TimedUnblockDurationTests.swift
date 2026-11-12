@@ -76,6 +76,10 @@ struct UnlockDurationRequestTests {
         #expect(UnlockDurationRequest(queryValue: "ask") == .ask)
     }
 
+    @Test func permanentValueIsPermanent() {
+        #expect(UnlockDurationRequest(queryValue: "permanent") == .permanent)
+    }
+
     @Test func validSecondsAreFixedEvenIfNotAPreset() throws {
         let custom = try #require(TimedUnblockDuration(validating: 5700))
         #expect(UnlockDurationRequest(queryValue: "5700") == .fixed(custom))
@@ -88,7 +92,7 @@ struct UnlockDurationRequestTests {
 
     @Test func queryValueRoundTrips() throws {
         let custom = try #require(TimedUnblockDuration(validating: 5700))
-        for request in [UnlockDurationRequest.useDefault, .ask, .fixed(custom)] {
+        for request in [UnlockDurationRequest.useDefault, .ask, .fixed(custom), .permanent] {
             #expect(UnlockDurationRequest(queryValue: request.queryValue) == request)
         }
     }

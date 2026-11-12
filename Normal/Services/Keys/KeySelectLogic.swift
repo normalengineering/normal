@@ -35,4 +35,18 @@ enum KeySelectLogic {
 
         return .showSheet
     }
+
+    static func shortcutKeyType(
+        requested: KeyType?,
+        defaultKeyType: KeyType?,
+        availableKeyTypes: [KeyType]
+    ) -> KeyType? {
+        if let requested {
+            return requested
+        }
+        if let defaultKeyType, availableKeyTypes.contains(defaultKeyType) {
+            return defaultKeyType
+        }
+        return availableKeyTypes.count == 1 ? availableKeyTypes[0] : nil
+    }
 }

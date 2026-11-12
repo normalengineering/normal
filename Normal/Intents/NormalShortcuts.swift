@@ -22,6 +22,26 @@ struct NormalShortcuts: AppShortcutsProvider {
             shortTitle: "Block Group",
             systemImageName: "lock.square.stack.fill"
         )
+        AppShortcut(
+            intent: UnblockAllIntent(),
+            phrases: [
+                "Unblock all apps in \(.applicationName)",
+                "Unblock everything in \(.applicationName)",
+                "\(.applicationName) unblock all",
+            ],
+            shortTitle: "Unblock All",
+            systemImageName: "lock.open.fill"
+        )
+        AppShortcut(
+            intent: UnblockGroupIntent(),
+            phrases: [
+                "Unblock \(\.$group) in \(.applicationName)",
+                "\(.applicationName) unblock \(\.$group)",
+                "Unblock a group in \(.applicationName)",
+            ],
+            shortTitle: "Unblock Group",
+            systemImageName: "lock.open"
+        )
     }
 
     static let shortcutTileColor: ShortcutTileColor = .blue

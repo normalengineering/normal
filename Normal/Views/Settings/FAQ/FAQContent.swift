@@ -5,6 +5,7 @@ enum FAQContent {
         FAQSection(title: "Getting Started & Setup", entries: [
             FAQEntry(question: "What can I use as a key?", answer: FAQAnswer.keyTypes),
             FAQEntry(question: "Are Any NFC tags not supported?", answer: FAQAnswer.nfcTypeSupport),
+            FAQEntry(question: "Can I unblock from Shortcuts or Siri?", answer: FAQAnswer.shortcutsUnblock),
             FAQEntry(question: "Can I use Normal to make my iPhone a dumbphone or semi-dumb feature phone?", answer: FAQAnswer.dumbphone),
             FAQEntry(question: "Why do I have to reselect apps in my schedules and groups when I update my selected apps?", answer: FAQAnswer.reselectAppLimitation),
             FAQEntry(question: "Can I prevent disabling Normal via Settings? I want to make it impossible to access blocked apps.", answer: FAQAnswer.settingsBypass),

@@ -5,24 +5,21 @@ struct TimedUnblockSheet: View {
 
     let title: String
     let durations: [TimedUnblockDuration]
-    let onTimedUnblock: (TimedUnblockDuration) throws -> Void
-    let onPermanentUnblock: () -> Void
+    let onConfirm: (UnblockLength) throws -> Void
 
-    @State private var selectedDuration: TimedUnblockDuration?
+    @State private var selection: UnblockLength
     @State private var error: Error?
 
     init(
         title: String,
         durations: [TimedUnblockDuration],
         initialDuration: TimedUnblockDuration?,
-        onTimedUnblock: @escaping (TimedUnblockDuration) throws -> Void,
-        onPermanentUnblock: @escaping () -> Void
+        onConfirm: @escaping (UnblockLength) throws -> Void
     ) {
         self.title = title
         self.durations = durations
-        self.onTimedUnblock = onTimedUnblock
-        self.onPermanentUnblock = onPermanentUnblock
-        _selectedDuration = State(initialValue: initialDuration ?? durations.first)
+        self.onConfirm = onConfirm
+        _selection = State(initialValue: (initialDuration ?? durations.first).map(UnblockLength.timed) ?? .permanent)
     }
 
     var body: some View {
@@ -32,9 +29,9 @@ struct TimedUnblockSheet: View {
                     ForEach(durations) { duration in
                         ChoiceListRow(
                             title: LocalizedStringKey(duration.label),
-                            isSelected: selectedDuration == duration
+                            isSelected: selection == .timed(duration)
                         ) {
-                            selectedDuration = duration
+                            selection = .timed(duration)
                         }
                         .accessibilityIdentifier("timedUnblock.duration.\(duration.seconds)")
                     }
@@ -47,9 +44,9 @@ struct TimedUnblockSheet: View {
                 Section {
                     ChoiceListRow(
                         title: "Until Manually Re-Blocked",
-                        isSelected: selectedDuration == nil
+                        isSelected: selection == .permanent
                     ) {
-                        selectedDuration = nil
+                        selection = .permanent
                     }
                     .accessibilityIdentifier("timedUnblock.permanent")
                 } footer: {
@@ -78,16 +75,11 @@ struct TimedUnblockSheet: View {
     }
 
     private func performUnblock() {
-        if let duration = selectedDuration {
-            do {
-                try onTimedUnblock(duration)
-                dismiss()
-            } catch {
-                self.error = error
-            }
-        } else {
-            onPermanentUnblock()
+        do {
+            try onConfirm(selection)
             dismiss()
+        } catch {
+            self.error = error
         }
     }
 }

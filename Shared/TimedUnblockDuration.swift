@@ -66,8 +66,10 @@ nonisolated enum UnlockDurationRequest: Equatable, Sendable {
     case useDefault
     case ask
     case fixed(TimedUnblockDuration)
+    case permanent
 
     static let askQueryValue = "ask"
+    static let permanentQueryValue = "permanent"
 
     /// `nil` means the query item is omitted.
     var queryValue: String? {
@@ -75,12 +77,17 @@ nonisolated enum UnlockDurationRequest: Equatable, Sendable {
         case .useDefault: nil
         case .ask: Self.askQueryValue
         case let .fixed(duration): String(duration.seconds)
+        case .permanent: Self.permanentQueryValue
         }
     }
 
     init(queryValue: String?) {
         guard let queryValue else {
             self = .useDefault
+            return
+        }
+        guard queryValue != Self.permanentQueryValue else {
+            self = .permanent
             return
         }
         if let seconds = Int(queryValue), String(seconds) == queryValue,

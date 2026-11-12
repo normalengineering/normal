@@ -96,4 +96,29 @@ struct KeySelectLogicTests {
         )
         #expect(result == .autoSelect(.nfc))
     }
+
+    @Test func shortcutUsesTheRequestedKey() {
+        let keyType = KeySelectLogic.shortcutKeyType(requested: .qr, defaultKeyType: .nfc, availableKeyTypes: [.nfc, .qr])
+        #expect(keyType == .qr)
+    }
+
+    @Test func shortcutFallsBackToTheDefaultKey() {
+        let keyType = KeySelectLogic.shortcutKeyType(requested: nil, defaultKeyType: .nfc, availableKeyTypes: [.nfc, .qr])
+        #expect(keyType == .nfc)
+    }
+
+    @Test func shortcutIgnoresAnUnavailableDefault() {
+        let keyType = KeySelectLogic.shortcutKeyType(requested: nil, defaultKeyType: .nfc, availableKeyTypes: [.location])
+        #expect(keyType == .location)
+    }
+
+    @Test func shortcutUsesTheOnlyKeyType() {
+        let keyType = KeySelectLogic.shortcutKeyType(requested: nil, defaultKeyType: nil, availableKeyTypes: [.qr])
+        #expect(keyType == .qr)
+    }
+
+    @Test func shortcutLeavesTheChoiceWithSeveralKeyTypes() {
+        let keyType = KeySelectLogic.shortcutKeyType(requested: nil, defaultKeyType: nil, availableKeyTypes: [.nfc, .qr])
+        #expect(keyType == nil)
+    }
 }

@@ -81,6 +81,12 @@ struct NormalApp: App {
             services: services
         )
         AppDependencyManager.shared.add(dependency: blockPerformer)
+
+        let unblockPerformer: any UnblockIntentPerforming = AppUnblockIntentPerformer(
+            container: container,
+            services: services
+        )
+        AppDependencyManager.shared.add(dependency: unblockPerformer)
     }
 
     var body: some Scene {
