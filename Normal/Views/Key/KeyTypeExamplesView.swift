@@ -45,7 +45,7 @@ struct KeyTypeExamplesView: View {
             cardTitle("Location examples", systemImage: KeyType.location.icon)
             FeatureRow(systemImage: "location.circle.fill", text: "Unblock radius: your key only works inside the areas you choose, like your office or the gym.", tint: LocationRadiusKind.unblock.zoneColor)
             FeatureRow(systemImage: "location.slash.circle.fill", text: "Block radius: your key only works outside the areas you choose, like home or school, so you can't unblock while you're there.", tint: LocationRadiusKind.block.zoneColor)
-            FeatureRow(systemImage: "iphone", text: "To use a location key, open Normal and unblock. Normal only checks your location at that moment, never in the background.")
+            FeatureRow(systemImage: "iphone", text: "Normal only checks your location at the moment you unblock. With Background Location on in Settings, a shortcut can unblock without opening Normal.")
         }
     }
 

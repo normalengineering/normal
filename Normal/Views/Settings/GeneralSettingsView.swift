@@ -81,6 +81,10 @@ struct GeneralSettingsView: View {
                 }
             }
 
+            if availableKeyTypes.contains(.location) {
+                BackgroundLocationRow()
+            }
+
             Toggle(
                 "Live Activity",
                 isOn: Bindable(settings).showTimedUnblockLiveActivity

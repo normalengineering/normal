@@ -105,7 +105,7 @@ struct KeyFormSheetSetupSection: View {
         HStack(alignment: .top, spacing: DS.Spacing.sm) {
             Image(systemName: "info.circle.fill")
                 .foregroundStyle(.blue)
-            Text("Location keys still require you to unblock selected apps/groups by opening the Normal app and unblocking. Your NFC and QR keys will still work from anywhere!")
+            Text("Normal checks a location key when you unblock. With Background Location on in Settings, a shortcut can check it without opening Normal. Your NFC and QR keys work from anywhere!")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

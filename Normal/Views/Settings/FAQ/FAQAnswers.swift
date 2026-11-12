@@ -170,7 +170,16 @@ enum FAQAnswer {
 
     static let shortcutsUnblock = AnyView(
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
-            Text("Yes. Normal adds Unblock All Apps and Unblock Group to the Shortcuts app. Your key is still checked, so Normal opens to scan it.")
+            Text("Yes. Normal adds Unblock All Apps and Unblock Group to the Shortcuts app. Your key is still checked.")
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                Text("Unblock when you arrive somewhere").fontWeight(.medium).foregroundStyle(.primary)
+                NumberedRow(number: 1, text: "Add a Location key in the Keys tab")
+                NumberedRow(number: 2, text: "In Settings, tap Background Location and choose Always")
+                NumberedRow(number: 3, text: "In Shortcuts, add an Arrive automation and set it to run without asking")
+                NumberedRow(number: 4, text: "Add Unblock All Apps, set Key Type to Location and choose an Unblock Duration")
+                BulletRow(text: "Keep the Arrive area inside your key's radius, or the check fails on arrival")
+                BulletRow(text: "Use a radius of 100 m or more so a background reading can confirm where you are")
+            }
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Unblock with an NFC tag").fontWeight(.medium).foregroundStyle(.primary)
                 NumberedRow(number: 1, text: "In Shortcuts, add an NFC automation and scan your tag")
