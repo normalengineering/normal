@@ -13,9 +13,8 @@ struct ContentView: View {
     @Query private var schedules: [BlockSchedule]
     @Query private var usageLimits: [UsageLimit]
 
-    @Bindable var navigationCoordinator: NavigationCoordinator
-
     @State private var selectedTab: AppTab = .home
+    @State private var navigationCoordinator = NavigationCoordinator()
 
     private var settings: Settings? {
         allSettings.first

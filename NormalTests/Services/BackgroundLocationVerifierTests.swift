@@ -49,83 +49,97 @@ struct BackgroundLocationVerifierTests {
         FakeLocationProvider(outcome: outcome, authorizationStatus: status, cachedLocation: cached)
     }
 
+    private func check(
+        _ provider: FakeLocationProvider,
+        keys: [Key]? = nil,
+        deadline: Duration = .milliseconds(150)
+    ) async -> BackgroundLocationCheck {
+        let verifier = BackgroundLocationVerifier(
+            provider: provider,
+            deadline: deadline,
+            pollInterval: .milliseconds(1)
+        )
+        return await verifier.check(keys: keys ?? [locationKey()])
+    }
+
     @Test func requiresAlwaysAuthorization() async {
         let provider = provider(.location(fix()), status: .authorizedWhenInUse)
-        let result = await BackgroundLocationVerifier(provider: provider).check(keys: [locationKey()])
-        #expect(result == .unavailable)
+        #expect(await check(provider) == .unavailable)
+        #expect(provider.requestCount == 0)
+    }
+
+    @Test func requiresPreciseLocation() async {
+        let provider = provider(.location(fix()))
+        provider.accuracyAuthorization = .reducedAccuracy
+        #expect(await check(provider) == .unavailable)
         #expect(provider.requestCount == 0)
     }
 
     @Test func noLocationKeysIsUnavailable() async {
         let provider = provider(.location(fix()))
         let keys = [Key(name: "QR", type: .qr, rawValue: "code")]
-        let result = await BackgroundLocationVerifier(provider: provider).check(keys: keys)
-        #expect(result == .unavailable)
+        #expect(await check(provider, keys: keys) == .unavailable)
         #expect(provider.requestCount == 0)
     }
 
     @Test func verifiesInsideUnblockZone() async {
-        let result = await BackgroundLocationVerifier(provider: provider(.location(fix())))
-            .check(keys: [locationKey()])
-        #expect(result == .verified)
+        #expect(await check(provider(.location(fix()))) == .verified)
     }
 
-    @Test func outOfRangeOutsideUnblockZone() async {
-        let result = await BackgroundLocationVerifier(provider: provider(.location(fix(at: Self.london))))
-            .check(keys: [locationKey()])
-        #expect(result == .outOfRange)
+    @Test func outOfRangeAtTheDeadlineIsOutOfRange() async {
+        #expect(await check(provider(.location(fix(at: Self.london)))) == .outOfRange)
+    }
+
+    @Test func verifiesOnceTheDeviceMovesIntoTheZone() async {
+        let provider = provider(.location(fix()))
+        provider.queuedOutcomes = [.location(fix(at: Self.london))]
+        #expect(await check(provider, deadline: .seconds(30)) == .verified)
+        #expect(provider.requestCount == 2)
     }
 
     @Test func blockKindVerifiesWhenOutside() async {
-        let result = await BackgroundLocationVerifier(provider: provider(.location(fix(at: Self.london))))
-            .check(keys: [locationKey(kind: .block)])
+        let result = await check(provider(.location(fix(at: Self.london))), keys: [locationKey(kind: .block)])
         #expect(result == .verified)
     }
 
     @Test(arguments: [150.0, -1.0])
     func rejectsInaccurateFix(_ accuracy: CLLocationAccuracy) async {
-        let result = await BackgroundLocationVerifier(provider: provider(.location(fix(accuracy: accuracy))))
-            .check(keys: [locationKey()])
-        #expect(result == .unavailable)
+        #expect(await check(provider(.location(fix(accuracy: accuracy)))) == .unavailable)
     }
 
     @Test func rejectsStaleFix() async {
-        let result = await BackgroundLocationVerifier(provider: provider(.location(fix(age: 60))))
-            .check(keys: [locationKey()])
-        #expect(result == .unavailable)
+        #expect(await check(provider(.location(fix(age: 60)))) == .unavailable)
     }
 
     @Test func rejectsSimulatedFix() async {
-        let result = await BackgroundLocationVerifier(provider: provider(.location(fix(simulated: true))))
-            .check(keys: [locationKey()])
-        #expect(result == .unavailable)
+        #expect(await check(provider(.location(fix(simulated: true)))) == .unavailable)
     }
 
-    @Test func freshCacheSkipsRequest() async {
+    @Test func freshCacheInsideTheZoneSkipsRequest() async {
         let provider = provider(.throwGeneric, cached: fix())
-        let result = await BackgroundLocationVerifier(provider: provider).check(keys: [locationKey()])
-        #expect(result == .verified)
+        #expect(await check(provider) == .verified)
         #expect(provider.requestCount == 0)
     }
 
-    @Test func staleCacheRequestsFreshFix() async {
-        let provider = provider(.location(fix()), cached: fix(at: Self.london, age: 60))
-        let result = await BackgroundLocationVerifier(provider: provider).check(keys: [locationKey()])
-        #expect(result == .verified)
+    @Test func freshCacheOutsideTheZoneStillRequestsAFix() async {
+        let provider = provider(.location(fix()), cached: fix(at: Self.london))
+        #expect(await check(provider) == .verified)
+        #expect(provider.requestCount == 1)
+    }
+
+    @Test func staleCacheRequestsAFix() async {
+        let provider = provider(.location(fix()), cached: fix(age: 60))
+        #expect(await check(provider) == .verified)
         #expect(provider.requestCount == 1)
     }
 
     @Test func providerErrorIsUnavailable() async {
-        let result = await BackgroundLocationVerifier(provider: provider(.throwGeneric))
-            .check(keys: [locationKey()])
-        #expect(result == .unavailable)
+        #expect(await check(provider(.throwGeneric)) == .unavailable)
     }
 
-    @Test func deadlineIsUnavailable() async {
+    @Test func noFixBeforeTheDeadlineIsUnavailable() async {
         let provider = provider(.pending)
-        let verifier = BackgroundLocationVerifier(provider: provider, deadline: .milliseconds(50))
-        let result = await verifier.check(keys: [locationKey()])
-        #expect(result == .unavailable)
+        #expect(await check(provider) == .unavailable)
         provider.finishPending()
     }
 }

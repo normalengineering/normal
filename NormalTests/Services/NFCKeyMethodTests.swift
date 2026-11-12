@@ -2,10 +2,11 @@
 import Testing
 
 struct NFCKeyMethodTests {
-    @Test func successOnValidScan() async {
-        let scanner = FakeKeyScanning(outcome: .acceptAny)
-        let method = NFCKeyMethod(nfcService: scanner, keys: [])
-        #expect(await method.checkKey() == .success)
+    @Test func unvalidatedScanIsRejected() async {
+        let key = Key(name: "k", type: .nfc, rawValue: "abc")
+        let scanner = FakeKeyScanning(outcome: .acceptAny, rawValue: "abc")
+        let method = NFCKeyMethod(nfcService: scanner, keys: [key])
+        #expect(await method.checkKey() == .failure)
     }
 
     @Test func cancelledOnUserCancel() async {
@@ -43,9 +44,17 @@ struct NFCKeyMethodTests {
 
 struct QRKeyMethodTests {
     @Test func successOnValidScan() async {
-        let scanner = FakeKeyScanning(outcome: .acceptAny)
-        let method = QRKeyMethod(qrService: scanner, keys: [])
+        let key = Key(name: "k", type: .qr, rawValue: "code")
+        let scanner = FakeKeyScanning(outcome: .acceptMatching, rawValue: "code")
+        let method = QRKeyMethod(qrService: scanner, keys: [key])
         #expect(await method.checkKey() == .success)
+    }
+
+    @Test func unvalidatedScanIsRejected() async {
+        let key = Key(name: "k", type: .qr, rawValue: "code")
+        let scanner = FakeKeyScanning(outcome: .acceptAny, rawValue: "code")
+        let method = QRKeyMethod(qrService: scanner, keys: [key])
+        #expect(await method.checkKey() == .failure)
     }
 
     @Test func cancelledOnUserCancel() async {

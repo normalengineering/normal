@@ -29,6 +29,7 @@ enum LocationKeyError: Error, Equatable {
 @MainActor
 protocol LocationProviding: AnyObject {
     var authorizationStatus: CLAuthorizationStatus { get }
+    var accuracyAuthorization: CLAccuracyAuthorization { get }
     var cachedLocation: CLLocation? { get }
     func currentLocation() async throws -> CLLocation
 }
@@ -42,7 +43,16 @@ final class LocationService: NSObject, LocationProviding {
         if UITestSupport.isActive {
             return .authorizedWhenInUse
         }
-        return status
+        _ = authorizationRevision
+        return manager.authorizationStatus
+    }
+
+    var accuracyAuthorization: CLAccuracyAuthorization {
+        if UITestSupport.isActive {
+            return .fullAccuracy
+        }
+        _ = authorizationRevision
+        return manager.accuracyAuthorization
     }
 
     var canRequestAlways: Bool {
@@ -63,7 +73,8 @@ final class LocationService: NSObject, LocationProviding {
     private static let alwaysRequestedKey = "locationAlwaysRequested_v1"
 
     private let manager = CLLocationManager()
-    private var status: CLAuthorizationStatus = .notDetermined
+    private var authorizationRevision = 0
+    private var upgradesToAlways = false
     private var locationContinuations: [CheckedContinuation<CLLocation, Error>] = []
     private var authContinuations: [CheckedContinuation<CLAuthorizationStatus, Never>] = []
 
@@ -71,10 +82,14 @@ final class LocationService: NSObject, LocationProviding {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        status = manager.authorizationStatus
     }
 
     func requestAlwaysAuthorization() {
+        guard manager.authorizationStatus != .notDetermined else {
+            upgradesToAlways = true
+            manager.requestWhenInUseAuthorization()
+            return
+        }
         UserDefaults.standard.set(true, forKey: Self.alwaysRequestedKey)
         manager.requestAlwaysAuthorization()
     }
@@ -116,8 +131,14 @@ final class LocationService: NSObject, LocationProviding {
     }
 
     private func flushAuth(_ status: CLAuthorizationStatus) {
-        self.status = status
+        authorizationRevision += 1
         guard status != .notDetermined else { return }
+        if upgradesToAlways {
+            upgradesToAlways = false
+            if status == .authorizedWhenInUse {
+                requestAlwaysAuthorization()
+            }
+        }
         let pending = authContinuations
         authContinuations.removeAll()
         for c in pending {

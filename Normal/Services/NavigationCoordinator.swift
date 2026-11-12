@@ -1,20 +1,14 @@
 import SwiftUI
 
-enum GroupAction: Equatable {
+enum PendingAction: Equatable {
     case unlock(duration: UnlockDurationRequest, keyType: KeyType?)
     case block
 }
 
-struct GroupActionRequest: Equatable {
+struct ActionRequest: Equatable {
     let token: UUID
-    let groupID: UUID
-    let action: GroupAction
-}
-
-struct MainUnlockRequest: Equatable {
-    let token: UUID
-    let duration: UnlockDurationRequest
-    let keyType: KeyType?
+    let groupID: UUID?
+    let action: PendingAction
 }
 
 @MainActor
@@ -23,8 +17,7 @@ final class NavigationCoordinator {
     var isSettingsPresented = false
     private(set) var settingsInitialTab: SettingsTab = .general
 
-    var pendingGroupAction: GroupActionRequest?
-    var pendingMainUnlock: MainUnlockRequest?
+    var pendingAction: ActionRequest?
 
     func presentSettings(tab: SettingsTab = .general) {
         settingsInitialTab = tab
@@ -35,20 +28,16 @@ final class NavigationCoordinator {
         isSettingsPresented = false
     }
 
-    func requestGroupUnlock(groupID: UUID, duration: UnlockDurationRequest, keyType: KeyType?) {
-        pendingGroupAction = GroupActionRequest(
+    func requestUnlock(groupID: UUID?, duration: UnlockDurationRequest, keyType: KeyType?) {
+        pendingAction = ActionRequest(
             token: UUID(),
             groupID: groupID,
             action: .unlock(duration: duration, keyType: keyType)
         )
     }
 
-    func requestMainUnlock(duration: UnlockDurationRequest, keyType: KeyType?) {
-        pendingMainUnlock = MainUnlockRequest(token: UUID(), duration: duration, keyType: keyType)
-    }
-
     func requestGroupBlock(groupID: UUID) {
-        pendingGroupAction = GroupActionRequest(token: UUID(), groupID: groupID, action: .block)
+        pendingAction = ActionRequest(token: UUID(), groupID: groupID, action: .block)
     }
 
     func handle(url: URL) {
@@ -68,7 +57,7 @@ final class NavigationCoordinator {
             )
             let keyType = items.first { $0.name == WidgetDeepLink.keyQueryItem }?.value
                 .flatMap { KeyType(rawValue: $0) }
-            requestGroupUnlock(groupID: groupID, duration: duration, keyType: keyType)
+            requestUnlock(groupID: groupID, duration: duration, keyType: keyType)
         case WidgetDeepLink.blockHost:
             requestGroupBlock(groupID: groupID)
         default:
@@ -76,12 +65,8 @@ final class NavigationCoordinator {
         }
     }
 
-    func clearPendingGroupAction() {
-        pendingGroupAction = nil
-    }
-
-    func clearPendingMainUnlock() {
-        pendingMainUnlock = nil
+    func clearPendingAction() {
+        pendingAction = nil
     }
 }
 

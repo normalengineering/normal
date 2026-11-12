@@ -30,7 +30,7 @@ struct MainBlockButtonView: View {
     }
 
     private var canShowUnblock: Bool {
-        blockStatus != .none && !timedUnblockService.isMainUnblockActive
+        blockStatus.allowsUnblockAll(mainTimedUnblockActive: timedUnblockService.isMainUnblockActive)
     }
 
     private var hasGlobalKey: Bool {

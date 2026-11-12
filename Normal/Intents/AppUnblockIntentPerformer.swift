@@ -1,39 +1,34 @@
-import FamilyControls
 import Foundation
 import OSLog
 import SwiftData
 
 final class AppUnblockIntentPerformer: UnblockIntentPerforming {
-    private struct Target {
-        let name: String
-        let groupID: UUID?
-        let selection: FamilyActivitySelection
-        let customDomains: [String]
-        let isUnblocked: Bool
+    private enum Target {
+        case all(SelectedApps)
+        case group(AppGroup)
     }
 
-    private let container: ModelContainer
-    private let screenTimeService: any ScreenTimeProviding
-    private let timedUnblockService: TimedUnblockService
-    private let navigation: NavigationCoordinator
+    private let intents: IntentContext
+    private let unlockInbox: UnlockRequestInbox
     private let locationVerifier: BackgroundLocationVerifier
-    private let syncsExternalSurfaces: Bool
     private let logger = Logger(subsystem: "com.normalengineering.normal", category: "Intents")
 
     init(
         container: ModelContainer,
         screenTimeService: any ScreenTimeProviding,
         timedUnblockService: TimedUnblockService,
-        navigation: NavigationCoordinator,
+        unlockInbox: UnlockRequestInbox,
         locationVerifier: BackgroundLocationVerifier,
         syncsExternalSurfaces: Bool = true
     ) {
-        self.container = container
-        self.screenTimeService = screenTimeService
-        self.timedUnblockService = timedUnblockService
-        self.navigation = navigation
+        intents = IntentContext(
+            container: container,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService,
+            syncsExternalSurfaces: syncsExternalSurfaces
+        )
+        self.unlockInbox = unlockInbox
         self.locationVerifier = locationVerifier
-        self.syncsExternalSurfaces = syncsExternalSurfaces
     }
 
     convenience init(container: ModelContainer, services: AppServices) {
@@ -41,28 +36,30 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
             container: container,
             screenTimeService: services.screenTime,
             timedUnblockService: services.timedUnblock,
-            navigation: services.navigation,
+            unlockInbox: services.unlockInbox,
             locationVerifier: BackgroundLocationVerifier(provider: LocationService.shared)
         )
     }
 
-    private var context: ModelContext {
-        container.mainContext
-    }
-
     func unblock(_ request: UnblockRequest) async throws -> UnblockOutcome {
         logger.info("Unblock intent: \(request.groupID == nil ? "all" : "group", privacy: .public)")
-        let settings = try validatedSettings()
-        let target = try target(for: request.groupID, settings: settings)
-        if target.isUnblocked {
-            return .alreadyUnblocked(name: target.name)
+        let settings = try intents.validatedSettings()
+        intents.timedUnblockService.refresh(screenTimeService: intents.screenTimeService)
+        let target: Target = if let groupID = request.groupID {
+            try .group(intents.group(id: groupID))
+        } else {
+            try .all(intents.mainSelection(settings: settings))
+        }
+        if isUnblocked(target, settings: settings) {
+            return .alreadyUnblocked(name: name(of: target))
         }
 
-        guard let duration = settings.duration(for: request.duration), request.keyType == .location else {
-            return .continueInApp
-        }
-        let keys = try Key.scoped(context.fetch(FetchDescriptor<Key>()), toGroup: request.groupID)
-        switch await locationVerifier.check(keys: keys) {
+        guard let duration = settings.duration(for: request.duration),
+              (request.keyType ?? settings.defaultKeyType) == .location
+        else { return .continueInApp }
+        let location = try await locationVerifier.check(keys: Key.scoped(intents.keys(), toGroup: request.groupID))
+        try Task.checkCancellation()
+        switch location {
         case .verified:
             break
         case .outOfRange:
@@ -71,90 +68,62 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
             return .continueInApp
         }
 
-        try start(target, duration: duration, settings: settings)
-        syncExternalSurfaces(settings: settings)
-        return .unblocked(name: target.name, duration: duration)
+        do {
+            try start(target, duration: duration, settings: settings)
+        } catch {
+            logger.error("Unblock intent failed to start: \(error.localizedDescription, privacy: .public)")
+            throw UnblockIntentError.unblockFailed
+        }
+        intents.syncExternalSurfaces(settings: settings)
+        return .unblocked(name: name(of: target), duration: duration)
     }
 
     func continueInApp(_ request: UnblockRequest) {
-        if let groupID = request.groupID {
-            navigation.requestGroupUnlock(groupID: groupID, duration: request.duration, keyType: request.keyType)
-        } else {
-            navigation.requestMainUnlock(duration: request.duration, keyType: request.keyType)
+        unlockInbox.post(
+            groupID: request.groupID,
+            duration: request.duration,
+            keyType: request.keyType ?? intents.defaultKeyType()
+        )
+    }
+
+    private func name(of target: Target) -> String {
+        switch target {
+        case .all: String(localized: "All Apps")
+        case let .group(group): group.name
         }
     }
 
-    private func target(for groupID: UUID?, settings: Settings) throws -> Target {
-        if let groupID {
-            let descriptor = FetchDescriptor<AppGroup>(predicate: #Predicate { $0.id == groupID })
-            guard let group = try context.fetch(descriptor).first else {
-                throw BlockIntentError.groupNotFound
-            }
-            let customDomains = settings.enableCustomDomains ? group.customDomains : []
-            let status = screenTimeService.blockStatus(selection: group.selection, customDomains: customDomains)
-            return Target(
-                name: group.name,
-                groupID: groupID,
-                selection: group.selection,
-                customDomains: customDomains,
-                isUnblocked: status == .none
-                    || (timedUnblockService.isGroupUnblockActive(groupId: groupID) && status != .all)
-            )
+    private func isUnblocked(_ target: Target, settings: Settings) -> Bool {
+        let timedUnblock = intents.timedUnblockService
+        switch target {
+        case let .all(mainSelection):
+            return !intents.blockStatus(of: mainSelection, settings: settings)
+                .allowsUnblockAll(mainTimedUnblockActive: timedUnblock.isMainUnblockActive)
+        case let .group(group):
+            let status = intents.blockStatus(of: group, settings: settings)
+            return status == .none
+                || status.showsGroupTimedUnblock(
+                    groupTimedUnblockActive: timedUnblock.isGroupUnblockActive(groupId: group.id)
+                )
         }
-
-        guard let mainSelection = try context.fetch(FetchDescriptor<SelectedApps>()).first,
-              !mainSelection.selection.isEmpty
-              || (settings.enableCustomDomains && !mainSelection.customDomains.isEmpty)
-        else { throw BlockIntentError.noAppsSelected }
-        let customDomains = settings.enableCustomDomains ? mainSelection.customDomains : []
-        let status = screenTimeService.blockStatus(selection: mainSelection.selection, customDomains: customDomains)
-        return Target(
-            name: String(localized: "All Apps"),
-            groupID: nil,
-            selection: mainSelection.selection,
-            customDomains: customDomains,
-            isUnblocked: status == .none || timedUnblockService.isMainUnblockActive
-        )
     }
 
     private func start(_ target: Target, duration: TimedUnblockDuration, settings: Settings) throws {
-        if let groupID = target.groupID {
-            try timedUnblockService.startGroup(
+        switch target {
+        case let .all(mainSelection):
+            try intents.timedUnblockService.startMain(
                 duration: duration,
-                groupId: groupID,
-                selection: target.selection,
-                customDomains: target.customDomains,
-                screenTimeService: screenTimeService
+                mainSelection: mainSelection,
+                settings: settings,
+                screenTimeService: intents.screenTimeService
             )
-        } else {
-            try timedUnblockService.startMain(
+        case let .group(group):
+            try intents.timedUnblockService.startGroup(
                 duration: duration,
-                selection: target.selection,
-                customDomains: target.customDomains,
-                screenTimeService: screenTimeService,
-                blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+                group: group,
+                settings: settings,
+                screenTimeService: intents.screenTimeService
             )
         }
-    }
-
-    private func validatedSettings() throws -> Settings {
-        let settings = try context.fetch(FetchDescriptor<Settings>()).first
-        try BlockActions.validate(
-            isAuthorized: screenTimeService.isAuthorizedNow,
-            hasCompletedOnboarding: settings?.hasCompletedOnboarding == true,
-            keys: context.fetch(FetchDescriptor<Key>())
-        )
-        guard let settings else { throw BlockIntentError.setupIncomplete }
-        return settings
-    }
-
-    private func syncExternalSurfaces(settings: Settings) {
-        guard syncsExternalSurfaces else { return }
-        IntentSurfaceSync.sync(
-            context: context,
-            settings: settings,
-            screenTimeService: screenTimeService,
-            timedUnblockService: timedUnblockService
-        )
     }
 }

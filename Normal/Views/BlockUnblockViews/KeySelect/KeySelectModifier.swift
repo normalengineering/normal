@@ -14,16 +14,33 @@ struct KeySelectModifier: ViewModifier {
     var defaultKeyType: KeyType?
     var requestedKeyType: KeyType?
     var keyGroupID: UUID?
+    var requestID: UUID?
 
+    @State private var flowID = UUID()
     @State private var keySelectToken: PresentationToken?
-    @State private var locationToken: PresentationToken?
+    @State private var locationCheck: LocationCheck?
+    @State private var pendingLocationCheck: LocationCheck?
+    @State private var presentedLocationFlowID: UUID?
+    @State private var locationAction: (@MainActor () -> Void)?
+    @State private var pendingQRAction: (@MainActor () -> Void)?
+    @State private var qrScanFlowID: UUID?
     @State private var showQRScanner = false
     @State private var showNoKeysAlert = false
     @State private var showBypassConfirm = false
-    @State private var pendingLocationAction: (@MainActor () -> Void)?
 
     private struct PresentationToken: Identifiable {
         let id = UUID()
+    }
+
+    private struct LocationCheck: Identifiable {
+        let id = UUID()
+        let flowID: UUID
+        let keys: [Key]
+    }
+
+    private struct Trigger: Equatable {
+        let hasAction: Bool
+        let requestID: UUID?
     }
 
     private var settings: Settings {
@@ -40,9 +57,9 @@ struct KeySelectModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onChange(of: action != nil) { _, hasAction in
-                if hasAction {
-                    applyDecision()
+            .onChange(of: Trigger(hasAction: action != nil, requestID: requestID)) { _, trigger in
+                if trigger.hasAction {
+                    startFlow()
                 }
             }
             .alert("No Keys Available", isPresented: $showNoKeysAlert) {
@@ -57,11 +74,11 @@ struct KeySelectModifier: ViewModifier {
             .sheet(item: $keySelectToken, onDismiss: onSheetDismiss) { _ in
                 keySelectSheet
             }
-            .sheet(item: $locationToken, onDismiss: finishLocation) { _ in
+            .sheet(item: $locationCheck, onDismiss: finishLocation) { check in
                 LocationUnlockSheet(
-                    keys: scopedKeys,
+                    keys: check.keys,
                     provider: locationService,
-                    onVerified: { pendingLocationAction?() }
+                    onVerified: { verifyLocation(check) }
                 )
             }
     }
@@ -93,6 +110,7 @@ struct KeySelectModifier: ViewModifier {
                             }
                         }
                     }
+                    .onAppear(perform: startQRScan)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -109,6 +127,18 @@ struct KeySelectModifier: ViewModifier {
             return [.large]
         }
         return [.medium]
+    }
+
+    private func startFlow() {
+        pendingQRAction = nil
+        pendingLocationCheck = nil
+        locationCheck = nil
+        locationAction = nil
+        if qrScanFlowID != nil {
+            qrService.cancel()
+        }
+        flowID = UUID()
+        applyDecision()
     }
 
     private func applyDecision() {
@@ -145,26 +175,49 @@ struct KeySelectModifier: ViewModifier {
             keySelectToken = nil
             Task { await authenticate(with: .nfc, action: pending) }
         case .qr:
-            let pending = action
-            showQRScanner = true
-            if keySelectToken == nil {
-                showBypassConfirm = false
-                keySelectToken = PresentationToken()
+            showBypassConfirm = false
+            if keySelectToken != nil, showQRScanner {
+                let pending = action
+                Task { await authenticate(with: .qr, action: pending) }
+            } else {
+                pendingQRAction = action
+                showQRScanner = true
+                if keySelectToken == nil {
+                    keySelectToken = PresentationToken()
+                }
             }
-            Task { await authenticate(with: .qr, action: pending) }
         case .location:
-            pendingLocationAction = action
+            locationAction = action
+            let check = LocationCheck(flowID: flowID, keys: scopedKeys)
             if keySelectToken != nil {
+                pendingLocationCheck = check
                 keySelectToken = nil
             } else {
-                locationToken = PresentationToken()
+                present(check)
             }
         }
+    }
+
+    private func present(_ check: LocationCheck) {
+        presentedLocationFlowID = check.flowID
+        locationCheck = check
+    }
+
+    private func verifyLocation(_ check: LocationCheck) {
+        guard check.flowID == flowID else { return }
+        locationAction?()
+    }
+
+    private func startQRScan() {
+        guard let pending = pendingQRAction else { return }
+        pendingQRAction = nil
+        Task { await authenticate(with: .qr, action: pending) }
     }
 
     /// Leaves `showBypassConfirm` alone: flipping it here would swap the key
     /// picker back in while the sheet is still animating away.
     private func bypassNow() {
+        guard allowBypass else { return }
         action?()
         action = nil
         keySelectToken = nil
@@ -172,30 +225,42 @@ struct KeySelectModifier: ViewModifier {
 
     private func authenticate(with choice: KeyType, action pending: (@MainActor () -> Void)?) async {
         guard let pending else { return }
+        let flow = flowID
         let method: KeyMethod = switch choice {
         case .nfc: NFCKeyMethod(nfcService: nfcService, keys: scopedKeys)
         case .qr: QRKeyMethod(qrService: qrService, keys: scopedKeys)
         case .location: preconditionFailure("location uses its own popup")
         }
+        if choice == .qr {
+            qrScanFlowID = flow
+        }
         _ = await keyManager.performWithKeyCheck(using: method) { pending() }
+        if qrScanFlowID == flow {
+            qrScanFlowID = nil
+        }
+        guard flow == flowID else { return }
         keySelectToken = nil
         action = nil
     }
 
     private func onSheetDismiss() {
-        if qrService.isScanning {
+        guard keySelectToken == nil else { return }
+        pendingQRAction = nil
+        if qrScanFlowID != nil {
             qrService.cancel()
         }
 
-        if pendingLocationAction != nil {
-            locationToken = PresentationToken()
+        if let pending = pendingLocationCheck {
+            pendingLocationCheck = nil
+            present(pending)
             return
         }
         action = nil
     }
 
     private func finishLocation() {
-        pendingLocationAction = nil
+        guard locationCheck == nil, presentedLocationFlowID == flowID else { return }
+        locationAction = nil
         action = nil
     }
 }
@@ -206,14 +271,16 @@ extension View {
         allowBypass: Bool = false,
         defaultKeyType: KeyType? = nil,
         requestedKeyType: KeyType? = nil,
-        keyGroupID: UUID? = nil
+        keyGroupID: UUID? = nil,
+        requestID: UUID? = nil
     ) -> some View {
         modifier(KeySelectModifier(
             action: action,
             allowBypass: allowBypass,
             defaultKeyType: defaultKeyType,
             requestedKeyType: requestedKeyType,
-            keyGroupID: keyGroupID
+            keyGroupID: keyGroupID,
+            requestID: requestID
         ))
     }
 }

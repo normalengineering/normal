@@ -338,4 +338,19 @@ extension TimedUnblockService {
             blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
         )
     }
+
+    func startGroup(
+        duration: TimedUnblockDuration,
+        group: AppGroup,
+        settings: Settings,
+        screenTimeService: any ScreenTimeProviding
+    ) throws {
+        try startGroup(
+            duration: duration,
+            groupId: group.id,
+            selection: group.selection,
+            customDomains: settings.enableCustomDomains ? group.customDomains : [],
+            screenTimeService: screenTimeService
+        )
+    }
 }

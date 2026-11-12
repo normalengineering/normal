@@ -17,10 +17,11 @@ final class QRService {
 
     private var continuation: CheckedContinuation<String, Error>?
     private var validator: ((String) -> Bool)?
+    private var scanID = UUID()
 
     private static let badgeDisplayDelay: Duration = .seconds(0.6)
 
-    private init() {}
+    init() {}
 
     func scan() async throws -> String {
         try await scan(validate: nil)
@@ -36,6 +37,7 @@ final class QRService {
         guard !isScanning else { throw ScanError.alreadyScanning }
 
         return try await withCheckedThrowingContinuation { continuation in
+            self.scanID = UUID()
             self.continuation = continuation
             self.validator = validate
             self.scanResult = .none
@@ -54,9 +56,11 @@ final class QRService {
 
         if validator(value) {
             scanResult = .valid
+            let scan = scanID
             Task { @MainActor in
                 try? await Task.sleep(for: Self.badgeDisplayDelay)
-                continuation?.resume(returning: value)
+                guard scan == scanID, let continuation else { return }
+                continuation.resume(returning: value)
                 cleanup()
             }
         } else {

@@ -52,7 +52,7 @@ struct GroupListCardView: View {
     }
 
     private var showsTimedUnblock: Bool {
-        isTimedUnblockActive && blockStatus != .all
+        blockStatus.showsGroupTimedUnblock(groupTimedUnblockActive: isTimedUnblockActive)
     }
 
     private var needsSync: Bool {
@@ -249,9 +249,8 @@ struct GroupListCardView: View {
                 if let duration = settings.defaultDuration {
                     try? timedUnblockService.startGroup(
                         duration: duration,
-                        groupId: appGroup.id,
-                        selection: appGroup.selection,
-                        customDomains: customDomains,
+                        group: appGroup,
+                        settings: settings,
                         screenTimeService: screenTimeService
                     )
                 } else {

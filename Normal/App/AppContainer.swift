@@ -15,7 +15,7 @@ struct AppContainer: View {
     @State private var emergencyUnblockService: EmergencyUnblockService
     @State private var donationService = DonationService()
     @State private var usageLimitService: UsageLimitService
-    @State private var navigationCoordinator: NavigationCoordinator
+    @State private var unlockInbox: UnlockRequestInbox
 
     init(services: AppServices) {
         _screenTimeService = State(initialValue: services.screenTime)
@@ -24,11 +24,11 @@ struct AppContainer: View {
         _appReviewService = State(initialValue: services.appReview)
         _emergencyUnblockService = State(initialValue: services.emergencyUnblock)
         _usageLimitService = State(initialValue: services.usageLimit)
-        _navigationCoordinator = State(initialValue: services.navigation)
+        _unlockInbox = State(initialValue: services.unlockInbox)
     }
 
     var body: some View {
-        ContentView(navigationCoordinator: navigationCoordinator)
+        ContentView()
             .environment(screenTimeService)
             .environment(nfcService)
             .environment(qrService)
@@ -41,6 +41,7 @@ struct AppContainer: View {
             .environment(emergencyUnblockService)
             .environment(donationService)
             .environment(usageLimitService)
+            .environment(unlockInbox)
             .task { mirrorCustomDomainsEnabled() }
             .onChange(of: allSettings.first?.enableCustomDomains ?? false) { _, enabled in
                 scheduleService.mirrorCustomDomainsEnabled(enabled)

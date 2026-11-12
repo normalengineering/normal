@@ -5,6 +5,8 @@ import SwiftUI
 private struct WidgetActionResponder: ViewModifier {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(UnlockRequestInbox.self) private var unlockInbox
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var allSettings: [Settings]
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)]) private var groups: [AppGroup]
     @Query private var keys: [Key]
@@ -17,19 +19,23 @@ private struct WidgetActionResponder: ViewModifier {
     @State private var actionGroup: AppGroup?
     @State private var keyType: KeyType?
     @State private var allowBypass = false
-    @State private var showDurationSheet = false
-    @State private var showMainDurationSheet = false
+    @State private var requestID: UUID?
+    @State private var durationTarget: DurationTarget?
+
+    private enum DurationTarget: Identifiable {
+        case all(SelectedApps)
+        case group(AppGroup)
+
+        var id: String {
+            switch self {
+            case .all: "all"
+            case let .group(group): group.id.uuidString
+            }
+        }
+    }
 
     private var unblockDurations: [TimedUnblockDuration] {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
-    }
-
-    private var customDomainsEnabled: Bool {
-        allSettings.first?.enableCustomDomains ?? false
-    }
-
-    private func customDomains(for group: AppGroup) -> [String] {
-        customDomainsEnabled ? group.customDomains : []
     }
 
     func body(content: Content) -> some View {
@@ -37,23 +43,23 @@ private struct WidgetActionResponder: ViewModifier {
             .protectedAction(
                 $authAction,
                 allowBypass: allowBypass,
-                defaultKeyType: allSettings.first?.defaultKeyType,
                 requestedKeyType: keyType,
-                keyGroupID: actionGroup?.id
+                keyGroupID: actionGroup?.id,
+                requestID: requestID
             )
-            .sheet(isPresented: $showDurationSheet) {
-                if let actionGroup {
-                    GroupTimedUnblockSheet(group: actionGroup)
-                }
-            }
-            .sheet(isPresented: $showMainDurationSheet) {
-                if let mainSelection = selectedApps.first {
+            .sheet(item: $durationTarget, onDismiss: takeInboxRequest) { target in
+                switch target {
+                case let .all(mainSelection):
                     MainTimedUnblockSheet(mainSelection: mainSelection)
+                case let .group(group):
+                    GroupTimedUnblockSheet(group: group)
                 }
             }
             .onOpenURL { coordinator.handle(url: $0) }
-            .onChange(of: coordinator.pendingGroupAction, initial: true) { _, request in resolve(request) }
-            .onChange(of: coordinator.pendingMainUnlock, initial: true) { _, request in resolveMain(request) }
+            .onChange(of: coordinator.pendingAction) { _, request in resolve(request) }
+            .onChange(of: unlockInbox.pending, initial: true) { _, _ in takeInboxRequest() }
+            .onChange(of: scenePhase) { _, _ in takeInboxRequest() }
+            .onChange(of: screenTimeService.authorizationState) { _, _ in takeInboxRequest() }
             .onChange(of: groups) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
@@ -75,73 +81,64 @@ private struct WidgetActionResponder: ViewModifier {
         NormalShortcuts.updateAppShortcutParameters()
     }
 
-    private func resolve(_ request: GroupActionRequest?) {
+    private func takeInboxRequest() {
+        guard scenePhase == .active,
+              screenTimeService.authorizationState == .authorized,
+              durationTarget == nil,
+              let request = unlockInbox.take()
+        else { return }
+        coordinator.requestUnlock(groupID: request.groupID, duration: request.duration, keyType: request.keyType)
+    }
+
+    private func resolve(_ request: ActionRequest?) {
+        defer { coordinator.clearPendingAction() }
         guard let request,
-              allSettings.first?.hasCompletedOnboarding == true,
-              let group = groups.first(where: { $0.id == request.groupID })
-        else {
-            coordinator.clearPendingGroupAction()
-            return
-        }
-        selectedTab = .groups
-        actionGroup = group
+              durationTarget == nil,
+              allSettings.first?.hasCompletedOnboarding == true
+        else { return }
+        let group = groups.first { $0.id == request.groupID }
+        guard group != nil || (request.groupID == nil && !selectedApps.isEmpty) else { return }
 
         switch request.action {
         case let .unlock(duration, requestedKeyType):
+            target(group, requestID: request.token)
             keyType = requestedKeyType
             allowBypass = false
             authAction = { unlock(group, duration: duration) }
         case .block:
+            guard let group else { return }
+            target(group, requestID: request.token)
             keyType = nil
             allowBypass = true
             authAction = { block(group) }
         }
-
-        coordinator.clearPendingGroupAction()
     }
 
-    private func resolveMain(_ request: MainUnlockRequest?) {
-        guard let request,
-              allSettings.first?.hasCompletedOnboarding == true,
-              let mainSelection = selectedApps.first
-        else {
-            coordinator.clearPendingMainUnlock()
+    private func target(_ group: AppGroup?, requestID: UUID) {
+        selectedTab = group == nil ? .home : .groups
+        actionGroup = group
+        self.requestID = requestID
+    }
+
+    private func unlock(_ group: AppGroup?, duration request: UnlockDurationRequest) {
+        guard let settings = allSettings.first, let duration = settings.duration(for: request) else {
+            durationTarget = group.map(DurationTarget.group) ?? selectedApps.first.map(DurationTarget.all)
             return
         }
-        selectedTab = .home
-        actionGroup = nil
-        keyType = request.keyType
-        allowBypass = false
-        authAction = { unlockMain(mainSelection, duration: request.duration) }
-
-        coordinator.clearPendingMainUnlock()
-    }
-
-    private func unlockMain(_ mainSelection: SelectedApps, duration request: UnlockDurationRequest) {
-        guard let settings = allSettings.first else { return }
-        if let duration = settings.duration(for: request) {
+        if let group {
+            try? timedUnblockService.startGroup(
+                duration: duration,
+                group: group,
+                settings: settings,
+                screenTimeService: screenTimeService
+            )
+        } else if let mainSelection = selectedApps.first {
             try? timedUnblockService.startMain(
                 duration: duration,
                 mainSelection: mainSelection,
                 settings: settings,
                 screenTimeService: screenTimeService
             )
-        } else {
-            showMainDurationSheet = true
-        }
-    }
-
-    private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {
-        if let duration = allSettings.first?.duration(for: request) {
-            try? timedUnblockService.startGroup(
-                duration: duration,
-                groupId: group.id,
-                selection: group.selection,
-                customDomains: customDomains(for: group),
-                screenTimeService: screenTimeService
-            )
-        } else {
-            showDurationSheet = true
         }
     }
 

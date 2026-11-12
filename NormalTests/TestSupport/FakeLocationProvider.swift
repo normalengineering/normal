@@ -12,7 +12,9 @@ final class FakeLocationProvider: LocationProviding {
     }
 
     var outcome: Outcome
+    var queuedOutcomes: [Outcome] = []
     var authorizationStatus: CLAuthorizationStatus
+    var accuracyAuthorization: CLAccuracyAuthorization = .fullAccuracy
     var cachedLocation: CLLocation?
     private(set) var requestCount = 0
     private var pendingContinuation: CheckedContinuation<CLLocation, Error>?
@@ -33,7 +35,8 @@ final class FakeLocationProvider: LocationProviding {
 
     func currentLocation() async throws -> CLLocation {
         requestCount += 1
-        switch outcome {
+        let next = queuedOutcomes.isEmpty ? outcome : queuedOutcomes.removeFirst()
+        switch next {
         case let .location(location):
             return location
         case let .throwKeyError(error):

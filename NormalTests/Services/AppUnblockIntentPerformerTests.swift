@@ -1,4 +1,5 @@
 import CoreLocation
+import DeviceActivity
 import FamilyControls
 import Foundation
 @testable import Normal
@@ -14,14 +15,25 @@ struct AppUnblockIntentPerformerTests {
     private let screenTime = FakeScreenTimeService()
     private let activity = FakeDeviceActivityCenter()
     private let store = FakeSharedStore()
-    private let navigation = NavigationCoordinator()
+    private let inbox = UnlockRequestInbox()
+    private let clock = TestClock()
     private let location: FakeLocationProvider
     private let timedUnblock: TimedUnblockService
     private let performer: AppUnblockIntentPerformer
 
+    private final class TestClock {
+        var now = Date()
+    }
+
     init() throws {
         container = try InMemoryModelContainer.make()
-        timedUnblock = TimedUnblockService(activityCenter: activity, sharedStore: store, onExpiration: {})
+        let clock = clock
+        timedUnblock = TimedUnblockService(
+            activityCenter: activity,
+            sharedStore: store,
+            clock: { clock.now },
+            onExpiration: {}
+        )
         location = FakeLocationProvider(
             outcome: .location(Self.fix(at: Self.cupertino)),
             authorizationStatus: .authorizedAlways
@@ -30,8 +42,12 @@ struct AppUnblockIntentPerformerTests {
             container: container,
             screenTimeService: screenTime,
             timedUnblockService: timedUnblock,
-            navigation: navigation,
-            locationVerifier: BackgroundLocationVerifier(provider: location),
+            unlockInbox: inbox,
+            locationVerifier: BackgroundLocationVerifier(
+                provider: location,
+                deadline: .milliseconds(150),
+                pollInterval: .milliseconds(10)
+            ),
             syncsExternalSurfaces: false
         )
     }
@@ -168,22 +184,71 @@ struct AppUnblockIntentPerformerTests {
         #expect(location.requestCount == 0)
     }
 
-    @Test func continueInAppRequestsMainUnlock() {
+    @Test func continueInAppPostsUnlockOfAllApps() throws {
+        try seed()
+
         performer.continueInApp(request(duration: .ask, key: .qr))
 
-        #expect(navigation.pendingMainUnlock?.duration == .ask)
-        #expect(navigation.pendingMainUnlock?.keyType == .qr)
-        #expect(navigation.pendingGroupAction == nil)
+        #expect(inbox.pending != nil)
+        #expect(inbox.pending?.groupID == nil)
+        #expect(inbox.pending?.duration == .ask)
+        #expect(inbox.pending?.keyType == .qr)
     }
 
-    @Test func continueInAppRequestsGroupUnlock() {
+    @Test func continueInAppPostsGroupUnlock() throws {
+        try seed()
         let groupID = UUID()
 
         performer.continueInApp(request(group: groupID, key: .nfc))
 
-        #expect(navigation.pendingGroupAction?.groupID == groupID)
-        #expect(navigation.pendingGroupAction?.action == .unlock(duration: .fixed(.oneHour), keyType: .nfc))
-        #expect(navigation.pendingMainUnlock == nil)
+        #expect(inbox.pending?.groupID == groupID)
+        #expect(inbox.pending?.duration == .fixed(.oneHour))
+        #expect(inbox.pending?.keyType == .nfc)
+    }
+
+    @Test func continueInAppUsesDefaultKeyWhenNoneIsChosen() throws {
+        let settings = try seed()
+        settings.defaultKeyType = .nfc
+
+        performer.continueInApp(request(key: nil))
+
+        #expect(inbox.pending?.keyType == .nfc)
+    }
+
+    @Test func requestWithoutKeyUsesDefaultLocationKey() async throws {
+        let settings = try seed()
+        settings.defaultKeyType = .location
+        screenTime.stubBlockStatus = .all
+
+        let outcome = try await performer.unblock(request(key: nil))
+
+        #expect(outcome == .unblocked(name: "All Apps", duration: .oneHour))
+    }
+
+    @Test func expiredTimedUnblockIsNotMistakenForActive() async throws {
+        try seed()
+        try timedUnblock.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+        clock.now = clock.now.addingTimeInterval(20 * 60)
+        screenTime.stubBlockStatus = .all
+
+        let outcome = try await performer.unblock(request())
+
+        #expect(outcome == .unblocked(name: "All Apps", duration: .oneHour))
+    }
+
+    @Test func failingToStartTheUnblockThrows() async throws {
+        try seed()
+        screenTime.stubBlockStatus = .all
+        activity.startError = DeviceActivityCenter.MonitoringError.excessiveActivities
+
+        await #expect(throws: UnblockIntentError.unblockFailed) {
+            try await performer.unblock(request())
+        }
+        #expect(!timedUnblock.isMainUnblockActive)
     }
 
     // MARK: - Already unblocked

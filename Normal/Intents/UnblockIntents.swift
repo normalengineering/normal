@@ -31,11 +31,13 @@ protocol UnblockIntentPerforming: Sendable {
 enum UnblockIntentError: Error, Equatable, CustomLocalizedStringResourceConvertible {
     case notAtUnlockLocation
     case openNormal
+    case unblockFailed
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
         case .notAtUnlockLocation: "Your current location doesn't satisfy any of your location keys."
         case .openNormal: "Open Normal to unblock with this key."
+        case .unblockFailed: "Normal couldn't start the unblock. Open Normal and try again."
         }
     }
 }
@@ -54,6 +56,11 @@ struct UnblockAllIntent: LiveActivityIntent {
 
     @Dependency private var performer: any UnblockIntentPerforming
 
+    @available(iOS 26.0, *)
+    static var supportedModes: IntentModes {
+        [.background, .foreground(.dynamic)]
+    }
+
     static var parameterSummary: some ParameterSummary {
         Summary("Unblock all apps with \(\.$keyType)") {
             \.$duration
@@ -70,7 +77,11 @@ struct UnblockAllIntent: LiveActivityIntent {
         case .alreadyUnblocked:
             return .result(dialog: "All selected apps are already unblocked.")
         case .continueInApp:
-            return try OpenUnblockIntent(group: nil, keyType: keyType, duration: duration).handOff()
+            return try await continueInApp(
+                request,
+                performer: performer,
+                fallback: OpenUnblockIntent(group: nil, keyType: keyType, duration: duration)
+            )
         }
     }
 }
@@ -92,6 +103,11 @@ struct UnblockGroupIntent: LiveActivityIntent {
 
     @Dependency private var performer: any UnblockIntentPerforming
 
+    @available(iOS 26.0, *)
+    static var supportedModes: IntentModes {
+        [.background, .foreground(.dynamic)]
+    }
+
     static var parameterSummary: some ParameterSummary {
         Summary("Unblock \(\.$group) with \(\.$keyType)") {
             \.$duration
@@ -108,7 +124,11 @@ struct UnblockGroupIntent: LiveActivityIntent {
         case let .alreadyUnblocked(name):
             return .result(dialog: "\(name) is already unblocked.")
         case .continueInApp:
-            return try OpenUnblockIntent(group: group, keyType: keyType, duration: duration).handOff()
+            return try await continueInApp(
+                request,
+                performer: performer,
+                fallback: OpenUnblockIntent(group: group, keyType: keyType, duration: duration)
+            )
         }
     }
 }
@@ -156,5 +176,21 @@ struct OpenUnblockIntent: AppIntent {
     func handOff() throws -> IntentResultContainer<Never, Never, Never, IntentDialog> {
         guard #available(iOS 18.2, *) else { throw UnblockIntentError.openNormal }
         return .result(opensIntent: self, dialog: "Opening Normal to check your key.")
+    }
+}
+
+private extension AppIntent {
+    func continueInApp(
+        _ request: UnblockRequest,
+        performer: any UnblockIntentPerforming,
+        fallback: OpenUnblockIntent
+    ) async throws -> IntentResultContainer<Never, Never, Never, IntentDialog> {
+        guard #available(iOS 26.0, *) else { return try fallback.handOff() }
+        if systemContext.currentMode == .background {
+            guard systemContext.currentMode.canContinueInForeground else { throw UnblockIntentError.openNormal }
+            try await continueInForeground("Open Normal to check your key?", alwaysConfirm: false)
+        }
+        performer.continueInApp(request)
+        return .result(dialog: "Check your key to unblock.")
     }
 }
