@@ -77,7 +77,7 @@ struct GroupsView: View {
                     keyGroupID: pendingGroupID
                 )
                 .sheet(item: $pendingDurationGroup) { group in
-                    GroupTimedUnblockSheet(group: group)
+                    UnblockDurationSheet(target: .group(group))
                 }
         }
     }
