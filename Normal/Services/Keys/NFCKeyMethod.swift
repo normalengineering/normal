@@ -19,9 +19,14 @@ struct QRKeyMethod: KeyMethod {
 }
 
 private func performScanCheck(using scanner: any KeyScanning, against keys: [Key]) async -> KeyResult {
+    var verified: String?
     do {
-        _ = try await scanner.scan { Key.matchingKeyExists(keys: keys, unhashedId: $0) }
-        return .success
+        let value = try await scanner.scan { candidate in
+            guard Key.matchingKeyExists(keys: keys, unhashedId: candidate) else { return false }
+            verified = candidate
+            return true
+        }
+        return value == verified ? .success : .failure
     } catch ScanError.userCanceled {
         return .cancelled
     } catch ScanError.invalidKey {

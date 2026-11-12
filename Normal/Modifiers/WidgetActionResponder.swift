@@ -16,7 +16,8 @@ private struct WidgetActionResponder: ViewModifier {
     @State private var actionGroup: AppGroup?
     @State private var keyType: KeyType?
     @State private var allowBypass = false
-    @State private var showDurationSheet = false
+    @State private var requestID: UUID?
+    @State private var durationGroup: AppGroup?
 
     private var unblockDurations: [TimedUnblockDuration] {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
@@ -36,12 +37,11 @@ private struct WidgetActionResponder: ViewModifier {
                 $authAction,
                 allowBypass: allowBypass,
                 defaultKeyType: keyType,
-                keyGroupID: actionGroup?.id
+                keyGroupID: actionGroup?.id,
+                requestID: requestID
             )
-            .sheet(isPresented: $showDurationSheet) {
-                if let actionGroup {
-                    GroupTimedUnblockSheet(group: actionGroup)
-                }
+            .sheet(item: $durationGroup) { group in
+                GroupTimedUnblockSheet(group: group)
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }
@@ -68,6 +68,7 @@ private struct WidgetActionResponder: ViewModifier {
 
     private func resolve(_ request: GroupActionRequest?) {
         guard let request,
+              durationGroup == nil,
               allSettings.first?.hasCompletedOnboarding == true,
               let group = groups.first(where: { $0.id == request.groupID })
         else {
@@ -76,6 +77,7 @@ private struct WidgetActionResponder: ViewModifier {
         }
         selectedTab = .groups
         actionGroup = group
+        requestID = request.token
 
         switch request.action {
         case let .unlock(duration, requestedKeyType):
@@ -106,7 +108,7 @@ private struct WidgetActionResponder: ViewModifier {
                 screenTimeService: screenTimeService
             )
         } else {
-            showDurationSheet = true
+            durationGroup = group
         }
     }
 
