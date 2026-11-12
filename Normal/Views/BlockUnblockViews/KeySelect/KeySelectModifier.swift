@@ -10,6 +10,7 @@ struct KeySelectModifier: ViewModifier {
     @Binding var action: (@MainActor () -> Void)?
     var allowBypass: Bool
     var defaultKeyType: KeyType?
+    var requestedKeyType: KeyType?
     var keyGroupID: UUID?
     var requestID: UUID?
 
@@ -138,7 +139,8 @@ struct KeySelectModifier: ViewModifier {
                 keys: scopedKeys,
                 availableKeyTypes: KeyType.selectable(registered: scopedKeys.map(\.type)),
                 allowBypass: allowBypass,
-                defaultKeyType: defaultKeyType
+                defaultKeyType: defaultKeyType,
+                requestedKeyType: requestedKeyType
             ),
             action: action
         )
@@ -150,6 +152,7 @@ extension View {
         action: Binding<(@MainActor () -> Void)?>,
         allowBypass: Bool = false,
         defaultKeyType: KeyType? = nil,
+        requestedKeyType: KeyType? = nil,
         keyGroupID: UUID? = nil,
         requestID: UUID? = nil
     ) -> some View {
@@ -157,6 +160,7 @@ extension View {
             action: action,
             allowBypass: allowBypass,
             defaultKeyType: defaultKeyType,
+            requestedKeyType: requestedKeyType,
             keyGroupID: keyGroupID,
             requestID: requestID
         ))

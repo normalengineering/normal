@@ -30,7 +30,7 @@ struct ContentView: View {
         .environment(\.navigationCoordinator, navigationCoordinator)
         .widgetActionResponder(coordinator: navigationCoordinator, selectedTab: $selectedTab)
         .liveActivitySync()
-        .sheet(isPresented: $navigationCoordinator.isSettingsPresented) {
+        .sheet(isPresented: $navigationCoordinator.isSettingsPresented, onDismiss: navigationCoordinator.settingsDidDismiss) {
             SettingsView(initialTab: navigationCoordinator.settingsInitialTab)
         }
         .onChange(of: onboardingService.requiredTab) { _, newTab in

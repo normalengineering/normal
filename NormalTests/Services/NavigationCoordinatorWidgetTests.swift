@@ -13,8 +13,7 @@ struct NavigationCoordinatorWidgetTests {
         let id = UUID()
         c.handle(url: unlockURL(groupID: id, duration: .fixed(.thirtyMinutes), key: "NFC"))
 
-        #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .unlock(duration: .fixed(.thirtyMinutes), keyType: .nfc))
+        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .fixed(.thirtyMinutes), keyType: .nfc)))
     }
 
     @Test func handleAllowsMissingDurationAndKey() {
@@ -22,8 +21,7 @@ struct NavigationCoordinatorWidgetTests {
         let id = UUID()
         c.handle(url: unlockURL(groupID: id))
 
-        #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .unlock(duration: .useDefault, keyType: nil))
+        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .useDefault, keyType: nil)))
     }
 
     @Test func handleAcceptsCustomDurationNotInPresets() throws {
@@ -32,7 +30,7 @@ struct NavigationCoordinatorWidgetTests {
         let custom = try #require(TimedUnblockDuration(validating: 5700))
         c.handle(url: unlockURL(groupID: id, duration: .fixed(custom)))
 
-        #expect(c.pendingGroupAction?.action == .unlock(duration: .fixed(custom), keyType: nil))
+        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .fixed(custom), keyType: nil)))
     }
 
     @Test func handleParsesAskEachTime() {
@@ -40,7 +38,7 @@ struct NavigationCoordinatorWidgetTests {
         let id = UUID()
         c.handle(url: unlockURL(groupID: id, duration: .ask))
 
-        #expect(c.pendingGroupAction?.action == .unlock(duration: .ask, keyType: nil))
+        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .ask, keyType: nil)))
     }
 
     @Test(arguments: ["999", "60", "90000", "abc"])
@@ -49,8 +47,7 @@ struct NavigationCoordinatorWidgetTests {
         let id = UUID()
         try c.handle(url: #require(URL(string: "normal://unlock?group=\(id.uuidString)&duration=\(value)")))
 
-        #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .unlock(duration: .ask, keyType: nil),
+        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .ask, keyType: nil)),
                 "An invalid duration shows the sheet rather than guessing")
     }
 
@@ -59,54 +56,53 @@ struct NavigationCoordinatorWidgetTests {
         let id = UUID()
         c.handle(url: WidgetDeepLink.blockURL(groupID: id))
 
-        #expect(c.pendingGroupAction?.groupID == id)
-        #expect(c.pendingGroupAction?.action == .block)
+        #expect(c.pendingAction?.action == .blockGroup(id))
     }
 
     @Test func requestGroupBlockSetsBlockAction() {
         let c = NavigationCoordinator()
         let id = UUID()
         c.requestGroupBlock(groupID: id)
-        #expect(c.pendingGroupAction?.action == .block)
+        #expect(c.pendingAction?.action == .blockGroup(id))
     }
 
     @Test func handleRejectsWrongScheme() throws {
         let c = NavigationCoordinator()
         try c.handle(url: #require(URL(string: "https://unlock?group=\(UUID().uuidString)")))
-        #expect(c.pendingGroupAction == nil)
+        #expect(c.pendingAction == nil)
     }
 
     @Test func handleRejectsWrongHost() throws {
         let c = NavigationCoordinator()
         try c.handle(url: #require(URL(string: "normal://settings?group=\(UUID().uuidString)")))
-        #expect(c.pendingGroupAction == nil)
+        #expect(c.pendingAction == nil)
     }
 
     @Test func handleRejectsInvalidGroupID() throws {
         let c = NavigationCoordinator()
         try c.handle(url: #require(URL(string: "normal://unlock?group=not-a-uuid")))
-        #expect(c.pendingGroupAction == nil)
+        #expect(c.pendingAction == nil)
     }
 
     @Test func handleRejectsMissingGroup() throws {
         let c = NavigationCoordinator()
         try c.handle(url: #require(URL(string: "normal://unlock?duration=1800")))
-        #expect(c.pendingGroupAction == nil)
+        #expect(c.pendingAction == nil)
     }
 
     @Test func handleRejectsBlockWithoutGroup() throws {
         let c = NavigationCoordinator()
         try c.handle(url: #require(URL(string: "normal://block")))
-        #expect(c.pendingGroupAction == nil)
+        #expect(c.pendingAction == nil)
     }
 
     @Test func eachRequestGetsAUniqueToken() {
         let c = NavigationCoordinator()
         let id = UUID()
-        c.requestGroupUnlock(groupID: id, duration: .useDefault, keyType: nil)
-        let first = c.pendingGroupAction?.token
-        c.requestGroupUnlock(groupID: id, duration: .useDefault, keyType: nil)
-        let second = c.pendingGroupAction?.token
+        c.requestUnblock(UnblockRequest(groupID: id, duration: .useDefault, keyType: nil))
+        let first = c.pendingAction?.token
+        c.requestUnblock(UnblockRequest(groupID: id, duration: .useDefault, keyType: nil))
+        let second = c.pendingAction?.token
 
         #expect(first != nil)
         #expect(first != second, "Repeated taps of the same widget must re-trigger the flow")
@@ -115,8 +111,8 @@ struct NavigationCoordinatorWidgetTests {
     @Test func clearPendingResetsRequest() {
         let c = NavigationCoordinator()
         c.handle(url: unlockURL(groupID: UUID()))
-        #expect(c.pendingGroupAction != nil)
-        c.clearPendingGroupAction()
-        #expect(c.pendingGroupAction == nil)
+        #expect(c.pendingAction != nil)
+        c.clearPendingAction()
+        #expect(c.pendingAction == nil)
     }
 }

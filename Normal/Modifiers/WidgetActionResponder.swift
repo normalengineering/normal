@@ -8,18 +8,19 @@ private struct WidgetActionResponder: ViewModifier {
     @Query private var allSettings: [Settings]
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)]) private var groups: [AppGroup]
     @Query private var keys: [Key]
+    @Query private var selectedApps: [SelectedApps]
 
     let coordinator: NavigationCoordinator
     @Binding var selectedTab: AppTab
 
     @State private var authAction: (@MainActor () -> Void)?
     @State private var active: ActiveRequest?
-    @State private var heldRequest: GroupActionRequest?
+    @State private var heldRequest: ActionRequest?
     @State private var durationTarget: UnblockTarget?
 
     private struct ActiveRequest {
         let token: UUID
-        let group: AppGroup
+        let target: UnblockTarget
         let keyType: KeyType?
         let allowBypass: Bool
     }
@@ -33,15 +34,15 @@ private struct WidgetActionResponder: ViewModifier {
             .protectedAction(
                 $authAction,
                 allowBypass: active?.allowBypass ?? false,
-                defaultKeyType: active?.keyType,
-                keyGroupID: active?.group.id,
+                requestedKeyType: active?.keyType,
+                keyGroupID: active?.target.groupID,
                 requestID: active?.token
             )
             .sheet(item: $durationTarget, onDismiss: replayHeldRequest) { target in
                 UnblockDurationSheet(target: target)
             }
             .onOpenURL { coordinator.handle(url: $0) }
-            .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }
+            .onChange(of: coordinator.pendingAction) { _, request in resolve(request) }
             .onChange(of: groups) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
@@ -63,24 +64,23 @@ private struct WidgetActionResponder: ViewModifier {
         NormalShortcuts.updateAppShortcutParameters()
     }
 
-    private func resolve(_ request: GroupActionRequest?) {
+    private func resolve(_ request: ActionRequest?) {
         guard let request else { return }
-        coordinator.clearPendingGroupAction()
+        coordinator.clearPendingAction()
         guard durationTarget == nil else {
             heldRequest = request
             return
         }
-        guard allSettings.first?.hasCompletedOnboarding == true,
-              let group = groups.first(where: { $0.id == request.groupID })
-        else { return }
-        selectedTab = .groups
+        guard allSettings.first?.hasCompletedOnboarding == true else { return }
 
         switch request.action {
-        case let .unlock(duration, keyType):
-            active = ActiveRequest(token: request.token, group: group, keyType: keyType, allowBypass: false)
-            authAction = { unlock(group, duration: duration) }
-        case .block:
-            active = ActiveRequest(token: request.token, group: group, keyType: nil, allowBypass: true)
+        case let .unblock(unblock):
+            guard let target = target(for: unblock.groupID) else { return }
+            present(ActiveRequest(token: request.token, target: target, keyType: unblock.keyType, allowBypass: false))
+            authAction = { unlock(target, duration: unblock.duration) }
+        case let .blockGroup(groupID):
+            guard let group = groups.first(where: { $0.id == groupID }) else { return }
+            present(ActiveRequest(token: request.token, target: .group(group), keyType: nil, allowBypass: true))
             authAction = { block(group) }
         }
     }
@@ -91,13 +91,25 @@ private struct WidgetActionResponder: ViewModifier {
         resolve(held)
     }
 
-    private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {
+    private func target(for groupID: UUID?) -> UnblockTarget? {
+        if let groupID {
+            return groups.first { $0.id == groupID }.map(UnblockTarget.group)
+        }
+        return selectedApps.first.map(UnblockTarget.all)
+    }
+
+    private func present(_ request: ActiveRequest) {
+        selectedTab = request.target.groupID == nil ? .home : .groups
+        active = request
+    }
+
+    private func unlock(_ target: UnblockTarget, duration request: UnlockDurationRequest) {
         guard let settings = allSettings.first, let duration = settings.duration(for: request) else {
-            durationTarget = .group(group)
+            durationTarget = target
             return
         }
         try? timedUnblockService.start(
-            .group(group),
+            target,
             duration: duration,
             settings: settings,
             screenTimeService: screenTimeService

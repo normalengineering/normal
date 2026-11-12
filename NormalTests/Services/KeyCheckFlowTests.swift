@@ -107,6 +107,14 @@ struct KeyCheckFlowTests {
         #expect(qr.scanCount == 1)
     }
 
+    @Test func requestedQRKeyGoesStraightToTheScanner() {
+        var request = qrAndNFC
+        request.requestedKeyType = .qr
+        start(request)
+        #expect(flow.stage == .scanningQR)
+        #expect(flow.sheetScreen == .qrScanner)
+    }
+
     @Test func repeatedChoiceIsIgnored() async {
         start(qrAndNFC)
         flow.choose(.qr)

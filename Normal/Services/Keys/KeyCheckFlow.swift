@@ -16,6 +16,7 @@ final class KeyCheckFlow {
         let availableKeyTypes: [KeyType]
         let allowBypass: Bool
         let defaultKeyType: KeyType?
+        var requestedKeyType: KeyType?
     }
 
     enum Stage: Equatable {
@@ -64,7 +65,8 @@ final class KeyCheckFlow {
         switch KeySelectLogic.decide(
             availableKeyTypes: request.availableKeyTypes,
             allowBypass: request.allowBypass,
-            defaultKeyType: request.defaultKeyType
+            defaultKeyType: request.defaultKeyType,
+            requestedKeyType: request.requestedKeyType
         ) {
         case .showNoKeysAlert:
             stage = .noKeys

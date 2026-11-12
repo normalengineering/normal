@@ -56,4 +56,44 @@ struct KeySelectLogicTests {
         let result = KeySelectLogic.decide(availableKeyTypes: [.qr], allowBypass: false, defaultKeyType: .nfc)
         #expect(result == .showSheet)
     }
+
+    @Test func requestedQRAutoSelects() {
+        let result = KeySelectLogic.decide(
+            availableKeyTypes: [.nfc, .qr],
+            allowBypass: false,
+            defaultKeyType: nil,
+            requestedKeyType: .qr
+        )
+        #expect(result == .autoSelect(.qr))
+    }
+
+    @Test func requestedKeyBeatsDefault() {
+        let result = KeySelectLogic.decide(
+            availableKeyTypes: [.nfc, .qr],
+            allowBypass: false,
+            defaultKeyType: .nfc,
+            requestedKeyType: .qr
+        )
+        #expect(result == .autoSelect(.qr))
+    }
+
+    @Test func requestedKeyWithBypassShowsSheet() {
+        let result = KeySelectLogic.decide(
+            availableKeyTypes: [.qr],
+            allowBypass: true,
+            defaultKeyType: nil,
+            requestedKeyType: .qr
+        )
+        #expect(result == .showSheet)
+    }
+
+    @Test func unavailableRequestedKeyFallsBackToDefault() {
+        let result = KeySelectLogic.decide(
+            availableKeyTypes: [.nfc, .qr],
+            allowBypass: false,
+            defaultKeyType: .nfc,
+            requestedKeyType: .location
+        )
+        #expect(result == .autoSelect(.nfc))
+    }
 }

@@ -1,14 +1,13 @@
 import SwiftUI
 
-enum GroupAction: Equatable {
-    case unlock(duration: UnlockDurationRequest, keyType: KeyType?)
-    case block
+enum PendingAction: Equatable {
+    case unblock(UnblockRequest)
+    case blockGroup(UUID)
 }
 
-struct GroupActionRequest: Equatable {
+struct ActionRequest: Equatable {
     let token: UUID
-    let groupID: UUID
-    let action: GroupAction
+    let action: PendingAction
 }
 
 @MainActor
@@ -17,7 +16,8 @@ final class NavigationCoordinator {
     var isSettingsPresented = false
     private(set) var settingsInitialTab: SettingsTab = .general
 
-    var pendingGroupAction: GroupActionRequest?
+    private(set) var pendingAction: ActionRequest?
+    private var actionAfterSettings: ActionRequest?
 
     func presentSettings(tab: SettingsTab = .general) {
         settingsInitialTab = tab
@@ -28,16 +28,18 @@ final class NavigationCoordinator {
         isSettingsPresented = false
     }
 
-    func requestGroupUnlock(groupID: UUID, duration: UnlockDurationRequest, keyType: KeyType?) {
-        pendingGroupAction = GroupActionRequest(
-            token: UUID(),
-            groupID: groupID,
-            action: .unlock(duration: duration, keyType: keyType)
-        )
+    func settingsDidDismiss() {
+        guard let actionAfterSettings else { return }
+        self.actionAfterSettings = nil
+        pendingAction = actionAfterSettings
+    }
+
+    func requestUnblock(_ request: UnblockRequest) {
+        post(.unblock(request))
     }
 
     func requestGroupBlock(groupID: UUID) {
-        pendingGroupAction = GroupActionRequest(token: UUID(), groupID: groupID, action: .block)
+        post(.blockGroup(groupID))
     }
 
     func handle(url: URL) {
@@ -57,7 +59,7 @@ final class NavigationCoordinator {
             )
             let keyType = items.first { $0.name == WidgetDeepLink.keyQueryItem }?.value
                 .flatMap { KeyType(rawValue: $0) }
-            requestGroupUnlock(groupID: groupID, duration: duration, keyType: keyType)
+            requestUnblock(UnblockRequest(groupID: groupID, duration: duration, keyType: keyType))
         case WidgetDeepLink.blockHost:
             requestGroupBlock(groupID: groupID)
         default:
@@ -65,8 +67,18 @@ final class NavigationCoordinator {
         }
     }
 
-    func clearPendingGroupAction() {
-        pendingGroupAction = nil
+    func clearPendingAction() {
+        pendingAction = nil
+    }
+
+    private func post(_ action: PendingAction) {
+        let request = ActionRequest(token: UUID(), action: action)
+        if isSettingsPresented {
+            actionAfterSettings = request
+            isSettingsPresented = false
+        } else {
+            pendingAction = request
+        }
     }
 }
 

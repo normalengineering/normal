@@ -12,6 +12,13 @@ enum UnblockTarget: Identifiable {
         }
     }
 
+    var groupID: UUID? {
+        if case let .group(group) = self {
+            return group.id
+        }
+        return nil
+    }
+
     var selection: FamilyActivitySelection {
         switch self {
         case let .all(mainSelection): mainSelection.selection
