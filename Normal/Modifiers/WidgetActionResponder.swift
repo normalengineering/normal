@@ -8,6 +8,7 @@ private struct WidgetActionResponder: ViewModifier {
     @Query private var allSettings: [Settings]
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)]) private var groups: [AppGroup]
     @Query private var keys: [Key]
+    @Query private var selectedApps: [SelectedApps]
 
     let coordinator: NavigationCoordinator
     @Binding var selectedTab: AppTab
@@ -17,6 +18,7 @@ private struct WidgetActionResponder: ViewModifier {
     @State private var keyType: KeyType?
     @State private var allowBypass = false
     @State private var showDurationSheet = false
+    @State private var showMainDurationSheet = false
 
     private var unblockDurations: [TimedUnblockDuration] {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
@@ -35,7 +37,8 @@ private struct WidgetActionResponder: ViewModifier {
             .protectedAction(
                 $authAction,
                 allowBypass: allowBypass,
-                defaultKeyType: keyType,
+                defaultKeyType: allSettings.first?.defaultKeyType,
+                requestedKeyType: keyType,
                 keyGroupID: actionGroup?.id
             )
             .sheet(isPresented: $showDurationSheet) {
@@ -43,8 +46,14 @@ private struct WidgetActionResponder: ViewModifier {
                     GroupTimedUnblockSheet(group: actionGroup)
                 }
             }
+            .sheet(isPresented: $showMainDurationSheet) {
+                if let mainSelection = selectedApps.first {
+                    MainTimedUnblockSheet(mainSelection: mainSelection)
+                }
+            }
             .onOpenURL { coordinator.handle(url: $0) }
-            .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }
+            .onChange(of: coordinator.pendingGroupAction, initial: true) { _, request in resolve(request) }
+            .onChange(of: coordinator.pendingMainUnlock, initial: true) { _, request in resolveMain(request) }
             .onChange(of: groups) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
@@ -91,13 +100,39 @@ private struct WidgetActionResponder: ViewModifier {
         coordinator.clearPendingGroupAction()
     }
 
-    private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {
-        let duration: TimedUnblockDuration? = switch request {
-        case let .fixed(duration): duration
-        case .useDefault: allSettings.first?.defaultDuration
-        case .ask: nil
+    private func resolveMain(_ request: MainUnlockRequest?) {
+        guard let request,
+              allSettings.first?.hasCompletedOnboarding == true,
+              let mainSelection = selectedApps.first
+        else {
+            coordinator.clearPendingMainUnlock()
+            return
         }
-        if let duration {
+        selectedTab = .home
+        actionGroup = nil
+        keyType = request.keyType
+        allowBypass = false
+        authAction = { unlockMain(mainSelection, duration: request.duration) }
+
+        coordinator.clearPendingMainUnlock()
+    }
+
+    private func unlockMain(_ mainSelection: SelectedApps, duration request: UnlockDurationRequest) {
+        guard let settings = allSettings.first else { return }
+        if let duration = settings.duration(for: request) {
+            try? timedUnblockService.startMain(
+                duration: duration,
+                mainSelection: mainSelection,
+                settings: settings,
+                screenTimeService: screenTimeService
+            )
+        } else {
+            showMainDurationSheet = true
+        }
+    }
+
+    private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {
+        if let duration = allSettings.first?.duration(for: request) {
             try? timedUnblockService.startGroup(
                 duration: duration,
                 groupId: group.id,

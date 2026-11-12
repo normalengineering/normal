@@ -8,11 +8,14 @@ final class FakeLocationProvider: LocationProviding {
         case location(CLLocation)
         case throwKeyError(LocationKeyError)
         case throwGeneric
+        case pending
     }
 
     var outcome: Outcome
     var authorizationStatus: CLAuthorizationStatus
     var cachedLocation: CLLocation?
+    private(set) var requestCount = 0
+    private var pendingContinuation: CheckedContinuation<CLLocation, Error>?
 
     init(
         outcome: Outcome,
@@ -29,6 +32,7 @@ final class FakeLocationProvider: LocationProviding {
     }
 
     func currentLocation() async throws -> CLLocation {
+        requestCount += 1
         switch outcome {
         case let .location(location):
             return location
@@ -36,6 +40,13 @@ final class FakeLocationProvider: LocationProviding {
             throw error
         case .throwGeneric:
             throw NSError(domain: "test", code: 0)
+        case .pending:
+            return try await withCheckedThrowingContinuation { pendingContinuation = $0 }
         }
+    }
+
+    func finishPending() {
+        pendingContinuation?.resume(throwing: LocationKeyError.unavailable)
+        pendingContinuation = nil
     }
 }

@@ -132,4 +132,26 @@ struct SettingsUnblockDurationTests {
         s.customUnblockDurationSeconds = [3600, 3600, 60, 900]
         #expect(s.unblockDurations == [.fifteenMinutes, .oneHour])
     }
+
+    @Test func fixedRequestUsesItsDuration() {
+        let s = Settings()
+        s.defaultDuration = .thirtyMinutes
+        #expect(s.duration(for: .fixed(.fourHours)) == .fourHours)
+    }
+
+    @Test func defaultRequestUsesDefaultDuration() {
+        let s = Settings()
+        s.defaultDuration = .thirtyMinutes
+        #expect(s.duration(for: .useDefault) == .thirtyMinutes)
+    }
+
+    @Test func defaultRequestWithoutDefaultHasNoDuration() {
+        #expect(Settings().duration(for: .useDefault) == nil)
+    }
+
+    @Test func askRequestHasNoDuration() {
+        let s = Settings()
+        s.defaultDuration = .thirtyMinutes
+        #expect(s.duration(for: .ask) == nil)
+    }
 }

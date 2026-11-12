@@ -15,6 +15,7 @@ struct AppContainer: View {
     @State private var emergencyUnblockService: EmergencyUnblockService
     @State private var donationService = DonationService()
     @State private var usageLimitService: UsageLimitService
+    @State private var navigationCoordinator: NavigationCoordinator
 
     init(services: AppServices) {
         _screenTimeService = State(initialValue: services.screenTime)
@@ -23,10 +24,11 @@ struct AppContainer: View {
         _appReviewService = State(initialValue: services.appReview)
         _emergencyUnblockService = State(initialValue: services.emergencyUnblock)
         _usageLimitService = State(initialValue: services.usageLimit)
+        _navigationCoordinator = State(initialValue: services.navigation)
     }
 
     var body: some View {
-        ContentView()
+        ContentView(navigationCoordinator: navigationCoordinator)
             .environment(screenTimeService)
             .environment(nfcService)
             .environment(qrService)

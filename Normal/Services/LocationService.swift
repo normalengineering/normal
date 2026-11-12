@@ -42,7 +42,15 @@ final class LocationService: NSObject, LocationProviding {
         if UITestSupport.isActive {
             return .authorizedWhenInUse
         }
-        return manager.authorizationStatus
+        return status
+    }
+
+    var canRequestAlways: Bool {
+        switch authorizationStatus {
+        case .notDetermined: true
+        case .authorizedWhenInUse: !UserDefaults.standard.bool(forKey: Self.alwaysRequestedKey)
+        default: false
+        }
     }
 
     var cachedLocation: CLLocation? {
@@ -52,7 +60,10 @@ final class LocationService: NSObject, LocationProviding {
         return manager.location
     }
 
+    private static let alwaysRequestedKey = "locationAlwaysRequested_v1"
+
     private let manager = CLLocationManager()
+    private var status: CLAuthorizationStatus = .notDetermined
     private var locationContinuations: [CheckedContinuation<CLLocation, Error>] = []
     private var authContinuations: [CheckedContinuation<CLAuthorizationStatus, Never>] = []
 
@@ -60,6 +71,12 @@ final class LocationService: NSObject, LocationProviding {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+        status = manager.authorizationStatus
+    }
+
+    func requestAlwaysAuthorization() {
+        UserDefaults.standard.set(true, forKey: Self.alwaysRequestedKey)
+        manager.requestAlwaysAuthorization()
     }
 
     func currentLocation() async throws -> CLLocation {
@@ -99,6 +116,7 @@ final class LocationService: NSObject, LocationProviding {
     }
 
     private func flushAuth(_ status: CLAuthorizationStatus) {
+        self.status = status
         guard status != .notDetermined else { return }
         let pending = authContinuations
         authContinuations.removeAll()

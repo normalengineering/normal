@@ -64,26 +64,7 @@ struct HomeView: View {
     @ViewBuilder
     private var timedUnblockSheet: some View {
         if let mainSelection {
-            TimedUnblockSheet(
-                title: "Unblock All",
-                durations: settings.unblockDurations,
-                initialDuration: settings.defaultDuration,
-                onTimedUnblock: { duration in
-                    try timedUnblockService.startMain(
-                        duration: duration,
-                        mainSelection: mainSelection,
-                        settings: settings,
-                        screenTimeService: screenTimeService
-                    )
-                    recordUnblockForReview()
-                },
-                onPermanentUnblock: {
-                    screenTimeService.unblockAll(
-                        blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                    )
-                    recordUnblockForReview()
-                }
-            )
+            MainTimedUnblockSheet(mainSelection: mainSelection, onUnblock: recordUnblockForReview)
         }
     }
 

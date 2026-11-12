@@ -8,6 +8,7 @@ final class AppServices {
     let appReview: AppReviewService
     let emergencyUnblock: EmergencyUnblockService
     let usageLimit: UsageLimitService
+    let navigation = NavigationCoordinator()
 
     init() {
         if UITestSupport.isActive {

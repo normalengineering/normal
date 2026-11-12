@@ -163,6 +163,23 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(app.buttons["group.blockButton"].exists, "Group state should be untouched")
     }
 
+    func testUnlockLinkWithQRKeySkipsKeyPicker() throws {
+        let app = launch(["-uiTestSeedGroupKey"])
+        let groupID = "6E0A1C9B-2D4F-4B7A-9C3E-5F8D1A2B3C4D"
+
+        app.open(try XCTUnwrap(URL(string: "normal://block?group=\(groupID)")))
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Block link should offer bypass")
+        bypass.tap()
+        confirmBypass(app)
+        require(app.buttons["group.unblockButton"], "Group should be blocked")
+
+        app.open(try XCTUnwrap(URL(string: "normal://unlock?group=\(groupID)&duration=3600&key=QR")))
+
+        require(app.buttons["Block Now"], "QR unlock link should scan and start the timed unblock")
+        XCTAssertFalse(app.buttons["keySelect.row.QR"].exists, "A requested QR key should skip the key picker")
+    }
+
     func testSeededScheduleAppears() {
         let app = launch(["-uiTestSeedSchedule"])
 

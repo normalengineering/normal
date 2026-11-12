@@ -23,7 +23,7 @@ final class LocationUnlockModel {
     private let provider: any LocationProviding
     private let pollInterval: Duration
 
-    private static let maxCacheAge: TimeInterval = 30
+    static let maxCacheAge: TimeInterval = 30
 
     init(keys: [Key], provider: any LocationProviding, pollInterval: Duration = .seconds(2)) {
         let locationKeys = Key.locationKeys(in: keys)

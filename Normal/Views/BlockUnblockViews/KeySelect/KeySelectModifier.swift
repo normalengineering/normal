@@ -12,6 +12,7 @@ struct KeySelectModifier: ViewModifier {
     @Binding var action: (@MainActor () -> Void)?
     var allowBypass: Bool
     var defaultKeyType: KeyType?
+    var requestedKeyType: KeyType?
     var keyGroupID: UUID?
 
     @State private var keySelectToken: PresentationToken?
@@ -114,7 +115,8 @@ struct KeySelectModifier: ViewModifier {
         let decision = KeySelectLogic.decide(
             availableKeyTypes: availableKeyTypes,
             allowBypass: allowBypass,
-            defaultKeyType: defaultKeyType
+            defaultKeyType: defaultKeyType,
+            requestedKeyType: requestedKeyType
         )
         switch decision {
         case .showNoKeysAlert:
@@ -145,6 +147,10 @@ struct KeySelectModifier: ViewModifier {
         case .qr:
             let pending = action
             showQRScanner = true
+            if keySelectToken == nil {
+                showBypassConfirm = false
+                keySelectToken = PresentationToken()
+            }
             Task { await authenticate(with: .qr, action: pending) }
         case .location:
             pendingLocationAction = action
@@ -199,12 +205,14 @@ extension View {
         action: Binding<(@MainActor () -> Void)?>,
         allowBypass: Bool = false,
         defaultKeyType: KeyType? = nil,
+        requestedKeyType: KeyType? = nil,
         keyGroupID: UUID? = nil
     ) -> some View {
         modifier(KeySelectModifier(
             action: action,
             allowBypass: allowBypass,
             defaultKeyType: defaultKeyType,
+            requestedKeyType: requestedKeyType,
             keyGroupID: keyGroupID
         ))
     }

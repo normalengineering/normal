@@ -11,6 +11,12 @@ struct GroupActionRequest: Equatable {
     let action: GroupAction
 }
 
+struct MainUnlockRequest: Equatable {
+    let token: UUID
+    let duration: UnlockDurationRequest
+    let keyType: KeyType?
+}
+
 @MainActor
 @Observable
 final class NavigationCoordinator {
@@ -18,6 +24,7 @@ final class NavigationCoordinator {
     private(set) var settingsInitialTab: SettingsTab = .general
 
     var pendingGroupAction: GroupActionRequest?
+    var pendingMainUnlock: MainUnlockRequest?
 
     func presentSettings(tab: SettingsTab = .general) {
         settingsInitialTab = tab
@@ -34,6 +41,10 @@ final class NavigationCoordinator {
             groupID: groupID,
             action: .unlock(duration: duration, keyType: keyType)
         )
+    }
+
+    func requestMainUnlock(duration: UnlockDurationRequest, keyType: KeyType?) {
+        pendingMainUnlock = MainUnlockRequest(token: UUID(), duration: duration, keyType: keyType)
     }
 
     func requestGroupBlock(groupID: UUID) {
@@ -67,6 +78,10 @@ final class NavigationCoordinator {
 
     func clearPendingGroupAction() {
         pendingGroupAction = nil
+    }
+
+    func clearPendingMainUnlock() {
+        pendingMainUnlock = nil
     }
 }
 

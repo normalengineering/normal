@@ -94,13 +94,11 @@ final class AppBlockIntentPerformer: BlockIntentPerforming {
 
     private func syncExternalSurfaces(settings: Settings) {
         guard syncsExternalSurfaces else { return }
-        let groups = (try? context.fetch(FetchDescriptor<AppGroup>(sortBy: [SortDescriptor(\.sortIndex)]))) ?? []
-        let keys = (try? context.fetch(FetchDescriptor<Key>())) ?? []
-        WidgetSync.sync(groups: groups, keys: keys, settings: settings, screenTimeService: screenTimeService)
-        LiveActivityManager.reconcile(
-            timedUnblockService: timedUnblockService,
-            groups: groups,
-            isEnabled: settings.showTimedUnblockLiveActivity
+        IntentSurfaceSync.sync(
+            context: context,
+            settings: settings,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService
         )
     }
 }

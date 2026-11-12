@@ -10,7 +10,8 @@ enum KeySelectLogic {
     static func decide(
         availableKeyTypes: [KeyType],
         allowBypass: Bool,
-        defaultKeyType: KeyType?
+        defaultKeyType: KeyType?,
+        requestedKeyType: KeyType? = nil
     ) -> KeySelectAction {
         guard !availableKeyTypes.isEmpty else {
             return .showNoKeysAlert
@@ -18,6 +19,10 @@ enum KeySelectLogic {
 
         guard !allowBypass else {
             return .showSheet
+        }
+
+        if let requestedKeyType, availableKeyTypes.contains(requestedKeyType) {
+            return .autoSelect(requestedKeyType)
         }
 
         if let keyType = defaultKeyType, availableKeyTypes.contains(keyType), keyType.autoSelectable {
