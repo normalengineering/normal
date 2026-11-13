@@ -247,11 +247,10 @@ struct GroupListCardView: View {
         ) {
             requestAction(allowBypass: false) {
                 if let duration = settings.defaultDuration {
-                    try? timedUnblockService.startGroup(
+                    try? timedUnblockService.start(
+                        .group(appGroup),
                         duration: duration,
-                        groupId: appGroup.id,
-                        selection: appGroup.selection,
-                        customDomains: customDomains,
+                        settings: settings,
                         screenTimeService: screenTimeService
                     )
                 } else {

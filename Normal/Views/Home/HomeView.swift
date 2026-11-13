@@ -64,26 +64,7 @@ struct HomeView: View {
     @ViewBuilder
     private var timedUnblockSheet: some View {
         if let mainSelection {
-            TimedUnblockSheet(
-                title: "Unblock All",
-                durations: settings.unblockDurations,
-                initialDuration: settings.defaultDuration,
-                onTimedUnblock: { duration in
-                    try timedUnblockService.startMain(
-                        duration: duration,
-                        mainSelection: mainSelection,
-                        settings: settings,
-                        screenTimeService: screenTimeService
-                    )
-                    recordUnblockForReview()
-                },
-                onPermanentUnblock: {
-                    screenTimeService.unblockAll(
-                        blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                    )
-                    recordUnblockForReview()
-                }
-            )
+            UnblockDurationSheet(target: .all(mainSelection), onUnblock: recordUnblockForReview)
         }
     }
 
@@ -99,9 +80,9 @@ struct HomeView: View {
     private func unblockMain(_ selection: SelectedApps) {
         if let duration = settings.defaultDuration {
             do {
-                try timedUnblockService.startMain(
+                try timedUnblockService.start(
+                    .all(selection),
                     duration: duration,
-                    mainSelection: selection,
                     settings: settings,
                     screenTimeService: screenTimeService
                 )

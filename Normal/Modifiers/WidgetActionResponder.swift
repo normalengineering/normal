@@ -17,18 +17,10 @@ private struct WidgetActionResponder: ViewModifier {
     @State private var keyType: KeyType?
     @State private var allowBypass = false
     @State private var requestID: UUID?
-    @State private var durationGroup: AppGroup?
+    @State private var durationTarget: UnblockTarget?
 
     private var unblockDurations: [TimedUnblockDuration] {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
-    }
-
-    private var customDomainsEnabled: Bool {
-        allSettings.first?.enableCustomDomains ?? false
-    }
-
-    private func customDomains(for group: AppGroup) -> [String] {
-        customDomainsEnabled ? group.customDomains : []
     }
 
     func body(content: Content) -> some View {
@@ -40,8 +32,8 @@ private struct WidgetActionResponder: ViewModifier {
                 keyGroupID: actionGroup?.id,
                 requestID: requestID
             )
-            .sheet(item: $durationGroup) { group in
-                GroupTimedUnblockSheet(group: group)
+            .sheet(item: $durationTarget) { target in
+                UnblockDurationSheet(target: target)
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingGroupAction) { _, request in resolve(request) }
@@ -68,7 +60,7 @@ private struct WidgetActionResponder: ViewModifier {
 
     private func resolve(_ request: GroupActionRequest?) {
         guard let request,
-              durationGroup == nil,
+              durationTarget == nil,
               allSettings.first?.hasCompletedOnboarding == true,
               let group = groups.first(where: { $0.id == request.groupID })
         else {
@@ -94,22 +86,16 @@ private struct WidgetActionResponder: ViewModifier {
     }
 
     private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {
-        let duration: TimedUnblockDuration? = switch request {
-        case let .fixed(duration): duration
-        case .useDefault: allSettings.first?.defaultDuration
-        case .ask: nil
+        guard let settings = allSettings.first, let duration = settings.duration(for: request) else {
+            durationTarget = .group(group)
+            return
         }
-        if let duration {
-            try? timedUnblockService.startGroup(
-                duration: duration,
-                groupId: group.id,
-                selection: group.selection,
-                customDomains: customDomains(for: group),
-                screenTimeService: screenTimeService
-            )
-        } else {
-            durationGroup = group
-        }
+        try? timedUnblockService.start(
+            .group(group),
+            duration: duration,
+            settings: settings,
+            screenTimeService: screenTimeService
+        )
     }
 
     private func block(_ group: AppGroup) {
