@@ -11,6 +11,7 @@ struct KeyCheckFlowTests {
 
     private final class Counter {
         var runs = 0
+        var proofs: [KeyProof] = []
     }
 
     init() {
@@ -24,20 +25,23 @@ struct KeyCheckFlowTests {
     private func request(
         _ keys: [Key],
         available: [KeyType],
-        allowBypass: Bool = false,
+        keyGroupID: UUID? = nil,
         defaultKeyType: KeyType? = nil
     ) -> KeyCheckFlow.Request {
         KeyCheckFlow.Request(
             keys: keys,
+            keyGroupID: keyGroupID,
             availableKeyTypes: available,
-            allowBypass: allowBypass,
             defaultKeyType: defaultKeyType
         )
     }
 
-    private func start(_ request: KeyCheckFlow.Request) {
+    private func start(_ request: KeyCheckFlow.Request, allowBypass: Bool = false) {
         let counter = counter
-        flow.start(request, action: { counter.runs += 1 })
+        let action: ProtectedAction = allowBypass
+            ? .tighten { counter.runs += 1 }
+            : .weaken { counter.proofs.append($0); counter.runs += 1 }
+        flow.start(request, action: action)
     }
 
     private func waitUntil(_ condition: () -> Bool) async {
@@ -78,6 +82,17 @@ struct KeyCheckFlowTests {
         await waitUntil { flow.stage == .idle }
 
         #expect(counter.runs == 1)
+    }
+
+    @Test func passingKeyHandsTheActionAProofForTheRequestsGroup() async {
+        let groupID = UUID()
+        start(request([key(.nfc, "tag")], available: [.nfc], keyGroupID: groupID))
+        await waitUntil { nfc.isScanning }
+
+        nfc.present("tag")
+        await waitUntil { flow.stage == .idle }
+
+        #expect(counter.proofs == [KeyProof(keyGroupID: groupID)])
     }
 
     @Test func rejectedTagEndsWithoutTheAction() async {
@@ -187,20 +202,23 @@ struct KeyCheckFlowTests {
 
     @Test func bypassNeedsPermission() {
         start(qrAndNFC)
+        #expect(!flow.allowsBypass)
         flow.requestBypass(skippingConfirmation: true)
         #expect(flow.stage == .choosing)
         #expect(counter.runs == 0)
     }
 
     @Test func bypassWithoutConfirmationRunsTheAction() {
-        start(request([key(.qr, "code")], available: [.qr], allowBypass: true))
+        start(request([key(.qr, "code")], available: [.qr]), allowBypass: true)
+        #expect(flow.allowsBypass)
         flow.requestBypass(skippingConfirmation: true)
         #expect(counter.runs == 1)
+        #expect(!flow.allowsBypass)
         #expect(flow.stage == .idle)
     }
 
     @Test func bypassConfirmationRunsTheAction() {
-        start(request([key(.qr, "code")], available: [.qr], allowBypass: true))
+        start(request([key(.qr, "code")], available: [.qr]), allowBypass: true)
         flow.requestBypass(skippingConfirmation: false)
         #expect(flow.stage == .confirmingBypass)
         #expect(flow.sheetScreen == .bypassConfirm)
@@ -212,7 +230,7 @@ struct KeyCheckFlowTests {
     }
 
     @Test func goingBackFromTheConfirmationShowsThePicker() {
-        start(request([key(.qr, "code")], available: [.qr], allowBypass: true))
+        start(request([key(.qr, "code")], available: [.qr]), allowBypass: true)
         flow.requestBypass(skippingConfirmation: false)
         flow.returnFromBypassConfirm()
         #expect(flow.stage == .choosing)
@@ -220,7 +238,7 @@ struct KeyCheckFlowTests {
     }
 
     @Test func confirmationCannotRunANewerRequest() {
-        start(request([key(.qr, "code")], available: [.qr], allowBypass: true))
+        start(request([key(.qr, "code")], available: [.qr]), allowBypass: true)
         flow.requestBypass(skippingConfirmation: false)
         start(qrAndNFC)
 
@@ -250,6 +268,7 @@ struct KeyCheckFlowTests {
 
         flow.locationVerified(requestID: request.id)
         #expect(counter.runs == 1)
+        #expect(counter.proofs == [KeyProof(keyGroupID: nil)])
         #expect(flow.stage == .idle)
     }
 

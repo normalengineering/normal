@@ -12,9 +12,8 @@ struct HomeView: View {
     @Query private var keys: [Key]
     @Query private var allSettings: [Settings]
 
-    @State private var authAction: (@MainActor () -> Void)?
-    @State private var allowBypass = false
-    @State private var showTimedUnblockSheet = false
+    @State private var authAction: ProtectedAction?
+    @State private var durationGrant: UnblockGrant?
 
     private var mainSelection: SelectedApps? {
         selectedApps.first
@@ -35,15 +34,13 @@ struct HomeView: View {
                     TimedUnblockBannerView(
                         selection: mainSelection.selection,
                         customDomains: mainSelection.customDomains,
-                        authAction: $authAction,
-                        allowBypass: $allowBypass
+                        authAction: $authAction
                     )
                     MainBlockButtonView(
                         mainSelection: mainSelection,
                         authAction: $authAction,
-                        allowBypass: $allowBypass,
                         onBlock: { blockMain(mainSelection) },
-                        onUnblock: { unblockMain(mainSelection) }
+                        onUnblock: { unblockMain(mainSelection, proof: $0) }
                     )
                     BlockStatusView(mainSelection: mainSelection)
                     AppDeleteToggleView()
@@ -54,17 +51,12 @@ struct HomeView: View {
                     }
                 }
             }
-            .protectedAction($authAction, allowBypass: allowBypass, defaultKeyType: settings.defaultKeyType)
-            .sheet(isPresented: $showTimedUnblockSheet) { timedUnblockSheet }
+            .protectedAction($authAction, defaultKeyType: settings.defaultKeyType)
+            .sheet(item: $durationGrant) { grant in
+                UnblockDurationSheet(grant: grant, onUnblock: recordUnblockForReview)
+            }
             .navigationTitle("Home")
             .settingsToolbar()
-        }
-    }
-
-    @ViewBuilder
-    private var timedUnblockSheet: some View {
-        if let mainSelection {
-            UnblockDurationSheet(target: .all(mainSelection), onUnblock: recordUnblockForReview)
         }
     }
 
@@ -77,20 +69,22 @@ struct HomeView: View {
         )
     }
 
-    private func unblockMain(_ selection: SelectedApps) {
-        if let duration = settings.defaultDuration {
-            do {
-                try timedUnblockService.start(
-                    .all(selection),
-                    duration: duration,
-                    settings: settings,
-                    screenTimeService: screenTimeService
-                )
-                recordUnblockForReview()
-            } catch {}
-        } else {
-            showTimedUnblockSheet = true
+    private func unblockMain(_ selection: SelectedApps, proof: KeyProof) {
+        guard let grant = UnblockGrant(.all(selection), proof: proof) else { return }
+        guard let duration = settings.defaultDuration else {
+            durationGrant = grant
+            return
         }
+        do {
+            try BlockActions.unblock(
+                grant,
+                for: .timed(duration),
+                settings: settings,
+                screenTimeService: screenTimeService,
+                timedUnblockService: timedUnblockService
+            )
+            recordUnblockForReview()
+        } catch {}
     }
 
     private func recordUnblockForReview() {

@@ -49,17 +49,33 @@ struct ScreenTimeServiceTests {
 
     @Test func adultContentFilterFollowsTheSetting() {
         let (service, shields) = makeService()
-        service.setAdultContentBlocked(true)
+        service.blockAdultContent()
         #expect(shields.currentShields().blocksAdultContent)
         #expect(service.isAdultContentBlocked)
-        service.setAdultContentBlocked(false)
+        service.allowAdultContent(KeyProof(keyGroupID: nil))
         #expect(!shields.currentShields().blocksAdultContent)
         #expect(!service.isAdultContentBlocked)
     }
 
+    @Test func groupKeyCannotTurnOffAppWideProtections() {
+        let (service, shields) = makeService()
+        service.enablePreventAppDelete()
+        service.blockAdultContent()
+        let groupProof = KeyProof(keyGroupID: UUID())
+
+        service.disablePreventAppDelete(groupProof)
+        service.allowAdultContent(groupProof)
+
+        #expect(service.isAppDeleteDisabled)
+        #expect(shields.currentShields().blocksAdultContent)
+
+        service.disablePreventAppDelete(KeyProof(keyGroupID: nil))
+        #expect(!service.isAppDeleteDisabled)
+    }
+
     @Test func adultContentFilterIsIndependentOfBlockAll() {
         let (service, shields) = makeService()
-        service.setAdultContentBlocked(true)
+        service.blockAdultContent()
         #expect(service.activeShieldCount() == 0)
 
         service.blockAll(selection: TokenFixtures.selection(apps: [1]), blockAllPreventsAppDelete: true)
@@ -71,7 +87,7 @@ struct ScreenTimeServiceTests {
 
     @Test func removeAllRestrictionsLiftsAdultContentFilter() {
         let (service, shields) = makeService()
-        service.setAdultContentBlocked(true)
+        service.blockAdultContent()
         service.blockAll(selection: TokenFixtures.selection(apps: [1]), blockAllPreventsAppDelete: true)
 
         service.removeAllRestrictions()

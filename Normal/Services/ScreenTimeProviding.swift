@@ -13,7 +13,7 @@ protocol ScreenTimeProviding: AnyObject {
     func requestAuthorization() async
     func ensureAuthorized() async -> Bool
     func enablePreventAppDelete()
-    func disablePreventAppDelete()
+    func disablePreventAppDelete(_ proof: KeyProof)
     func blockAll(
         selection: FamilyActivitySelection,
         customDomains: [String],

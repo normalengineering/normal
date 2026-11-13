@@ -4,23 +4,22 @@ struct KeyProtectedToggle: View {
     let title: LocalizedStringKey
     let isOn: Bool
     var defaultKeyType: KeyType?
-    let onChange: @MainActor (Bool) -> Void
+    let onEnable: @MainActor () -> Void
+    let onDisable: @MainActor (KeyProof) -> Void
 
-    @State private var authAction: (@MainActor () -> Void)?
-    @State private var pendingValue: Bool?
+    @State private var authAction: ProtectedAction?
 
     private var binding: Binding<Bool> {
         Binding(
             get: { isOn },
-            set: { newValue in
-                pendingValue = newValue
-                authAction = { onChange(newValue) }
+            set: { isOn in
+                authAction = isOn ? .tighten { onEnable() } : .weaken { proof in onDisable(proof) }
             }
         )
     }
 
     var body: some View {
         Toggle(title, isOn: binding)
-            .protectedAction($authAction, allowBypass: pendingValue == true, defaultKeyType: defaultKeyType)
+            .protectedAction($authAction, defaultKeyType: defaultKeyType)
     }
 }

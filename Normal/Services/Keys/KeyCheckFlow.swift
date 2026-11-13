@@ -13,8 +13,8 @@ final class KeyCheckFlow {
     struct Request {
         let id = UUID()
         let keys: [Key]
+        let keyGroupID: UUID?
         let availableKeyTypes: [KeyType]
-        let allowBypass: Bool
         let defaultKeyType: KeyType?
         var requestedKeyType: KeyType?
     }
@@ -45,26 +45,28 @@ final class KeyCheckFlow {
 
     private(set) var stage: Stage = .idle
     private(set) var request: Request?
+    private(set) var allowsBypass = false
     private(set) var sheetScreen: SheetScreen = .picker
     private(set) var finishedRequestID: UUID?
 
     private let nfc: any KeyScanning
     private let qr: any QRScanning
     @ObservationIgnored private var qrScanRequestID: UUID?
-    @ObservationIgnored private var action: (@MainActor () -> Void)?
+    @ObservationIgnored private var action: ProtectedAction?
 
     init(nfc: any KeyScanning, qr: any QRScanning) {
         self.nfc = nfc
         self.qr = qr
     }
 
-    func start(_ request: Request, action: (@MainActor () -> Void)?) {
+    func start(_ request: Request, action: ProtectedAction) {
         stopQRScan()
         self.request = request
         self.action = action
+        allowsBypass = action.allowsBypass
         switch KeySelectLogic.decide(
             availableKeyTypes: request.availableKeyTypes,
-            allowBypass: request.allowBypass,
+            allowBypass: allowsBypass,
             defaultKeyType: request.defaultKeyType,
             requestedKeyType: request.requestedKeyType
         ) {
@@ -84,9 +86,9 @@ final class KeyCheckFlow {
     }
 
     func requestBypass(skippingConfirmation: Bool) {
-        guard stage == .choosing, request?.allowBypass == true else { return }
+        guard stage == .choosing, allowsBypass else { return }
         if skippingConfirmation {
-            complete()
+            complete(with: nil)
         } else {
             sheetScreen = .bypassConfirm
             stage = .confirmingBypass
@@ -94,8 +96,8 @@ final class KeyCheckFlow {
     }
 
     func confirmBypass() {
-        guard stage == .confirmingBypass, request?.allowBypass == true else { return }
-        complete()
+        guard stage == .confirmingBypass, allowsBypass else { return }
+        complete(with: nil)
     }
 
     func returnFromBypassConfirm() {
@@ -111,8 +113,8 @@ final class KeyCheckFlow {
     }
 
     func locationVerified(requestID: UUID) {
-        guard stage == .checkingLocation, request?.id == requestID else { return }
-        complete()
+        guard stage == .checkingLocation, let request, request.id == requestID else { return }
+        complete(with: KeyProof(keyGroupID: request.keyGroupID))
     }
 
     func keySheetClosed() {
@@ -150,6 +152,7 @@ final class KeyCheckFlow {
         stage = .idle
         request = nil
         action = nil
+        allowsBypass = false
     }
 
     private func begin(_ keyType: KeyType) {
@@ -178,16 +181,16 @@ final class KeyCheckFlow {
         if qrScanRequestID == requestID {
             qrScanRequestID = nil
         }
-        guard request?.id == requestID else { return }
+        guard let request, request.id == requestID else { return }
         if result == .success {
-            complete()
+            complete(with: KeyProof(keyGroupID: request.keyGroupID))
         } else {
             finish()
         }
     }
 
-    private func complete() {
-        action?()
+    private func complete(with proof: KeyProof?) {
+        action?.run(with: proof)
         finish()
     }
 
@@ -196,6 +199,7 @@ final class KeyCheckFlow {
         stage = .idle
         request = nil
         action = nil
+        allowsBypass = false
     }
 
     private func stopQRScan() {

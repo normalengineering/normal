@@ -8,8 +8,10 @@ struct AdultContentToggleView: View {
         KeyProtectedToggle(
             title: "Block Adult Websites",
             isOn: screenTimeService.isAdultContentBlocked,
-            defaultKeyType: defaultKeyType
-        ) { screenTimeService.setAdultContentBlocked($0) }
+            defaultKeyType: defaultKeyType,
+            onEnable: { screenTimeService.blockAdultContent() },
+            onDisable: { screenTimeService.allowAdultContent($0) }
+        )
             .accessibilityIdentifier("settings.blockAdultContentToggle")
     }
 }

@@ -11,10 +11,9 @@ struct GroupsView: View {
     @Query private var allSettings: [Settings]
     @State private var isShowingSheet = false
 
-    @State private var authAction: (@MainActor () -> Void)?
-    @State private var allowBypass = false
+    @State private var authAction: ProtectedAction?
     @State private var pendingGroupID: UUID?
-    @State private var pendingDurationGroup: AppGroup?
+    @State private var durationGrant: UnblockGrant?
 
     private var hasSelection: Bool {
         selectedApps.first?.selection.isEmpty == false
@@ -56,9 +55,8 @@ struct GroupsView: View {
                 GroupListCardView(
                     appGroup: group,
                     authAction: $authAction,
-                    allowBypass: $allowBypass,
                     pendingGroupID: $pendingGroupID,
-                    pendingDurationGroup: $pendingDurationGroup
+                    durationGrant: $durationGrant
                 )
             }, onMove: move)
                 .safeAreaInset(edge: .bottom) {
@@ -72,12 +70,11 @@ struct GroupsView: View {
                 // triggered it, instead of on the card row.
                 .protectedAction(
                     $authAction,
-                    allowBypass: allowBypass,
                     defaultKeyType: allSettings.unwrapped.defaultKeyType,
                     keyGroupID: pendingGroupID
                 )
-                .sheet(item: $pendingDurationGroup) { group in
-                    UnblockDurationSheet(target: .group(group))
+                .sheet(item: $durationGrant) { grant in
+                    UnblockDurationSheet(grant: grant)
                 }
         }
     }

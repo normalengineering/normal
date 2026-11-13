@@ -29,7 +29,7 @@ enum BlockActions {
     }
 
     static func unblock(
-        _ target: UnblockTarget,
+        _ grant: UnblockGrant,
         for length: UnblockLength,
         settings: Settings,
         screenTimeService: any ScreenTimeProviding,
@@ -38,13 +38,13 @@ enum BlockActions {
         switch length {
         case let .timed(duration):
             try timedUnblockService.start(
-                target,
+                grant,
                 duration: duration,
                 settings: settings,
                 screenTimeService: screenTimeService
             )
         case .permanent:
-            screenTimeService.unblockPermanently(target, settings: settings)
+            screenTimeService.unblockPermanently(grant, settings: settings)
         }
     }
 

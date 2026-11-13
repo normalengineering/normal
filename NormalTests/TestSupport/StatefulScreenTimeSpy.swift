@@ -44,7 +44,7 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         checkInvariant()
     }
 
-    func disablePreventAppDelete() {
+    func disablePreventAppDelete(_: KeyProof) {
         appDeleteDisabled = false
         checkInvariant()
     }

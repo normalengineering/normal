@@ -53,11 +53,12 @@ enum UnblockTarget: Identifiable {
 
 extension TimedUnblockService {
     func start(
-        _ target: UnblockTarget,
+        _ grant: UnblockGrant,
         duration: TimedUnblockDuration,
         settings: Settings,
         screenTimeService: any ScreenTimeProviding
     ) throws {
+        let target = grant.target
         switch target {
         case let .all(mainSelection):
             try startMain(
@@ -83,7 +84,8 @@ extension ScreenTimeProviding {
         blockStatus(selection: target.selection, customDomains: target.customDomains(settings: settings))
     }
 
-    func unblockPermanently(_ target: UnblockTarget, settings: Settings) {
+    func unblockPermanently(_ grant: UnblockGrant, settings: Settings) {
+        let target = grant.target
         switch target {
         case .all:
             unblockAll(blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete)

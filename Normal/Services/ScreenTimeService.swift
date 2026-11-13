@@ -98,7 +98,8 @@ final class ScreenTimeService: ScreenTimeProviding {
         reconcile { $0.setAppDeletionBlocked(true, at: clock()) }
     }
 
-    func disablePreventAppDelete() {
+    func disablePreventAppDelete(_ proof: KeyProof) {
+        guard proof.coversAllApps else { return }
         reconcile { $0.setAppDeletionBlocked(false, at: clock()) }
     }
 
@@ -166,8 +167,17 @@ final class ScreenTimeService: ScreenTimeProviding {
         notifyUpdate()
     }
 
-    func setAdultContentBlocked(_ blocked: Bool) {
-        sharedStore.setAdultContentEnabled(blocked)
+    func blockAdultContent() {
+        setAdultContentEnabled(true)
+    }
+
+    func allowAdultContent(_ proof: KeyProof) {
+        guard proof.coversAllApps else { return }
+        setAdultContentEnabled(false)
+    }
+
+    private func setAdultContentEnabled(_ enabled: Bool) {
+        sharedStore.setAdultContentEnabled(enabled)
         reconcile()
     }
 

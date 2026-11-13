@@ -10,6 +10,10 @@ struct BlockActionsTests {
     private let activity = FakeDeviceActivityCenter()
     private let store = FakeSharedStore()
 
+    private func grant(_ target: UnblockTarget) throws -> UnblockGrant {
+        try #require(UnblockGrant(target, proof: KeyProof(keyGroupID: nil)))
+    }
+
     private func makeTimedUnblock() -> TimedUnblockService {
         TimedUnblockService(activityCenter: activity, sharedStore: store, onExpiration: {})
     }
@@ -121,7 +125,7 @@ struct BlockActionsTests {
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
 
         try BlockActions.unblock(
-            .group(group),
+            grant(.group(group)),
             for: .timed(.oneHour),
             settings: makeSettings(),
             screenTimeService: screenTime,
@@ -137,7 +141,7 @@ struct BlockActionsTests {
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
 
         try BlockActions.unblock(
-            .group(group),
+            grant(.group(group)),
             for: .permanent,
             settings: makeSettings(),
             screenTimeService: screenTime,
