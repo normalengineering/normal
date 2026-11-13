@@ -12,22 +12,53 @@ nonisolated extension UnblockRequest {
 }
 
 enum UnblockOutcome: Equatable, Sendable {
+    case unblocked(name: String, length: UnblockLength)
     case alreadyUnblocked(name: String)
     case timedUnblockRunning(name: String)
-    case continueInApp
+    case continueInApp(HandOffReason)
+}
+
+enum HandOffReason: Equatable, Sendable {
+    case checkKey
+    case backgroundLocationOff
+    case preciseLocationOff
+    case noLocationFix
+
+    var prompt: LocalizedStringResource {
+        switch self {
+        case .checkKey: "Open Normal to check your key?"
+        case .backgroundLocationOff: "Background Location is off. Open Normal to check your location?"
+        case .preciseLocationOff: "Precise Location is off. Open Normal to check your location?"
+        case .noLocationFix: "Couldn't confirm your location. Open Normal to check it?"
+        }
+    }
+
+    var notice: LocalizedStringResource? {
+        switch self {
+        case .checkKey: nil
+        case .backgroundLocationOff: "Background Location is off, so Normal will check your location."
+        case .preciseLocationOff: "Precise Location is off, so Normal will check your location."
+        case .noLocationFix: "Couldn't confirm your location, so Normal will check it."
+        }
+    }
 }
 
 protocol UnblockIntentPerforming: Sendable {
-    @MainActor func unblock(_ request: UnblockRequest) throws -> UnblockOutcome
+    @MainActor func unblock(_ request: UnblockRequest) async throws -> UnblockOutcome
     @MainActor func continueInApp(_ request: UnblockRequest)
 }
 
 enum UnblockIntentError: Error, Equatable, CustomLocalizedStringResourceConvertible {
     case openNormal
+    case notAtLocation(LocationRadiusKind)
+    case unblockFailed
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
         case .openNormal: "Open Normal to unblock."
+        case .notAtLocation(.unblock): "You're outside your unblock radius."
+        case .notAtLocation(.block): "You're inside your block radius."
+        case .unblockFailed: "Couldn't start the unblock. Open Normal and try again."
         }
     }
 }
@@ -35,7 +66,7 @@ enum UnblockIntentError: Error, Equatable, CustomLocalizedStringResourceConverti
 struct UnblockAllIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Unblock All Apps"
     static let description = IntentDescription(
-        "Opens Normal to check your key, then unblocks the apps and websites selected in Normal. With no Key Type or Unblock Duration, Normal uses your defaults."
+        "Unblocks the apps and websites selected in Normal after checking your key. NFC Tag and QR Code / Barcode keys open Normal to scan. A Location key is checked without opening Normal when Background Location is on and a duration is set. With no Key Type or Unblock Duration, Normal uses your defaults."
     )
 
     @Parameter(title: "Key Type")
@@ -60,13 +91,14 @@ struct UnblockAllIntent: LiveActivityIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog & OpensIntent {
         let request = UnblockRequest(group: nil, keyType: keyType, duration: duration)
         switch try await performer.unblock(request) {
-        case .alreadyUnblocked:
-            return .result(dialog: "All selected apps are already unblocked.")
+        case .unblocked, .alreadyUnblocked:
+            return .result(dialog: "").withoutDialog
         case .timedUnblockRunning:
             return .result(dialog: "A timed unblock is already running for all apps.")
-        case .continueInApp:
+        case let .continueInApp(reason):
             return try await continueInApp(
                 request,
+                reason: reason,
                 performer: performer,
                 fallback: OpenUnblockIntent(group: nil, keyType: keyType, duration: duration)
             )
@@ -77,7 +109,7 @@ struct UnblockAllIntent: LiveActivityIntent {
 struct UnblockGroupIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Unblock Group"
     static let description = IntentDescription(
-        "Opens Normal to check your key, then unblocks one of your Normal groups. With no Key Type or Unblock Duration, Normal uses your defaults."
+        "Unblocks one of your Normal groups after checking your key. NFC Tag and QR Code / Barcode keys open Normal to scan. A Location key is checked without opening Normal when Background Location is on and a duration is set. With no Key Type or Unblock Duration, Normal uses your defaults."
     )
 
     @Parameter(title: "Group", requestValueDialog: "Which group should Normal unblock?")
@@ -105,13 +137,14 @@ struct UnblockGroupIntent: LiveActivityIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog & OpensIntent {
         let request = UnblockRequest(group: group, keyType: keyType, duration: duration)
         switch try await performer.unblock(request) {
-        case let .alreadyUnblocked(name):
-            return .result(dialog: "\(name) is already unblocked.")
+        case .unblocked, .alreadyUnblocked:
+            return .result(dialog: "").withoutDialog
         case let .timedUnblockRunning(name):
             return .result(dialog: "A timed unblock is already running for \(name).")
-        case .continueInApp:
+        case let .continueInApp(reason):
             return try await continueInApp(
                 request,
+                reason: reason,
                 performer: performer,
                 fallback: OpenUnblockIntent(group: group, keyType: keyType, duration: duration)
             )
@@ -163,6 +196,7 @@ struct OpenUnblockIntent: AppIntent {
 private extension AppIntent {
     func continueInApp(
         _ request: UnblockRequest,
+        reason: HandOffReason,
         performer: any UnblockIntentPerforming,
         fallback: OpenUnblockIntent
     ) async throws -> IntentResultContainer<Never, Never, Never, IntentDialog> {
@@ -172,13 +206,16 @@ private extension AppIntent {
                     performer.continueInApp(request)
                     throw UnblockIntentError.openNormal
                 }
-                try await continueInForeground("Open Normal to check your key?", alwaysConfirm: false)
+                try await continueInForeground(IntentDialog(reason.prompt), alwaysConfirm: false)
             }
             performer.continueInApp(request)
             return .result(dialog: "").withoutDialog
         }
         if #available(iOS 18.2, *) {
-            return .result(opensIntent: fallback, dialog: "").withoutDialog
+            guard let notice = reason.notice else {
+                return .result(opensIntent: fallback, dialog: "").withoutDialog
+            }
+            return .result(opensIntent: fallback, dialog: IntentDialog(notice))
         }
         performer.continueInApp(request)
         throw UnblockIntentError.openNormal
