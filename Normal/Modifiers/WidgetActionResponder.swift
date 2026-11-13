@@ -15,16 +15,15 @@ private struct WidgetActionResponder: ViewModifier {
     let coordinator: NavigationCoordinator
     @Binding var selectedTab: AppTab
 
-    @State private var authAction: (@MainActor () -> Void)?
+    @State private var authAction: ProtectedAction?
     @State private var active: ActiveRequest?
     @State private var heldRequest: ActionRequest?
-    @State private var durationTarget: UnblockTarget?
+    @State private var durationGrant: UnblockGrant?
 
     private struct ActiveRequest {
         let token: UUID
         let target: UnblockTarget
         let keyType: KeyType?
-        let allowBypass: Bool
     }
 
     private var unblockDurations: [TimedUnblockDuration] {
@@ -35,13 +34,12 @@ private struct WidgetActionResponder: ViewModifier {
         content
             .protectedAction(
                 $authAction,
-                allowBypass: active?.allowBypass ?? false,
                 requestedKeyType: active?.keyType,
                 keyGroupID: active?.target.groupID,
                 requestID: active?.token
             )
-            .sheet(item: $durationTarget, onDismiss: durationSheetDismissed) { target in
-                UnblockDurationSheet(target: target)
+            .sheet(item: $durationGrant, onDismiss: durationSheetDismissed) { grant in
+                UnblockDurationSheet(grant: grant)
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingAction) { _, request in resolve(request) }
@@ -72,7 +70,7 @@ private struct WidgetActionResponder: ViewModifier {
     private func takeInboxRequest() {
         guard scenePhase == .active,
               screenTimeService.authorizationState == .authorized,
-              durationTarget == nil,
+              durationGrant == nil,
               let request = unlockInbox.take(),
               let settings = allSettings.first,
               let target = target(for: request.groupID),
@@ -92,7 +90,7 @@ private struct WidgetActionResponder: ViewModifier {
     private func resolve(_ request: ActionRequest?) {
         guard let request else { return }
         coordinator.clearPendingAction()
-        guard durationTarget == nil else {
+        guard durationGrant == nil else {
             heldRequest = request
             return
         }
@@ -101,12 +99,12 @@ private struct WidgetActionResponder: ViewModifier {
         switch request.action {
         case let .unblock(unblock):
             guard let target = target(for: unblock.groupID) else { return }
-            present(ActiveRequest(token: request.token, target: target, keyType: unblock.keyType, allowBypass: false))
-            authAction = { unlock(target, duration: unblock.duration) }
+            present(ActiveRequest(token: request.token, target: target, keyType: unblock.keyType))
+            authAction = .weaken { unlock(target, duration: unblock.duration, proof: $0) }
         case let .blockGroup(groupID):
             guard let group = groups.first(where: { $0.id == groupID }) else { return }
-            present(ActiveRequest(token: request.token, target: .group(group), keyType: nil, allowBypass: true))
-            authAction = { block(group) }
+            present(ActiveRequest(token: request.token, target: .group(group), keyType: nil))
+            authAction = .tighten { block(group) }
         }
     }
 
@@ -128,13 +126,14 @@ private struct WidgetActionResponder: ViewModifier {
         active = request
     }
 
-    private func unlock(_ target: UnblockTarget, duration request: UnlockDurationRequest) {
+    private func unlock(_ target: UnblockTarget, duration request: UnlockDurationRequest, proof: KeyProof) {
+        guard let grant = UnblockGrant(target, proof: proof) else { return }
         guard let settings = allSettings.first, let length = settings.unblockLength(for: request) else {
-            durationTarget = target
+            durationGrant = grant
             return
         }
         try? BlockActions.unblock(
-            target,
+            grant,
             for: length,
             settings: settings,
             screenTimeService: screenTimeService,

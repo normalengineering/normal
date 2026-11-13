@@ -2,8 +2,8 @@ import SwiftUI
 
 struct ScreenTimeGuardModifier: ViewModifier {
     @Environment(ScreenTimeService.self) private var screenTimeService
-    @Binding var action: (@MainActor () -> Void)?
-    @State private var deferred: (@MainActor () -> Void)?
+    @Binding var action: ProtectedAction?
+    @State private var deferred: ProtectedAction?
 
     func body(content: Content) -> some View {
         content.onChange(of: action != nil) { _, hasAction in
@@ -24,7 +24,7 @@ struct ScreenTimeGuardModifier: ViewModifier {
 }
 
 extension View {
-    func screenTimeGuard(action: Binding<(@MainActor () -> Void)?>) -> some View {
+    func screenTimeGuard(action: Binding<ProtectedAction?>) -> some View {
         modifier(ScreenTimeGuardModifier(action: action))
     }
 }

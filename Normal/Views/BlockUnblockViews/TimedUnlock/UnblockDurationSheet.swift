@@ -6,7 +6,7 @@ struct UnblockDurationSheet: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Query private var allSettings: [Settings]
 
-    let target: UnblockTarget
+    let grant: UnblockGrant
     var onUnblock: () -> Void = {}
 
     private var settings: Settings {
@@ -14,7 +14,7 @@ struct UnblockDurationSheet: View {
     }
 
     private var title: String {
-        switch target {
+        switch grant.target {
         case .all: "Unblock All"
         case let .group(group): "Unblock \(group.name)"
         }
@@ -27,7 +27,7 @@ struct UnblockDurationSheet: View {
             initialDuration: settings.defaultDuration,
             onConfirm: { length in
                 try BlockActions.unblock(
-                    target,
+                    grant,
                     for: length,
                     settings: settings,
                     screenTimeService: screenTimeService,

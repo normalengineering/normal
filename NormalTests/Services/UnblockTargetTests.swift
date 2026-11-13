@@ -13,6 +13,10 @@ struct UnblockTargetTests {
         service = TimedUnblockService(activityCenter: activity, sharedStore: store, onExpiration: {})
     }
 
+    private func grant(_ target: UnblockTarget) throws -> UnblockGrant {
+        try #require(UnblockGrant(target, proof: KeyProof(keyGroupID: nil)))
+    }
+
     private func settings(customDomains: Bool) -> Settings {
         let settings = Settings()
         settings.enableCustomDomains = customDomains
@@ -23,7 +27,7 @@ struct UnblockTargetTests {
     @Test func startingAllStartsTheMainUnblock() throws {
         let main = SelectedApps(selection: FamilyActivitySelection(), customDomains: ["a.com"])
 
-        try service.start(.all(main), duration: .oneHour, settings: settings(customDomains: true), screenTimeService: screenTime)
+        try service.start(grant(.all(main)), duration: .oneHour, settings: settings(customDomains: true), screenTimeService: screenTime)
 
         #expect(service.isMainUnblockActive)
         #expect(store.timedUnblocks.first?.customDomains == ["a.com"])
@@ -33,7 +37,7 @@ struct UnblockTargetTests {
     @Test func startingAGroupStartsItsUnblock() throws {
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection(), customDomains: ["b.com"])
 
-        try service.start(.group(group), duration: .oneHour, settings: settings(customDomains: true), screenTimeService: screenTime)
+        try service.start(grant(.group(group)), duration: .oneHour, settings: settings(customDomains: true), screenTimeService: screenTime)
 
         #expect(service.isGroupUnblockActive(groupId: group.id))
         #expect(store.timedUnblocks.first?.customDomains == ["b.com"])
@@ -43,25 +47,25 @@ struct UnblockTargetTests {
     @Test func customDomainsAreLeftOutWhenTurnedOff() throws {
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection(), customDomains: ["b.com"])
 
-        try service.start(.group(group), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
+        try service.start(grant(.group(group)), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
 
         #expect(store.timedUnblocks.first?.customDomains == [])
     }
 
-    @Test func permanentlyUnblockingAllUnblocksEverything() {
+    @Test func permanentlyUnblockingAllUnblocksEverything() throws {
         let main = SelectedApps(selection: FamilyActivitySelection())
 
-        screenTime.unblockPermanently(.all(main), settings: settings(customDomains: true))
+        try screenTime.unblockPermanently(grant(.all(main)), settings: settings(customDomains: true))
 
         #expect(screenTime.unblockAllCalled)
         #expect(screenTime.unblockAllPreventsAppDelete == false)
         #expect(!screenTime.unblockCalled)
     }
 
-    @Test func permanentlyUnblockingAGroupUnblocksItsSelection() {
+    @Test func permanentlyUnblockingAGroupUnblocksItsSelection() throws {
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection(), customDomains: ["b.com"])
 
-        screenTime.unblockPermanently(.group(group), settings: settings(customDomains: true))
+        try screenTime.unblockPermanently(grant(.group(group)), settings: settings(customDomains: true))
 
         #expect(screenTime.unblockCalled)
         #expect(screenTime.unblockCustomDomains == ["b.com"])
@@ -75,13 +79,13 @@ struct UnblockTargetTests {
 
     @Test func groupWithATimerCannotBeUnblockedAgain() throws {
         let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
-        try service.start(.group(group), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
+        try service.start(grant(.group(group)), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
         #expect(!UnblockTarget.group(group).canUnblock(status: .some, timedUnblockService: service))
     }
 
     @Test func allAppsWithATimerCannotBeUnblockedAgain() throws {
         let main = SelectedApps(selection: FamilyActivitySelection())
-        try service.start(.all(main), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
+        try service.start(grant(.all(main)), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
         #expect(!UnblockTarget.all(main).canUnblock(status: .all, timedUnblockService: service))
     }
 }

@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct ProtectedActionModifier: ViewModifier {
-    @Binding var action: (@MainActor () -> Void)?
-    var allowBypass: Bool
+    @Binding var action: ProtectedAction?
     var defaultKeyType: KeyType?
     var requestedKeyType: KeyType?
     var keyGroupID: UUID?
@@ -13,7 +12,6 @@ struct ProtectedActionModifier: ViewModifier {
             .screenTimeGuard(action: $action)
             .keySelect(
                 action: $action,
-                allowBypass: allowBypass,
                 defaultKeyType: defaultKeyType,
                 requestedKeyType: requestedKeyType,
                 keyGroupID: keyGroupID,
@@ -24,8 +22,7 @@ struct ProtectedActionModifier: ViewModifier {
 
 extension View {
     func protectedAction(
-        _ action: Binding<(@MainActor () -> Void)?>,
-        allowBypass: Bool = false,
+        _ action: Binding<ProtectedAction?>,
         defaultKeyType: KeyType? = nil,
         requestedKeyType: KeyType? = nil,
         keyGroupID: UUID? = nil,
@@ -33,7 +30,6 @@ extension View {
     ) -> some View {
         modifier(ProtectedActionModifier(
             action: action,
-            allowBypass: allowBypass,
             defaultKeyType: defaultKeyType,
             requestedKeyType: requestedKeyType,
             keyGroupID: keyGroupID,

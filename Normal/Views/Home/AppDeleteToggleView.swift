@@ -9,12 +9,10 @@ struct AppDeleteToggleView: View {
         ) {
             KeyProtectedToggle(
                 title: "Prevent App Deletion",
-                isOn: screenTimeService.isAppDeleteDisabled
-            ) { enabled in
-                enabled
-                    ? screenTimeService.enablePreventAppDelete()
-                    : screenTimeService.disablePreventAppDelete()
-            }
+                isOn: screenTimeService.isAppDeleteDisabled,
+                onEnable: { screenTimeService.enablePreventAppDelete() },
+                onDisable: { screenTimeService.disablePreventAppDelete($0) }
+            )
             .accessibilityIdentifier("home.preventDeleteToggle")
         }
     }

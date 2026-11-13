@@ -14,10 +14,9 @@ struct GroupListCardView: View {
     let appGroup: AppGroup
     // Hosted on the stable GroupsView list rather than this card: a sheet attached to
     // a card row whose block/unblock buttons swap gets wedged and won't re-present.
-    @Binding var authAction: (@MainActor () -> Void)?
-    @Binding var allowBypass: Bool
+    @Binding var authAction: ProtectedAction?
     @Binding var pendingGroupID: UUID?
-    @Binding var pendingDurationGroup: AppGroup?
+    @Binding var durationGrant: UnblockGrant?
 
     @State private var isEditing = false
     @State private var isReselecting = false
@@ -117,9 +116,8 @@ struct GroupListCardView: View {
         )
     }
 
-    private func requestAction(allowBypass: Bool, _ action: @escaping @MainActor () -> Void) {
+    private func requestAction(_ action: ProtectedAction) {
         pendingGroupID = appGroup.id
-        self.allowBypass = allowBypass
         authAction = action
     }
 
@@ -206,7 +204,7 @@ struct GroupListCardView: View {
                 .foregroundStyle(.secondary)
             Spacer()
             Button {
-                requestAction(allowBypass: true, blockGroup)
+                requestAction(.tighten(blockGroup))
             } label: {
                 Text("Block Now").font(.caption.weight(.semibold))
             }
@@ -233,7 +231,7 @@ struct GroupListCardView: View {
             prominent: true,
             tint: .blue
         ) {
-            requestAction(allowBypass: true, blockGroup)
+            requestAction(.tighten(blockGroup))
         }
         .accessibilityIdentifier("group.blockButton")
         .disabled(!hasGlobalKey)
@@ -245,19 +243,23 @@ struct GroupListCardView: View {
             systemImage: "lock.open.fill",
             prominent: false
         ) {
-            requestAction(allowBypass: false) {
-                if let duration = settings.defaultDuration {
-                    try? timedUnblockService.start(
-                        .group(appGroup),
-                        duration: duration,
-                        settings: settings,
-                        screenTimeService: screenTimeService
-                    )
-                } else {
-                    pendingDurationGroup = appGroup
-                }
-            }
+            requestAction(.weaken(unblockGroup))
         }
         .accessibilityIdentifier("group.unblockButton")
+    }
+
+    private func unblockGroup(_ proof: KeyProof) {
+        guard let grant = UnblockGrant(.group(appGroup), proof: proof) else { return }
+        guard let duration = settings.defaultDuration else {
+            durationGrant = grant
+            return
+        }
+        try? BlockActions.unblock(
+            grant,
+            for: .timed(duration),
+            settings: settings,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService
+        )
     }
 }

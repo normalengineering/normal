@@ -9,8 +9,7 @@ struct TimedUnblockBannerView: View {
 
     let selection: FamilyActivitySelection
     var customDomains: [String] = []
-    @Binding var authAction: (@MainActor () -> Void)?
-    @Binding var allowBypass: Bool
+    @Binding var authAction: ProtectedAction?
 
     private var settings: Settings {
         allSettings.unwrapped
@@ -42,8 +41,7 @@ struct TimedUnblockBannerView: View {
                         prominent: false,
                         tint: .orange
                     ) {
-                        allowBypass = true
-                        authAction = {
+                        authAction = .tighten {
                             timedUnblockService.cancelMain(
                                 selection: selection,
                                 customDomains: effectiveCustomDomains,

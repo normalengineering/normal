@@ -7,8 +7,7 @@ struct KeySelectModifier: ViewModifier {
     @Query private var keys: [Key]
     @Query private var allSettings: [Settings]
 
-    @Binding var action: (@MainActor () -> Void)?
-    var allowBypass: Bool
+    @Binding var action: ProtectedAction?
     var defaultKeyType: KeyType?
     var requestedKeyType: KeyType?
     var keyGroupID: UUID?
@@ -69,7 +68,7 @@ struct KeySelectModifier: ViewModifier {
         NavigationStack {
             KeySelectView(
                 availableKeyTypes: flow.request?.availableKeyTypes ?? [],
-                allowBypass: flow.request?.allowBypass ?? false,
+                allowBypass: flow.allowsBypass,
                 onSelect: flow.choose,
                 onBypass: { flow.requestBypass(skippingConfirmation: settings.skipBlockWithoutKeyConfirmation) }
             )
@@ -133,12 +132,13 @@ struct KeySelectModifier: ViewModifier {
     }
 
     private func start() {
+        guard let action else { return }
         let scopedKeys = Key.scoped(keys, toGroup: keyGroupID)
         flow.start(
             KeyCheckFlow.Request(
                 keys: scopedKeys,
+                keyGroupID: keyGroupID,
                 availableKeyTypes: KeyType.selectable(registered: scopedKeys.map(\.type)),
-                allowBypass: allowBypass,
                 defaultKeyType: defaultKeyType,
                 requestedKeyType: requestedKeyType
             ),
@@ -149,8 +149,7 @@ struct KeySelectModifier: ViewModifier {
 
 extension View {
     func keySelect(
-        action: Binding<(@MainActor () -> Void)?>,
-        allowBypass: Bool = false,
+        action: Binding<ProtectedAction?>,
         defaultKeyType: KeyType? = nil,
         requestedKeyType: KeyType? = nil,
         keyGroupID: UUID? = nil,
@@ -158,7 +157,6 @@ extension View {
     ) -> some View {
         modifier(KeySelectModifier(
             action: action,
-            allowBypass: allowBypass,
             defaultKeyType: defaultKeyType,
             requestedKeyType: requestedKeyType,
             keyGroupID: keyGroupID,

@@ -55,9 +55,10 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
 
         let location = await locationVerifier.check(keys: keys)
         try Task.checkCancellation()
+        let proof: KeyProof
         switch location {
         case .verified:
-            break
+            proof = KeyProof(keyGroupID: request.groupID)
         case .outOfRange:
             throw UnblockIntentError.notAtLocation(radiusKind)
         case .needsAlways:
@@ -74,8 +75,10 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         case let .settled(outcome):
             return outcome
         case let .ready(settings, target):
-            guard let length = settings.unblockLength(for: request.duration) else { return .continueInApp(.checkKey) }
-            return try start(target, for: length, settings: settings)
+            guard let length = settings.unblockLength(for: request.duration),
+                  let grant = UnblockGrant(target, proof: proof)
+            else { return .continueInApp(.checkKey) }
+            return try start(grant, for: length, settings: settings)
         }
     }
 
@@ -107,10 +110,10 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         return .ready(settings, target)
     }
 
-    private func start(_ target: UnblockTarget, for length: UnblockLength, settings: Settings) throws -> UnblockOutcome {
+    private func start(_ grant: UnblockGrant, for length: UnblockLength, settings: Settings) throws -> UnblockOutcome {
         do {
             try BlockActions.unblock(
-                target,
+                grant,
                 for: length,
                 settings: settings,
                 screenTimeService: intents.screenTimeService,
@@ -123,7 +126,7 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         if syncsExternalSurfaces {
             intents.syncExternalSurfaces(settings: settings)
         }
-        return .unblocked(name: target.name, length: length)
+        return .unblocked(name: grant.target.name, length: length)
     }
 
     private func keyType(for request: UnblockRequest, keys: [Key], settings: Settings?) -> KeyType? {

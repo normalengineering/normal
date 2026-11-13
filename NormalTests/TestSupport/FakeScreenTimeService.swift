@@ -63,7 +63,7 @@ final class FakeScreenTimeService: ScreenTimeProviding {
         enablePreventAppDeleteCalled = true
     }
 
-    func disablePreventAppDelete() {
+    func disablePreventAppDelete(_: KeyProof) {
         disablePreventAppDeleteCalled = true
     }
 
@@ -85,13 +85,13 @@ final class FakeScreenTimeService: ScreenTimeProviding {
         unblockAllCalled = true
         unblockAllPreventsAppDelete = blockAllPreventsAppDelete
         if blockAllPreventsAppDelete {
-            disablePreventAppDelete()
+            disablePreventAppDeleteCalled = true
         }
     }
 
     func removeAllRestrictions() {
         removeAllRestrictionsCalled = true
-        disablePreventAppDelete()
+        disablePreventAppDeleteCalled = true
     }
 
     func block(selection: FamilyActivitySelection, customDomains: [String] = []) {

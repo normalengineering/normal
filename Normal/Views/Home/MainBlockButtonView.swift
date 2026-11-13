@@ -8,10 +8,9 @@ struct MainBlockButtonView: View {
     @Query private var keys: [Key]
 
     let mainSelection: SelectedApps
-    @Binding var authAction: (@MainActor () -> Void)?
-    @Binding var allowBypass: Bool
+    @Binding var authAction: ProtectedAction?
     let onBlock: @MainActor () -> Void
-    let onUnblock: @MainActor () -> Void
+    let onUnblock: @MainActor (KeyProof) -> Void
 
     private var settings: Settings {
         allSettings.unwrapped
@@ -54,8 +53,7 @@ struct MainBlockButtonView: View {
 
     private var blockRow: some View {
         Button {
-            allowBypass = true
-            authAction = onBlock
+            authAction = .tighten { onBlock() }
         } label: {
             HStack {
                 Label("Block All", systemImage: "lock.fill")
@@ -70,8 +68,7 @@ struct MainBlockButtonView: View {
 
     private var unblockRow: some View {
         Button {
-            allowBypass = false
-            authAction = onUnblock
+            authAction = .weaken { onUnblock($0) }
         } label: {
             HStack {
                 Label("Unblock All", systemImage: "lock.open.fill")
