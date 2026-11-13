@@ -22,6 +22,8 @@ enum UITestSupport {
 
     static let seedGroupKey = arguments.contains("-uiTestSeedGroupKey")
 
+    static let seedLocationKey = arguments.contains("-uiTestSeedLocationKey")
+
     static let seedGroupID = UUID(uuidString: "6E0A1C9B-2D4F-4B7A-9C3E-5F8D1A2B3C4D")!
 
     static let skipBypassConfirm = arguments.contains("-uiTestSkipBypassConfirm")

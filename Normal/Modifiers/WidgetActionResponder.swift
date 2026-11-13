@@ -13,11 +13,16 @@ private struct WidgetActionResponder: ViewModifier {
     @Binding var selectedTab: AppTab
 
     @State private var authAction: (@MainActor () -> Void)?
-    @State private var actionGroup: AppGroup?
-    @State private var keyType: KeyType?
-    @State private var allowBypass = false
-    @State private var requestID: UUID?
+    @State private var active: ActiveRequest?
+    @State private var heldRequest: GroupActionRequest?
     @State private var durationTarget: UnblockTarget?
+
+    private struct ActiveRequest {
+        let token: UUID
+        let group: AppGroup
+        let keyType: KeyType?
+        let allowBypass: Bool
+    }
 
     private var unblockDurations: [TimedUnblockDuration] {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
@@ -27,12 +32,12 @@ private struct WidgetActionResponder: ViewModifier {
         content
             .protectedAction(
                 $authAction,
-                allowBypass: allowBypass,
-                defaultKeyType: keyType,
-                keyGroupID: actionGroup?.id,
-                requestID: requestID
+                allowBypass: active?.allowBypass ?? false,
+                defaultKeyType: active?.keyType,
+                keyGroupID: active?.group.id,
+                requestID: active?.token
             )
-            .sheet(item: $durationTarget) { target in
+            .sheet(item: $durationTarget, onDismiss: replayHeldRequest) { target in
                 UnblockDurationSheet(target: target)
             }
             .onOpenURL { coordinator.handle(url: $0) }
@@ -59,30 +64,31 @@ private struct WidgetActionResponder: ViewModifier {
     }
 
     private func resolve(_ request: GroupActionRequest?) {
-        guard let request,
-              durationTarget == nil,
-              allSettings.first?.hasCompletedOnboarding == true,
-              let group = groups.first(where: { $0.id == request.groupID })
-        else {
-            coordinator.clearPendingGroupAction()
+        guard let request else { return }
+        coordinator.clearPendingGroupAction()
+        guard durationTarget == nil else {
+            heldRequest = request
             return
         }
+        guard allSettings.first?.hasCompletedOnboarding == true,
+              let group = groups.first(where: { $0.id == request.groupID })
+        else { return }
         selectedTab = .groups
-        actionGroup = group
-        requestID = request.token
 
         switch request.action {
-        case let .unlock(duration, requestedKeyType):
-            keyType = requestedKeyType
-            allowBypass = false
+        case let .unlock(duration, keyType):
+            active = ActiveRequest(token: request.token, group: group, keyType: keyType, allowBypass: false)
             authAction = { unlock(group, duration: duration) }
         case .block:
-            keyType = nil
-            allowBypass = true
+            active = ActiveRequest(token: request.token, group: group, keyType: nil, allowBypass: true)
             authAction = { block(group) }
         }
+    }
 
-        coordinator.clearPendingGroupAction()
+    private func replayHeldRequest() {
+        guard let held = heldRequest else { return }
+        heldRequest = nil
+        resolve(held)
     }
 
     private func unlock(_ group: AppGroup, duration request: UnlockDurationRequest) {

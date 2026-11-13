@@ -60,6 +60,23 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(app.buttons["home.blockAll"].waitForExistence(timeout: timeout))
     }
 
+    func testLocationKeyIsCheckedAfterThePickerCloses() {
+        let app = launch(["-uiTestSeedLocationKey"])
+        blockViaBypass(app)
+
+        app.buttons["home.unblockAll"].tap()
+        let locationRow = app.buttons["keySelect.row.LOCATION"]
+        require(locationRow, "The picker should offer the location key")
+        locationRow.tap()
+
+        let permanent = app.buttons["timedUnblock.permanent"]
+        require(permanent, "A verified location should continue to the duration sheet")
+        permanent.tap()
+        app.buttons["timedUnblock.confirm"].tap()
+
+        require(app.staticTexts["No Active Blocks"], "Apps should be unblocked")
+    }
+
     func testBlockingDisablesKeysTab() {
         let app = launch()
         blockViaBypass(app)
