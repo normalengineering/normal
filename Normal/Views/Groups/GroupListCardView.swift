@@ -52,7 +52,7 @@ struct GroupListCardView: View {
     }
 
     private var showsTimedUnblock: Bool {
-        isTimedUnblockActive && blockStatus != .all
+        blockStatus.showsGroupTimedUnblock(timedUnblockActive: isTimedUnblockActive)
     }
 
     private var needsSync: Bool {

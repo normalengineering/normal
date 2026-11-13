@@ -116,6 +116,38 @@ struct BlockActionsTests {
         #expect(stopped.contains(SharedConstants.groupTimedUnblockActivityName(for: group.id)))
     }
 
+    @Test func timedUnblockStartsATimer() throws {
+        let timedUnblock = makeTimedUnblock()
+        let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
+
+        try BlockActions.unblock(
+            .group(group),
+            for: .timed(.oneHour),
+            settings: makeSettings(),
+            screenTimeService: screenTime,
+            timedUnblockService: timedUnblock
+        )
+
+        #expect(timedUnblock.isGroupUnblockActive(groupId: group.id))
+        #expect(!screenTime.unblockCalled)
+    }
+
+    @Test func permanentUnblockLiftsTheShieldWithoutATimer() throws {
+        let timedUnblock = makeTimedUnblock()
+        let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
+
+        try BlockActions.unblock(
+            .group(group),
+            for: .permanent,
+            settings: makeSettings(),
+            screenTimeService: screenTime,
+            timedUnblockService: timedUnblock
+        )
+
+        #expect(screenTime.unblockCalled)
+        #expect(!timedUnblock.isGroupUnblockActive(groupId: group.id))
+    }
+
     private func timedUnblockRecord(id: String, activityName: String, endingIn interval: TimeInterval) throws -> TimedUnblockDTO {
         try TimedUnblockDTO(
             id: id,

@@ -41,6 +41,14 @@ struct NavigationCoordinatorWidgetTests {
         #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .ask, keyType: nil)))
     }
 
+    @Test func handleParsesUntilManuallyReblocked() {
+        let c = NavigationCoordinator()
+        let id = UUID()
+        c.handle(url: unlockURL(groupID: id, duration: .permanent))
+
+        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .permanent, keyType: nil)))
+    }
+
     @Test(arguments: ["999", "60", "90000", "abc"])
     func handleFallsBackToAskingForInvalidDuration(_ value: String) throws {
         let c = NavigationCoordinator()

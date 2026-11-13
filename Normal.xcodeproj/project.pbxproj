@@ -148,9 +148,11 @@
 				BlockIntents.swift,
 				DismissUnblockActivityIntent.swift,
 				GroupEntity.swift,
+				KeyTypeEntity.swift,
 				SharedConstants.swift,
 				TimedUnblockActivityAttributes.swift,
 				TimedUnblockDuration.swift,
+				UnblockDurationEntity.swift,
 				WidgetSharedData.swift,
 			);
 			target = 2FDA0000000000000000A003 /* NormalWidget */;

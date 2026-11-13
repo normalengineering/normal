@@ -67,4 +67,21 @@ struct UnblockTargetTests {
         #expect(screenTime.unblockCustomDomains == ["b.com"])
         #expect(!screenTime.unblockAllCalled)
     }
+
+    @Test func blockedGroupWithoutATimerCanBeUnblocked() {
+        let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
+        #expect(UnblockTarget.group(group).canUnblock(status: .some, timedUnblockService: service))
+    }
+
+    @Test func groupWithATimerCannotBeUnblockedAgain() throws {
+        let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
+        try service.start(.group(group), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
+        #expect(!UnblockTarget.group(group).canUnblock(status: .some, timedUnblockService: service))
+    }
+
+    @Test func allAppsWithATimerCannotBeUnblockedAgain() throws {
+        let main = SelectedApps(selection: FamilyActivitySelection())
+        try service.start(.all(main), duration: .oneHour, settings: settings(customDomains: false), screenTimeService: screenTime)
+        #expect(!UnblockTarget.all(main).canUnblock(status: .all, timedUnblockService: service))
+    }
 }

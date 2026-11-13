@@ -23,7 +23,7 @@ enum BlockIntentError: Error, Equatable, CustomLocalizedStringResourceConvertibl
         case .setupIncomplete: "Finish setting up Normal first."
         case .screenTimeNotAuthorized: "Normal needs Screen Time access. Open Normal to allow it."
         case .noGlobalKey: "Add a key in Normal before blocking apps."
-        case .noAppsSelected: "Select apps to block in Normal first."
+        case .noAppsSelected: "Select apps in Normal first."
         case .groupNotFound: "That group no longer exists."
         }
     }

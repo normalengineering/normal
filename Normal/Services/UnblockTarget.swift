@@ -19,10 +19,26 @@ enum UnblockTarget: Identifiable {
         return nil
     }
 
+    var name: String {
+        switch self {
+        case .all: String(localized: "All Apps")
+        case let .group(group): group.name
+        }
+    }
+
     var selection: FamilyActivitySelection {
         switch self {
         case let .all(mainSelection): mainSelection.selection
         case let .group(group): group.selection
+        }
+    }
+
+    func canUnblock(status: BlockStatus, timedUnblockService: TimedUnblockService) -> Bool {
+        switch self {
+        case .all:
+            status.canUnblockAll(timedUnblockActive: timedUnblockService.isMainUnblockActive)
+        case let .group(group):
+            status.canUnblockGroup(timedUnblockActive: timedUnblockService.isGroupUnblockActive(groupId: group.id))
         }
     }
 
@@ -63,6 +79,10 @@ extension TimedUnblockService {
 }
 
 extension ScreenTimeProviding {
+    func blockStatus(of target: UnblockTarget, settings: Settings) -> BlockStatus {
+        blockStatus(selection: target.selection, customDomains: target.customDomains(settings: settings))
+    }
+
     func unblockPermanently(_ target: UnblockTarget, settings: Settings) {
         switch target {
         case .all:

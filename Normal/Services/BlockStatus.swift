@@ -38,6 +38,20 @@ enum BlockStatus: Sendable, Equatable {
     }
 }
 
+extension BlockStatus {
+    func canUnblockAll(timedUnblockActive: Bool) -> Bool {
+        self != .none && !timedUnblockActive
+    }
+
+    func showsGroupTimedUnblock(timedUnblockActive: Bool) -> Bool {
+        timedUnblockActive && self != .all
+    }
+
+    func canUnblockGroup(timedUnblockActive: Bool) -> Bool {
+        self != .none && !showsGroupTimedUnblock(timedUnblockActive: timedUnblockActive)
+    }
+}
+
 enum AuthorizationState: Sendable, Equatable {
     case authorized
     case notAuthorized

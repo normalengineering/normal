@@ -25,17 +25,14 @@ struct UnblockDurationSheet: View {
             title: title,
             durations: settings.unblockDurations,
             initialDuration: settings.defaultDuration,
-            onTimedUnblock: { duration in
-                try timedUnblockService.start(
+            onConfirm: { length in
+                try BlockActions.unblock(
                     target,
-                    duration: duration,
+                    for: length,
                     settings: settings,
-                    screenTimeService: screenTimeService
+                    screenTimeService: screenTimeService,
+                    timedUnblockService: timedUnblockService
                 )
-                onUnblock()
-            },
-            onPermanentUnblock: {
-                screenTimeService.unblockPermanently(target, settings: settings)
                 onUnblock()
             }
         )

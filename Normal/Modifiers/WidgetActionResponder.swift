@@ -5,6 +5,8 @@ import SwiftUI
 private struct WidgetActionResponder: ViewModifier {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(UnlockRequestInbox.self) private var unlockInbox
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var allSettings: [Settings]
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)]) private var groups: [AppGroup]
     @Query private var keys: [Key]
@@ -38,11 +40,14 @@ private struct WidgetActionResponder: ViewModifier {
                 keyGroupID: active?.target.groupID,
                 requestID: active?.token
             )
-            .sheet(item: $durationTarget, onDismiss: replayHeldRequest) { target in
+            .sheet(item: $durationTarget, onDismiss: durationSheetDismissed) { target in
                 UnblockDurationSheet(target: target)
             }
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingAction) { _, request in resolve(request) }
+            .onChange(of: unlockInbox.pending, initial: true) { _, _ in takeInboxRequest() }
+            .onChange(of: scenePhase) { _, _ in takeInboxRequest() }
+            .onChange(of: screenTimeService.authorizationState) { _, _ in takeInboxRequest() }
             .onChange(of: groups) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
@@ -62,6 +67,26 @@ private struct WidgetActionResponder: ViewModifier {
     private func syncGroups() {
         syncWidget()
         NormalShortcuts.updateAppShortcutParameters()
+    }
+
+    private func takeInboxRequest() {
+        guard scenePhase == .active,
+              screenTimeService.authorizationState == .authorized,
+              durationTarget == nil,
+              let request = unlockInbox.take(),
+              let settings = allSettings.first,
+              let target = target(for: request.groupID),
+              target.canUnblock(
+                  status: screenTimeService.blockStatus(of: target, settings: settings),
+                  timedUnblockService: timedUnblockService
+              )
+        else { return }
+        coordinator.requestUnblock(request)
+    }
+
+    private func durationSheetDismissed() {
+        replayHeldRequest()
+        takeInboxRequest()
     }
 
     private func resolve(_ request: ActionRequest?) {
@@ -104,15 +129,16 @@ private struct WidgetActionResponder: ViewModifier {
     }
 
     private func unlock(_ target: UnblockTarget, duration request: UnlockDurationRequest) {
-        guard let settings = allSettings.first, let duration = settings.duration(for: request) else {
+        guard let settings = allSettings.first, let length = settings.unblockLength(for: request) else {
             durationTarget = target
             return
         }
-        try? timedUnblockService.start(
+        try? BlockActions.unblock(
             target,
-            duration: duration,
+            for: length,
             settings: settings,
-            screenTimeService: screenTimeService
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService
         )
     }
 

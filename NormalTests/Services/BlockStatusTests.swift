@@ -20,6 +20,27 @@ struct BlockStatusTests {
         #expect(!BlockStatus.none.icon.isEmpty)
     }
 
+    @Test func unblockAllNeedsABlockAndNoActiveTimer() {
+        #expect(BlockStatus.all.canUnblockAll(timedUnblockActive: false))
+        #expect(BlockStatus.some.canUnblockAll(timedUnblockActive: false))
+        #expect(!BlockStatus.none.canUnblockAll(timedUnblockActive: false))
+        #expect(!BlockStatus.all.canUnblockAll(timedUnblockActive: true))
+    }
+
+    @Test func groupTimerShowsUnlessFullyBlockedElsewhere() {
+        #expect(BlockStatus.some.showsGroupTimedUnblock(timedUnblockActive: true))
+        #expect(BlockStatus.none.showsGroupTimedUnblock(timedUnblockActive: true))
+        #expect(!BlockStatus.all.showsGroupTimedUnblock(timedUnblockActive: true))
+        #expect(!BlockStatus.some.showsGroupTimedUnblock(timedUnblockActive: false))
+    }
+
+    @Test func groupCanBeUnblockedWhenBlockedWithoutATimer() {
+        #expect(BlockStatus.some.canUnblockGroup(timedUnblockActive: false))
+        #expect(BlockStatus.all.canUnblockGroup(timedUnblockActive: true))
+        #expect(!BlockStatus.some.canUnblockGroup(timedUnblockActive: true))
+        #expect(!BlockStatus.none.canUnblockGroup(timedUnblockActive: false))
+    }
+
     @Test func authorizationStateEquatable() {
         #expect(AuthorizationState.authorized == .authorized)
         #expect(AuthorizationState.notAuthorized == .notAuthorized)

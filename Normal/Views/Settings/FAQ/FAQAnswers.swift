@@ -167,6 +167,25 @@ enum FAQAnswer {
     )
 
     static let keyTypes = AnyView(KeyTypesFAQView())
+
+    static let shortcutsUnblock = AnyView(
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+            Text("Yes. Normal adds Unblock All Apps and Unblock Group to the Shortcuts app. Your key is still checked, so Normal opens to scan it.")
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                Text("Unblock with an NFC tag").fontWeight(.medium).foregroundStyle(.primary)
+                NumberedRow(number: 1, text: "In Shortcuts, add an NFC automation and scan your tag")
+                NumberedRow(number: 2, text: "Set it to run without asking")
+                NumberedRow(number: 3, text: "Add Unblock All Apps and set Key Type to NFC Tag")
+                NumberedRow(number: 4, text: "Tap the tag, then hold your iPhone on it while Normal checks it")
+            }
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                BulletRow(text: "QR Code / Barcode keys open the scanner in Normal")
+                BulletRow(text: "With no Key Type, Normal uses your Default Key")
+            }
+        }
+        .font(body)
+        .foregroundStyle(.secondary)
+    )
 }
 
 private struct FAQHeadedParagraph: View {

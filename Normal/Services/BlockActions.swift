@@ -28,6 +28,26 @@ enum BlockActions {
         screenTimeService.block(selection: group.selection, customDomains: customDomains)
     }
 
+    static func unblock(
+        _ target: UnblockTarget,
+        for length: UnblockLength,
+        settings: Settings,
+        screenTimeService: any ScreenTimeProviding,
+        timedUnblockService: TimedUnblockService
+    ) throws {
+        switch length {
+        case let .timed(duration):
+            try timedUnblockService.start(
+                target,
+                duration: duration,
+                settings: settings,
+                screenTimeService: screenTimeService
+            )
+        case .permanent:
+            screenTimeService.unblockPermanently(target, settings: settings)
+        }
+    }
+
     static func emergencyUnblock(
         schedules: [BlockSchedule],
         screenTimeService: any ScreenTimeProviding,
@@ -42,8 +62,12 @@ enum BlockActions {
     }
 
     static func validate(isAuthorized: Bool, hasCompletedOnboarding: Bool, keys: [Key]) throws {
+        try validateSetup(isAuthorized: isAuthorized, hasCompletedOnboarding: hasCompletedOnboarding)
+        guard Key.hasGlobalKey(in: keys) else { throw BlockIntentError.noGlobalKey }
+    }
+
+    static func validateSetup(isAuthorized: Bool, hasCompletedOnboarding: Bool) throws {
         guard hasCompletedOnboarding else { throw BlockIntentError.setupIncomplete }
         guard isAuthorized else { throw BlockIntentError.screenTimeNotAuthorized }
-        guard Key.hasGlobalKey(in: keys) else { throw BlockIntentError.noGlobalKey }
     }
 }
