@@ -49,6 +49,15 @@ struct NormalApp: App {
                 context.insert(group)
                 context.insert(Key(name: "Group Key", type: .qr, rawValue: "GROUP-VALUE", groupID: group.id))
             }
+            if UITestSupport.seedLocationKey {
+                context.insert(Key(
+                    name: "Test Place",
+                    latitude: 37.33182,
+                    longitude: -122.03118,
+                    radiusMeters: 400,
+                    radiusKind: .unblock
+                ))
+            }
             if UITestSupport.seedSchedule {
                 context.insert(BlockSchedule(
                     name: "Test Schedule",
