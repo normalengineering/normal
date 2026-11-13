@@ -104,6 +104,52 @@ final class BlockingUITests: XCTestCase {
         )
     }
 
+    func testTurningOffPreventAppDeleteNeedsAKey() {
+        let app = launch()
+        blockViaBypass(app)
+        let toggle = app.switches["home.preventDeleteToggle"]
+        requireValue("1", of: toggle, "Blocking should disable app deletion")
+
+        tapSwitch(toggle)
+        requireKeyWithoutBypass(app)
+        requireValue("0", of: toggle, "Passing the key should turn the toggle off")
+    }
+
+    func testBlockAdultWebsitesTurnsOnWithoutAKeyAndOffWithOne() {
+        let app = launch()
+        app.buttons["nav.settings"].tap()
+        let toggle = app.switches["settings.blockAdultContentToggle"]
+        require(toggle, "Settings should show the adult content toggle")
+        XCTAssertEqual(toggle.value as? String, "0", "Starts off")
+
+        tapSwitch(toggle)
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Turning on should offer blocking without a key")
+        bypass.tap()
+        confirmBypass(app)
+        requireValue("1", of: toggle, "Bypass should turn the filter on")
+
+        tapSwitch(toggle)
+        requireKeyWithoutBypass(app)
+        requireValue("0", of: toggle, "Passing the key should turn the filter off")
+    }
+
+    private func tapSwitch(_ toggle: XCUIElement) {
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+    }
+
+    private func requireKeyWithoutBypass(_ app: XCUIApplication) {
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Turning off should ask for a key")
+        XCTAssertFalse(app.buttons["keySelect.blockWithoutKey"].exists, "Turning off must not offer a bypass")
+        keyRow.tap()
+    }
+
+    private func requireValue(_ value: String, of element: XCUIElement, _ message: String) {
+        let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", value), object: element)
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: timeout), .completed, message)
+    }
+
     func testTimedUnblockBannerThenBlockNowReblocks() {
         let app = launch()
         blockViaBypass(app)
