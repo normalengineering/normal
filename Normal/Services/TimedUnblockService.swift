@@ -64,7 +64,7 @@ final class TimedUnblockService {
         cancelMonitoring(activityName: activityName)
 
         let start = clock()
-        let endDate = start.addingTimeInterval(duration.timeInterval)
+        let endDate = Self.endDate(of: duration, from: start)
         try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
@@ -95,7 +95,7 @@ final class TimedUnblockService {
         cancelMonitoring(activityName: activityName)
 
         let start = clock()
-        let endDate = start.addingTimeInterval(duration.timeInterval)
+        let endDate = Self.endDate(of: duration, from: start)
         try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
@@ -278,6 +278,11 @@ final class TimedUnblockService {
             }
             forget(id: key)
         }
+    }
+
+    private static func endDate(of duration: TimedUnblockDuration, from start: Date) -> Date {
+        let end = start.addingTimeInterval(duration.timeInterval).timeIntervalSinceReferenceDate
+        return Date(timeIntervalSinceReferenceDate: end.rounded(.down))
     }
 
     private func scheduleActivity(name: String, start: Date, endDate: Date) throws {

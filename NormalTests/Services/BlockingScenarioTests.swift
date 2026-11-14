@@ -275,6 +275,27 @@ struct BlockingScenarioTests {
         #expect(h.blocked == h.apps(1, 2))
     }
 
+    @Test func timedUnblockAllStartedMidSecondReblocksAtItsRegisteredEnd() throws {
+        let h = BlockingHarness()
+        h.blockAll()
+        h.passTime(to: h.at(10).addingTimeInterval(0.6))
+        try h.unblockAllTimed(.thirtyMinutes)
+
+        h.wake(at: try h.registeredEnd(of: SharedConstants.mainTimedUnblockActivityName))
+        #expect(h.blocked == h.apps(1, 2, 3))
+    }
+
+    @Test func groupTimedUnblockStartedMidSecondReblocksAtItsRegisteredEnd() throws {
+        let h = BlockingHarness()
+        h.blockAll()
+        let social = h.group([1, 2])
+        h.passTime(to: h.at(10).addingTimeInterval(0.6))
+        try h.unblockGroupTimed(social, .oneHour)
+
+        h.wake(at: try h.registeredEnd(of: SharedConstants.groupTimedUnblockActivityName(for: social.id)))
+        #expect(h.blocked == h.apps(1, 2, 3))
+    }
+
     @Test func blockingAGroupDuringTimedUnblockAllAppliesNowAndAfter() throws {
         let h = BlockingHarness()
         h.blockAll()
