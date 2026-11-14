@@ -2,6 +2,7 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
+@available(iOS 18.0, *)
 struct BlockAllControl: ControlWidget {
     static let kind = "BlockAllControl"
 
@@ -17,6 +18,7 @@ struct BlockAllControl: ControlWidget {
     }
 }
 
+@available(iOS 18.0, *)
 struct BlockGroupControl: ControlWidget {
     static let kind = "BlockGroupControl"
 
@@ -39,6 +41,7 @@ struct BlockGroupControl: ControlWidget {
     }
 }
 
+@available(iOS 18.0, *)
 struct BlockGroupControlConfiguration: ControlConfigurationIntent {
     static let title: LocalizedStringResource = "Block Group"
 

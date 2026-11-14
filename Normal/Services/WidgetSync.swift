@@ -30,7 +30,9 @@ enum WidgetSync {
 
     static func reloadTimelines() {
         WidgetCenter.shared.reloadAllTimelines()
-        ControlCenter.shared.reloadAllControls()
+        if #available(iOS 18.0, *) {
+            ControlCenter.shared.reloadAllControls()
+        }
     }
 }
 

@@ -30,6 +30,29 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
+            tabView
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Close") { dismiss() }
+                    }
+                }
+                .alert("Emergency Unblock", isPresented: $showConfirmation) {
+                    Button("Unblock All Apps", role: .destructive, action: performEmergencyUnblock)
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining.")
+                }
+                .alert("All Apps Unblocked", isPresented: $showSuccessAlert) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("All app blocks have been removed. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining.")
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var tabView: some View {
+        if #available(iOS 18.0, *) {
             TabView(selection: $selectedTab) {
                 Tab(SettingsTab.general.title, systemImage: SettingsTab.general.icon, value: SettingsTab.general) {
                     GeneralSettingsView(
@@ -58,21 +81,34 @@ struct SettingsView: View {
                         .navigationTitle("Donate")
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
-            .alert("Emergency Unblock", isPresented: $showConfirmation) {
-                Button("Unblock All Apps", role: .destructive, action: performEmergencyUnblock)
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining.")
-            }
-            .alert("All Apps Unblocked", isPresented: $showSuccessAlert) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("All app blocks have been removed. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining.")
+        } else {
+            TabView(selection: $selectedTab) {
+                GeneralSettingsView(
+                    settings: settings,
+                    availableKeyTypes: availableKeyTypes
+                )
+                .navigationTitle(SettingsTab.general.title)
+                .tabItem { Label(SettingsTab.general.title, systemImage: SettingsTab.general.icon) }
+                .tag(SettingsTab.general)
+
+                EmergencyUnblockView(
+                    settings: settings,
+                    showConfirmation: $showConfirmation,
+                    performEmergencyUnblock: performEmergencyUnblock
+                )
+                .navigationTitle("Emergency Unblock")
+                .tabItem { Label(SettingsTab.emergencyUnblock.title, systemImage: SettingsTab.emergencyUnblock.icon) }
+                .tag(SettingsTab.emergencyUnblock)
+
+                FAQView()
+                    .navigationTitle("FAQ")
+                    .tabItem { Label(SettingsTab.faq.title, systemImage: SettingsTab.faq.icon) }
+                    .tag(SettingsTab.faq)
+
+                DonationView()
+                    .navigationTitle("Donate")
+                    .tabItem { Label(SettingsTab.donation.title, systemImage: SettingsTab.donation.icon) }
+                    .tag(SettingsTab.donation)
             }
         }
     }

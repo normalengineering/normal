@@ -6,7 +6,9 @@ struct NormalWidgetBundle: WidgetBundle {
     var body: some Widget {
         GroupUnlockWidget()
         TimedUnblockLiveActivity()
-        BlockAllControl()
-        BlockGroupControl()
+        if #available(iOS 18.0, *) {
+            BlockAllControl()
+            BlockGroupControl()
+        }
     }
 }
