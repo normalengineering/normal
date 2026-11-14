@@ -60,7 +60,7 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(app.buttons["home.blockAll"].waitForExistence(timeout: timeout))
     }
 
-    func testLocationKeyIsCheckedAfterThePickerCloses() {
+    func testLocationKeyIsCheckedFromThePicker() {
         let app = launch(["-uiTestSeedLocationKey"])
         blockViaBypass(app)
 

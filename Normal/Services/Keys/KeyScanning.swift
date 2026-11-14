@@ -4,5 +4,10 @@ protocol KeyScanning: AnyObject {
     func scan(validate: ((String) -> Bool)?) async throws -> String
 }
 
-extension NFCService: KeyScanning {}
-extension QRService: KeyScanning {}
+protocol CancellableKeyScanning: KeyScanning {
+    var isScanning: Bool { get }
+    func cancel()
+}
+
+extension NFCService: CancellableKeyScanning {}
+extension QRService: CancellableKeyScanning {}

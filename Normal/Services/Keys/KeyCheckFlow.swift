@@ -1,13 +1,6 @@
 import Foundation
 import Observation
 
-protocol QRScanning: KeyScanning {
-    var isScanning: Bool { get }
-    func cancel()
-}
-
-extension QRService: QRScanning {}
-
 @Observable
 final class KeyCheckFlow {
     struct Request {
@@ -26,21 +19,25 @@ final class KeyCheckFlow {
         case confirmingBypass
         case scanningQR
         case scanningNFC
-        case openingLocation
         case checkingLocation
-
-        var showsKeySheet: Bool {
-            switch self {
-            case .choosing, .confirmingBypass, .scanningQR: true
-            default: false
-            }
-        }
     }
 
     enum SheetScreen: Equatable {
         case picker
         case bypassConfirm
         case qrScanner
+        case location
+    }
+
+    struct LocationCheck {
+        let requestID: UUID
+        let keys: [Key]
+    }
+
+    private struct Scan {
+        let id: UUID
+        let keyType: KeyType
+        let task: Task<Void, Never>
     }
 
     private(set) var stage: Stage = .idle
@@ -48,19 +45,38 @@ final class KeyCheckFlow {
     private(set) var allowsBypass = false
     private(set) var sheetScreen: SheetScreen = .picker
     private(set) var finishedRequestID: UUID?
+    private(set) var locationCheck: LocationCheck?
+    private var nfcOverPicker = false
+    private var nfcChosenFromPicker = false
 
-    private let nfc: any KeyScanning
-    private let qr: any QRScanning
-    @ObservationIgnored private var qrScanRequestID: UUID?
+    var canReturnToPicker: Bool {
+        allowsBypass || (request?.availableKeyTypes.count ?? 0) > 1
+    }
+
+    var showsKeySheet: Bool {
+        switch stage {
+        case .choosing, .confirmingBypass, .scanningQR, .checkingLocation: true
+        case .scanningNFC: nfcOverPicker
+        case .idle, .noKeys: false
+        }
+    }
+
+    var keySheetIsMinimized: Bool {
+        stage == .scanningNFC && !nfcChosenFromPicker
+    }
+
+    private let nfc: any CancellableKeyScanning
+    private let qr: any CancellableKeyScanning
+    @ObservationIgnored private var scan: Scan?
     @ObservationIgnored private var action: ProtectedAction?
 
-    init(nfc: any KeyScanning, qr: any QRScanning) {
+    init(nfc: any CancellableKeyScanning, qr: any CancellableKeyScanning) {
         self.nfc = nfc
         self.qr = qr
     }
 
     func start(_ request: Request, action: ProtectedAction) {
-        stopQRScan()
+        stopScan()
         self.request = request
         self.action = action
         allowsBypass = action.allowsBypass
@@ -73,7 +89,7 @@ final class KeyCheckFlow {
         case .showNoKeysAlert:
             stage = .noKeys
         case let .autoSelect(keyType):
-            begin(keyType)
+            begin(keyType, fromPicker: false)
         case .showSheet:
             sheetScreen = .picker
             stage = .choosing
@@ -82,7 +98,7 @@ final class KeyCheckFlow {
 
     func choose(_ keyType: KeyType) {
         guard stage == .choosing else { return }
-        begin(keyType)
+        begin(keyType, fromPicker: true)
     }
 
     func requestBypass(skippingConfirmation: Bool) {
@@ -107,9 +123,13 @@ final class KeyCheckFlow {
     }
 
     func scannerAppeared() {
-        guard stage == .scanningQR, qrScanRequestID == nil, let request else { return }
-        qrScanRequestID = request.id
-        check(QRKeyMethod(qrService: qr, keys: request.keys), for: request)
+        guard stage == .scanningQR, scan == nil, let request else { return }
+        check(QRKeyMethod(qrService: qr, keys: request.keys), keyType: .qr)
+    }
+
+    func promptCancelled() {
+        guard stage == .scanningQR || stage == .checkingLocation else { return }
+        promptEnded()
     }
 
     func locationVerified(requestID: UUID) {
@@ -117,76 +137,90 @@ final class KeyCheckFlow {
         complete(with: KeyProof(keyGroupID: request.keyGroupID))
     }
 
+    func showMinimizedPicker() {
+        guard stage == .scanningNFC, canReturnToPicker else { return }
+        nfcOverPicker = true
+    }
+
     func keySheetClosed() {
-        guard stage.showsKeySheet else { return }
+        guard showsKeySheet else { return }
         cancel()
     }
 
     func keySheetDismissed() {
-        switch stage {
-        case .openingLocation:
-            stage = .checkingLocation
-        case let current where current.showsKeySheet:
-            break
-        default:
-            if qr.isScanning {
-                qr.cancel()
-            }
-            qrScanRequestID = nil
+        guard !showsKeySheet else { return }
+        if qr.isScanning {
+            qr.cancel()
+        }
+        if scan?.keyType == .qr {
+            scan = nil
         }
     }
 
-    func locationSheetClosed() {
-        guard stage == .checkingLocation else { return }
-        cancel()
-    }
-
     func cancel() {
-        stopQRScan()
+        stopScan()
         finish()
     }
 
     func hostCleared() {
         guard stage != .idle else { return }
-        stopQRScan()
+        stopScan()
         stage = .idle
         request = nil
         action = nil
         allowsBypass = false
     }
 
-    private func begin(_ keyType: KeyType) {
+    private func begin(_ keyType: KeyType, fromPicker: Bool) {
         guard let request else { return }
         switch keyType {
         case .nfc:
+            nfcChosenFromPicker = fromPicker
+            nfcOverPicker = fromPicker
+            sheetScreen = .picker
             stage = .scanningNFC
-            check(NFCKeyMethod(nfcService: nfc, keys: request.keys), for: request)
+            check(NFCKeyMethod(nfcService: nfc, keys: request.keys), keyType: .nfc)
         case .qr:
             sheetScreen = .qrScanner
             stage = .scanningQR
         case .location:
-            stage = stage.showsKeySheet ? .openingLocation : .checkingLocation
+            locationCheck = LocationCheck(requestID: request.id, keys: request.keys)
+            sheetScreen = .location
+            stage = .checkingLocation
         }
     }
 
-    private func check(_ method: some KeyMethod, for request: Request) {
-        let requestID = request.id
-        Task {
+    private func check(_ method: some KeyMethod, keyType: KeyType) {
+        let id = UUID()
+        let task = Task {
             let result = await method.checkKey()
-            scanFinished(result, requestID: requestID)
+            scanFinished(result, scanID: id)
         }
+        scan = Scan(id: id, keyType: keyType, task: task)
     }
 
-    private func scanFinished(_ result: KeyResult, requestID: UUID) {
-        if qrScanRequestID == requestID {
-            qrScanRequestID = nil
-        }
-        guard let request, request.id == requestID else { return }
+    private func scanFinished(_ result: KeyResult, scanID: UUID) {
+        guard scan?.id == scanID, let request else { return }
+        scan = nil
         if result == .success {
             complete(with: KeyProof(keyGroupID: request.keyGroupID))
         } else {
-            finish()
+            promptEnded()
         }
+    }
+
+    private func promptEnded() {
+        if canReturnToPicker {
+            showPicker()
+        } else {
+            cancel()
+        }
+    }
+
+    private func showPicker() {
+        stopScan()
+        sheetScreen = .picker
+        stage = .choosing
     }
 
     private func complete(with proof: KeyProof?) {
@@ -202,9 +236,14 @@ final class KeyCheckFlow {
         allowsBypass = false
     }
 
-    private func stopQRScan() {
-        guard qrScanRequestID != nil else { return }
-        qrScanRequestID = nil
-        qr.cancel()
+    private func stopScan() {
+        guard let scan else { return }
+        self.scan = nil
+        scan.task.cancel()
+        switch scan.keyType {
+        case .nfc: nfc.cancel()
+        case .qr: qr.cancel()
+        case .location: break
+        }
     }
 }

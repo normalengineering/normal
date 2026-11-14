@@ -1,7 +1,7 @@
 import Foundation
 @testable import Normal
 
-final class ControlledScanner: QRScanning {
+final class ControlledScanner: CancellableKeyScanning {
     private(set) var isScanning = false
     private(set) var scanCount = 0
     private var continuation: CheckedContinuation<String, Error>?

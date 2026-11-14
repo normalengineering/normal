@@ -1,6 +1,7 @@
 @preconcurrency import CoreNFC
 import Foundation
 import Observation
+import UIKit
 
 private extension NFCTag {
     var hexId: String? {
@@ -53,9 +54,24 @@ final class NFCService: NSObject {
     private var session: NFCTagReaderSession?
     private var continuation: CheckedContinuation<String, Error>?
     private var validator: ((String) -> Bool)?
+    private var coveredBySheet = false
+    private var rejection: ScanError?
 
     override private init() {
         super.init()
+        let center = NotificationCenter.default
+        center.addObserver(
+            self,
+            selector: #selector(appResignedActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+        center.addObserver(
+            self,
+            selector: #selector(appBecameActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
     }
 
     func scan() async throws -> String {
@@ -71,6 +87,7 @@ final class NFCService: NSObject {
         }
         guard !isScanning else { throw ScanError.alreadyScanning }
         guard NFCTagReaderSession.readingAvailable else { throw ScanError.nfc(.unavailable) }
+        try Task.checkCancellation()
 
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
@@ -87,10 +104,40 @@ final class NFCService: NSObject {
         }
     }
 
+    func cancel() {
+        guard isScanning else { return }
+        session?.invalidate()
+        finish(with: .failure(ScanError.userCanceled))
+    }
+
+    @objc private func appResignedActive() {
+        coveredBySheet = isScanning
+    }
+
+    @objc private func appBecameActive() {
+        guard coveredBySheet else { return }
+        if let rejection {
+            finish(with: .failure(rejection))
+        } else {
+            cancel()
+        }
+    }
+
+    private func reject(_ session: NFCTagReaderSession, with error: ScanError, message: String) {
+        session.invalidate(errorMessage: message)
+        guard coveredBySheet else {
+            finish(with: .failure(error))
+            return
+        }
+        rejection = error
+    }
+
     private func finish(with result: Result<String, Error>) {
         continuation?.resume(with: result)
         continuation = nil
         session = nil
+        rejection = nil
+        coveredBySheet = false
         isScanning = false
     }
 }
@@ -98,8 +145,10 @@ final class NFCService: NSObject {
 extension NFCService: NFCTagReaderSessionDelegate {
     nonisolated func tagReaderSessionDidBecomeActive(_: NFCTagReaderSession) {}
 
-    nonisolated func tagReaderSession(_: NFCTagReaderSession, didInvalidateWithError error: Error) {
+    nonisolated func tagReaderSession(_ session: NFCTagReaderSession, didInvalidateWithError error: Error) {
+        let ended = ObjectIdentifier(session)
         MainActor.assumeIsolated {
+            guard self.session.map(ObjectIdentifier.init) == ended, rejection == nil else { return }
             if (error as? NFCReaderError)?.code == .readerSessionInvalidationErrorUserCanceled {
                 finish(with: .failure(ScanError.userCanceled))
             } else {
@@ -144,11 +193,12 @@ extension NFCService: NFCTagReaderSessionDelegate {
     }
 
     private func fail(session: NFCTagReaderSession, with err: ScanError.NFCError) {
-        session.invalidate(errorMessage: err.alertMessage)
-        finish(with: .failure(ScanError.nfc(err)))
+        guard session === self.session else { return }
+        reject(session, with: .nfc(err), message: err.alertMessage)
     }
 
     private func complete(session: NFCTagReaderSession, hexId: String) {
+        guard session === self.session else { return }
         guard let validator else {
             session.alertMessage = "Key Detected"
             session.invalidate()
@@ -160,8 +210,7 @@ extension NFCService: NFCTagReaderSessionDelegate {
             session.invalidate()
             finish(with: .success(hexId))
         } else {
-            session.invalidate(errorMessage: ScanError.invalidKey.errorDescription)
-            finish(with: .failure(ScanError.invalidKey))
+            reject(session, with: .invalidKey, message: ScanError.invalidKey.errorDescription)
         }
     }
 }
