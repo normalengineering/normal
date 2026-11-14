@@ -14,14 +14,14 @@ struct KeySelectModifier: ViewModifier {
     var requestID: UUID?
 
     @State private var flow = KeyCheckFlow(nfc: NFCService.shared, qr: QRService.shared)
+    @State private var keepsMinimizedDetent = false
+
+    private static let minimizedDetent = PresentationDetent.height(88)
+    private static let sheetResizeTime: Duration = .seconds(1)
+    private static let nfcPopupRiseTime: Duration = .milliseconds(500)
 
     private struct SheetID: Identifiable {
         let id: UUID
-    }
-
-    private struct LocationCheck: Identifiable {
-        let id: UUID
-        let keys: [Key]
     }
 
     private struct Trigger: Equatable {
@@ -43,6 +43,23 @@ struct KeySelectModifier: ViewModifier {
                 }
             }
             .onChange(of: flow.finishedRequestID) { _, _ in action = nil }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+                guard flow.stage == .scanningNFC else { return }
+                Task {
+                    try? await Task.sleep(for: Self.nfcPopupRiseTime)
+                    flow.showMinimizedPicker()
+                }
+            }
+            .onChange(of: flow.keySheetIsMinimized) { _, minimized in
+                if minimized {
+                    keepsMinimizedDetent = true
+                } else {
+                    Task {
+                        try? await Task.sleep(for: Self.sheetResizeTime)
+                        keepsMinimizedDetent = flow.keySheetIsMinimized
+                    }
+                }
+            }
             .alert("No Keys Available", isPresented: noKeysAlert) {
                 Button("OK", role: .cancel) { flow.cancel() }
             } message: {
@@ -54,13 +71,6 @@ struct KeySelectModifier: ViewModifier {
             }
             .sheet(item: keySheet, onDismiss: flow.keySheetDismissed) { _ in
                 keySelectSheet
-            }
-            .sheet(item: locationSheet) { check in
-                LocationUnlockSheet(
-                    keys: check.keys,
-                    provider: locationService,
-                    onVerified: { flow.locationVerified(requestID: check.id) }
-                )
             }
     }
 
@@ -85,10 +95,21 @@ struct KeySelectModifier: ViewModifier {
                     .navigationBarBackButtonHidden()
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel", action: flow.cancel)
+                            Button("Cancel", action: flow.promptCancelled)
                         }
                     }
                     .onAppear(perform: flow.scannerAppeared)
+            }
+            .navigationDestination(isPresented: screen(.location, onBack: {})) {
+                if let check = flow.locationCheck {
+                    LocationUnlockView(
+                        keys: check.keys,
+                        provider: locationService,
+                        onVerified: { flow.locationVerified(requestID: check.requestID) },
+                        onClose: flow.promptCancelled
+                    )
+                    .id(check.requestID)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -96,8 +117,26 @@ struct KeySelectModifier: ViewModifier {
                 }
             }
         }
-        .presentationDetents(flow.sheetScreen == .qrScanner ? [.large] : [.medium])
+        .presentationDetents(sheetDetents, selection: Binding(get: { sheetDetent }, set: { _ in }))
+        .presentationBackgroundInteraction(
+            allowsMinimizedDetent ? .enabled(upThrough: Self.minimizedDetent) : .automatic
+        )
         .presentationDragIndicator(flow.sheetScreen == .bypassConfirm ? .visible : .hidden)
+    }
+
+    private var sheetDetent: PresentationDetent {
+        if flow.keySheetIsMinimized {
+            return Self.minimizedDetent
+        }
+        return [.qrScanner, .location].contains(flow.sheetScreen) ? .large : .medium
+    }
+
+    private var allowsMinimizedDetent: Bool {
+        keepsMinimizedDetent && flow.sheetScreen == .picker
+    }
+
+    private var sheetDetents: Set<PresentationDetent> {
+        allowsMinimizedDetent ? [sheetDetent, Self.minimizedDetent] : [sheetDetent]
     }
 
     private var noKeysAlert: Binding<Bool> {
@@ -109,18 +148,8 @@ struct KeySelectModifier: ViewModifier {
 
     private var keySheet: Binding<SheetID?> {
         Binding(
-            get: { flow.stage.showsKeySheet ? flow.request.map { SheetID(id: $0.id) } : nil },
+            get: { flow.showsKeySheet ? flow.request.map { SheetID(id: $0.id) } : nil },
             set: { if $0 == nil { flow.keySheetClosed() } }
-        )
-    }
-
-    private var locationSheet: Binding<LocationCheck?> {
-        Binding(
-            get: {
-                guard flow.stage == .checkingLocation, let request = flow.request else { return nil }
-                return LocationCheck(id: request.id, keys: request.keys)
-            },
-            set: { if $0 == nil { flow.locationSheetClosed() } }
         )
     }
 

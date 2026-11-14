@@ -97,11 +97,118 @@ struct KeyCheckFlowTests {
 
     @Test func rejectedTagEndsWithoutTheAction() async {
         start(request([key(.nfc, "tag")], available: [.nfc]))
+        #expect(!flow.showsKeySheet)
         await waitUntil { nfc.isScanning }
 
         nfc.reject()
         await waitUntil { flow.stage == .idle }
 
+        #expect(counter.runs == 0)
+    }
+
+    @Test func cancelledDefaultNFCScanShowsThePicker() async {
+        let request = request([key(.nfc, "tag"), key(.qr, "code")], available: [.nfc, .qr], defaultKeyType: .nfc)
+        start(request)
+        #expect(!flow.showsKeySheet)
+
+        flow.showMinimizedPicker()
+        #expect(flow.showsKeySheet)
+        #expect(flow.keySheetIsMinimized)
+        #expect(flow.sheetScreen == .picker)
+        await waitUntil { nfc.isScanning }
+
+        nfc.cancel()
+        await waitUntil { flow.stage == .choosing }
+
+        #expect(flow.showsKeySheet)
+        #expect(!flow.keySheetIsMinimized)
+        #expect(flow.sheetScreen == .picker)
+        #expect(flow.request?.id == request.id)
+        #expect(flow.finishedRequestID == nil)
+        #expect(counter.runs == 0)
+    }
+
+    @Test func rejectedTagCanBeRetriedFromThePicker() async {
+        start(request([key(.nfc, "tag"), key(.qr, "code")], available: [.nfc, .qr], defaultKeyType: .nfc))
+        await waitUntil { nfc.isScanning }
+
+        nfc.reject()
+        await waitUntil { flow.stage == .choosing }
+        flow.choose(.nfc)
+        await waitUntil { nfc.isScanning }
+        nfc.present("tag")
+        await waitUntil { flow.stage == .idle }
+
+        #expect(nfc.scanCount == 2)
+        #expect(counter.runs == 1)
+    }
+
+    @Test func pickerStaysUnderNFCChosenFromIt() {
+        start(qrAndNFC)
+        flow.choose(.nfc)
+
+        flow.showMinimizedPicker()
+
+        #expect(flow.stage == .scanningNFC)
+        #expect(flow.showsKeySheet)
+        #expect(!flow.keySheetIsMinimized)
+        #expect(flow.sheetScreen == .picker)
+    }
+
+    @Test func verifiedTagClosesTheMinimizedPicker() async {
+        start(request([key(.nfc, "tag"), key(.qr, "code")], available: [.nfc, .qr], defaultKeyType: .nfc))
+        flow.showMinimizedPicker()
+        #expect(flow.showsKeySheet)
+        await waitUntil { nfc.isScanning }
+
+        nfc.present("tag")
+        await waitUntil { flow.stage == .idle }
+
+        #expect(!flow.showsKeySheet)
+        #expect(counter.runs == 1)
+    }
+
+    @Test func onlyNFCKeyGetsNoPicker() {
+        start(request([key(.nfc, "tag")], available: [.nfc]))
+
+        flow.showMinimizedPicker()
+
+        #expect(flow.stage == .scanningNFC)
+        #expect(!flow.showsKeySheet)
+    }
+
+    @Test func newDefaultNFCRequestStartsWithoutThePicker() {
+        start(qrAndNFC)
+        flow.choose(.nfc)
+        #expect(flow.showsKeySheet)
+
+        start(request([key(.nfc, "tag"), key(.qr, "code")], available: [.nfc, .qr], defaultKeyType: .nfc))
+
+        #expect(flow.stage == .scanningNFC)
+        #expect(!flow.showsKeySheet)
+    }
+
+    @Test func endingTheFlowEndsTheNFCScan() async {
+        start(qrAndNFC)
+        flow.choose(.nfc)
+        await waitUntil { nfc.isScanning }
+
+        flow.cancel()
+
+        #expect(!nfc.isScanning)
+        #expect(flow.stage == .idle)
+        #expect(counter.runs == 0)
+    }
+
+    @Test func cancelledScanWhileBlockingOffersBlockWithoutKey() async {
+        start(request([key(.nfc, "tag")], available: [.nfc]), allowBypass: true)
+        flow.choose(.nfc)
+        await waitUntil { nfc.isScanning }
+
+        nfc.cancel()
+        await waitUntil { flow.stage == .choosing }
+
+        #expect(flow.allowsBypass)
         #expect(counter.runs == 0)
     }
 
@@ -169,6 +276,41 @@ struct KeyCheckFlowTests {
         #expect(counter.runs == 1)
     }
 
+    @Test func cancellingTheQRScannerReturnsToThePicker() async {
+        var request = qrAndNFC
+        request.requestedKeyType = .qr
+        start(request)
+        flow.scannerAppeared()
+        await waitUntil { qr.isScanning }
+
+        flow.promptCancelled()
+
+        #expect(!qr.isScanning)
+        #expect(flow.stage == .choosing)
+        #expect(flow.sheetScreen == .picker)
+
+        flow.choose(.nfc)
+        await waitUntil { nfc.isScanning }
+        for _ in 0 ..< 100 {
+            await Task.yield()
+        }
+        #expect(flow.stage == .scanningNFC)
+    }
+
+    @Test func cancellingTheOnlyQRKeyEndsTheFlow() async {
+        let request = request([key(.qr, "code")], available: [.qr])
+        start(request)
+        flow.choose(.qr)
+        flow.scannerAppeared()
+        await waitUntil { qr.isScanning }
+
+        flow.promptCancelled()
+
+        #expect(!qr.isScanning)
+        #expect(flow.stage == .idle)
+        #expect(flow.finishedRequestID == request.id)
+    }
+
     @Test func newerRequestCancelsTheRunningScan() async {
         start(qrAndNFC)
         flow.choose(.qr)
@@ -189,6 +331,7 @@ struct KeyCheckFlowTests {
         await waitUntil { nfc.isScanning }
         let newer = qrAndNFC
         start(newer)
+        #expect(!nfc.isScanning)
 
         nfc.present("tag")
         for _ in 0 ..< 100 {
@@ -248,14 +391,15 @@ struct KeyCheckFlowTests {
         #expect(flow.stage == .choosing)
     }
 
-    @Test func locationOpensAfterThePickerCloses() {
-        start(request([key(.qr, "code")], available: [.qr, .location]))
+    @Test func choosingLocationShowsItInTheKeySheet() {
+        let request = request([key(.qr, "code")], available: [.qr, .location])
+        start(request)
         flow.choose(.location)
-        #expect(flow.stage == .openingLocation)
-
-        flow.keySheetDismissed()
 
         #expect(flow.stage == .checkingLocation)
+        #expect(flow.sheetScreen == .location)
+        #expect(flow.showsKeySheet)
+        #expect(flow.locationCheck?.requestID == request.id)
     }
 
     @Test func locationVerificationOnlyCountsForTheCurrentRequest() throws {
@@ -272,14 +416,27 @@ struct KeyCheckFlowTests {
         #expect(flow.stage == .idle)
     }
 
-    @Test func closingTheLocationSheetCancels() {
+    @Test func closingTheOnlyLocationKeyEndsTheFlow() {
         let request = request([], available: [.location], defaultKeyType: .location)
         start(request)
 
-        flow.locationSheetClosed()
+        flow.promptCancelled()
 
         #expect(flow.stage == .idle)
         #expect(flow.finishedRequestID == request.id)
+        #expect(counter.runs == 0)
+    }
+
+    @Test func closingTheDefaultLocationKeyShowsThePicker() {
+        let request = request([key(.qr, "code")], available: [.qr, .location], defaultKeyType: .location)
+        start(request)
+        #expect(flow.sheetScreen == .location)
+
+        flow.promptCancelled()
+
+        #expect(flow.stage == .choosing)
+        #expect(flow.sheetScreen == .picker)
+        #expect(flow.finishedRequestID == nil)
         #expect(counter.runs == 0)
     }
 

@@ -1,16 +1,22 @@
 import MapKit
 import SwiftUI
 
-struct LocationUnlockSheet: View {
-    @Environment(\.dismiss) private var dismiss
+struct LocationUnlockView: View {
     @State private var model: LocationUnlockModel
     @State private var cameraPosition: MapCameraPosition = .automatic
     @Namespace private var mapScope
     private let onVerified: () -> Void
+    private let onClose: () -> Void
 
-    init(keys: [Key], provider: any LocationProviding, onVerified: @escaping () -> Void) {
+    init(
+        keys: [Key],
+        provider: any LocationProviding,
+        onVerified: @escaping () -> Void,
+        onClose: @escaping () -> Void
+    ) {
         _model = State(initialValue: LocationUnlockModel(keys: keys, provider: provider))
         self.onVerified = onVerified
+        self.onClose = onClose
     }
 
     private var kind: LocationRadiusKind {
@@ -18,35 +24,32 @@ struct LocationUnlockSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                map
-                statusBar
-            }
-            .navigationTitle("Location Key")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(.secondary)
-                    }
-                    .accessibilityLabel("Close")
-                    .accessibilityIdentifier("locationUnlock.close")
+        VStack(spacing: 0) {
+            map
+            statusBar
+        }
+        .navigationTitle("Location Key")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
                 }
+                .accessibilityLabel("Close")
+                .accessibilityIdentifier("locationUnlock.close")
             }
         }
-        .presentationDetents([.large])
         .task {
             await model.run()
             guard model.phase == .verified else { return }
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
             onVerified()
-            dismiss()
         }
     }
 
