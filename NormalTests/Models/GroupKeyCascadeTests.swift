@@ -6,14 +6,10 @@ import Testing
 
 @MainActor
 struct GroupKeyCascadeTests {
-    private static let models: [any PersistentModel.Type] = [
-        Key.self, Settings.self, BlockSchedule.self, SelectedApps.self, AppGroup.self,
-    ]
-
     private func makeContainer() throws -> ModelContainer {
         try ModelContainer(
-            for: Schema(Self.models),
-            configurations: ModelConfiguration(schema: Schema(Self.models), isStoredInMemoryOnly: true)
+            for: Schema(NormalApp.models),
+            configurations: ModelConfiguration(schema: Schema(NormalApp.models), isStoredInMemoryOnly: true)
         )
     }
 

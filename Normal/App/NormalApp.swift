@@ -8,15 +8,17 @@ struct NormalApp: App {
     let modelContainer: ModelContainer
     let services: AppServices
 
+    static let models: [any PersistentModel.Type] = [
+        AppGroup.self,
+        SelectedApps.self,
+        Key.self,
+        BlockSchedule.self,
+        Settings.self,
+        UsageLimit.self,
+    ]
+
     init() {
-        let schema = Schema([
-            AppGroup.self,
-            SelectedApps.self,
-            Key.self,
-            BlockSchedule.self,
-            Settings.self,
-            UsageLimit.self,
-        ])
+        let schema = Schema(Self.models)
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: UITestSupport.isActive || UITestSupport.isUnitTestHost
