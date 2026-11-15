@@ -14,4 +14,8 @@ final class SelectedApps {
         lastUpdated = .now
         self.customDomains = customDomains
     }
+
+    func hasItemsToBlock(customDomainsEnabled: Bool) -> Bool {
+        !selection.isEmpty || (customDomainsEnabled && !customDomains.isEmpty)
+    }
 }

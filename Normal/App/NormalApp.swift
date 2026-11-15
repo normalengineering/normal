@@ -38,7 +38,10 @@ struct NormalApp: App {
         }
 
         if UITestSupport.isActive {
-            context.insert(SelectedApps(selection: UITestSupport.mainSelection))
+            context.insert(SelectedApps(
+                selection: UITestSupport.mainSelection,
+                customDomains: UITestSupport.mainCustomDomains
+            ))
             if !UITestSupport.noKeys {
                 context.insert(Key(name: "Test Key", type: .qr, rawValue: UITestSupport.stubScanValue))
             }

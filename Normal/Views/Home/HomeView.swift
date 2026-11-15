@@ -30,7 +30,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             List {
-                if let mainSelection, !mainSelection.selection.isEmpty || UITestSupport.isActive {
+                if let mainSelection, mainSelection.hasItemsToBlock(customDomainsEnabled: settings.enableCustomDomains) {
                     TimedUnblockBannerView(
                         selection: mainSelection.selection,
                         customDomains: mainSelection.customDomains,
