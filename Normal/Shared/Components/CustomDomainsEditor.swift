@@ -4,7 +4,7 @@ struct CustomDomainsEditor: View {
     @Binding var domains: [String]
 
     var otherItemCount: Int = 0
-    var isEditable: Bool = true
+    var canRemove: Bool = true
 
     @State private var input = ""
     @State private var message: FieldMessage?
@@ -24,9 +24,7 @@ struct CustomDomainsEditor: View {
 
     var body: some View {
         Form {
-            if isEditable {
-                inputSection
-            }
+            inputSection
             if !domains.isEmpty {
                 domainsSection
             }
@@ -34,7 +32,7 @@ struct CustomDomainsEditor: View {
         .navigationTitle("Custom Domains")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            if !isEditable {
+            if !canRemove {
                 FooterMessage(text: BlockedMessage.customDomains)
             }
         }
@@ -77,7 +75,7 @@ struct CustomDomainsEditor: View {
                 HStack {
                     Label(domain, systemImage: "globe")
                         .lineLimit(1)
-                    if isEditable {
+                    if canRemove {
                         Spacer()
                         deleteButton(domain)
                     }
@@ -127,7 +125,7 @@ struct CustomDomainsEditor: View {
     }
 
     private var deleteAction: ((IndexSet) -> Void)? {
-        guard isEditable else { return nil }
+        guard canRemove else { return nil }
         return { offsets in
             domains.remove(atOffsets: offsets)
             show(nil)

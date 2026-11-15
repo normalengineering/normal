@@ -219,8 +219,12 @@ final class NormalUITests: XCTestCase {
     }
 
     @MainActor
-    func testCustomDomainsEditorIsReadOnlyWhileBlocked() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains", "-uiTestStartBlocked"])
+    func testCustomDomainsEditorAddsButDoesNotRemoveWhileBlocked() {
+        let app = launch([
+            "-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains", "-uiTestWebsitesOnly", "-uiTestStartBlocked",
+        ])
+        require(app.buttons["home.unblockAll"], "The seeded website should start blocked")
+        XCTAssertFalse(app.buttons["home.blockAll"].exists, "Everything selected should already be blocked")
 
         let appSelectTab = app.mainTab("App Select")
         require(appSelectTab, "App Select tab should be reachable")
@@ -230,11 +234,28 @@ final class NormalUITests: XCTestCase {
         require(link, "Custom Domains row should remain visible while blocked")
         link.tap()
 
+        require(app.staticTexts["example.com"], "The blocked website should be listed")
         XCTAssertFalse(
-            app.textFields["customDomains.field"].waitForExistence(timeout: 3),
-            "Add field should be hidden while apps are blocked"
+            app.buttons["customDomains.delete.example.com"].exists,
+            "Websites can't be removed while blocked"
         )
-        XCTAssertFalse(app.buttons["customDomains.addButton"].exists, "Add button should be hidden while blocked")
+
+        let field = app.textFields["customDomains.field"]
+        require(field, "Websites can be added while blocked")
+        field.tap()
+        field.typeText("reddit.com")
+        app.buttons["customDomains.addButton"].tap()
+
+        require(app.staticTexts["reddit.com"], "Added website should appear in the list")
+        XCTAssertFalse(
+            app.buttons["customDomains.delete.reddit.com"].exists,
+            "A website added while blocked can't be removed either"
+        )
+
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        require(link, "Going back should return to App Select")
+        app.mainTab("Home").tap()
+        require(app.buttons["home.blockAll"], "The added website stays unblocked until Block All is tapped")
     }
 
     @MainActor
