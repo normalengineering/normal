@@ -5,6 +5,7 @@ final class UnblockDurationsUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
     }
 
     private func launch(_ extra: [String] = []) -> XCUIApplication {

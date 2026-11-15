@@ -5,6 +5,7 @@ final class BlockingUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
     }
 
     private func launch(_ extra: [String] = []) -> XCUIApplication {
@@ -81,7 +82,7 @@ final class BlockingUITests: XCTestCase {
         let app = launch()
         blockViaBypass(app)
 
-        app.tabBars.buttons["Keys"].tap()
+        app.mainTab("Keys").tap()
         require(
             app.staticTexts["Unblock all apps to add or delete keys."],
             "Keys tab should show the locked footer while blocked"
@@ -177,7 +178,7 @@ final class BlockingUITests: XCTestCase {
 
     func testGroupBlockThenUnblockRepresentsKeyAndDurationSheets() {
         let app = launch(["-uiTestSeedGroupKey"])
-        app.tabBars.buttons["Groups"].tap()
+        app.mainTab("Groups").tap()
 
         let blockButton = app.buttons["group.blockButton"]
         require(blockButton, "Group block button should render")
@@ -245,7 +246,7 @@ final class BlockingUITests: XCTestCase {
     func testSeededScheduleAppears() {
         let app = launch(["-uiTestSeedSchedule"])
 
-        app.tabBars.buttons["Schedules"].tap()
+        app.mainTab("Schedules").tap()
         require(app.staticTexts["Test Schedule"], "Seeded schedule card should render")
         XCTAssertTrue(app.switches["schedule.enabledToggle"].exists, "Schedule enable toggle should exist")
     }
@@ -253,7 +254,7 @@ final class BlockingUITests: XCTestCase {
     func testDuplicateScheduleAddsDisabledCopy() {
         let app = launch(["-uiTestSeedSchedule"])
 
-        app.tabBars.buttons["Schedules"].tap()
+        app.mainTab("Schedules").tap()
         let original = app.staticTexts["Test Schedule"]
         require(original, "Seeded schedule card should render")
         original.press(forDuration: 1)
@@ -272,7 +273,7 @@ final class BlockingUITests: XCTestCase {
     func testDuplicateScheduleUnavailableWhileBlocked() {
         let app = launch(["-uiTestSeedSchedule", "-uiTestStartBlocked"])
 
-        app.tabBars.buttons["Schedules"].tap()
+        app.mainTab("Schedules").tap()
         let original = app.staticTexts["Test Schedule"]
         require(original, "Seeded schedule card should render")
         original.press(forDuration: 1)

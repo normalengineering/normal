@@ -5,6 +5,7 @@ final class RecoveryUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
     }
 
     private func launch(_ extra: [String]) -> XCUIApplication {
@@ -96,7 +97,7 @@ final class RecoveryUITests: XCTestCase {
     func testEmergencyUnblockDisablesSchedules() {
         let app = launch(["-uiTestSeedSchedule"])
 
-        app.tabBars.buttons["Schedules"].tap()
+        app.mainTab("Schedules").tap()
         let toggle = app.switches["schedule.enabledToggle"]
         require(toggle, "Seeded schedule toggle should exist")
         XCTAssertEqual(toggle.value as? String, "1", "Seeded schedule starts enabled")
@@ -107,7 +108,7 @@ final class RecoveryUITests: XCTestCase {
         app.alerts.buttons["OK"].tap()
         app.buttons["Close"].tap()
 
-        app.tabBars.buttons["Schedules"].tap()
+        app.mainTab("Schedules").tap()
         XCTAssertEqual(
             app.switches["schedule.enabledToggle"].value as? String, "0",
             "Emergency unblock must toggle schedules off so they can't re-block"
@@ -117,7 +118,7 @@ final class RecoveryUITests: XCTestCase {
     func testLegacyKeyWithoutScanKindShowsQRCodeLabel() {
         let app = launch([])
 
-        app.tabBars.buttons["Keys"].tap()
+        app.mainTab("Keys").tap()
         require(app.staticTexts["Test Key"].firstMatch, "Seeded key card should be visible")
         require(
             app.staticTexts["QR Code"].firstMatch,
@@ -128,7 +129,7 @@ final class RecoveryUITests: XCTestCase {
     func testCannotDeleteLastKey() {
         let app = launch([])
 
-        app.tabBars.buttons["Keys"].tap()
+        app.mainTab("Keys").tap()
         let card = app.staticTexts["Test Key"].firstMatch
         require(card, "The single seeded key card should be visible")
         card.press(forDuration: 1.3)
