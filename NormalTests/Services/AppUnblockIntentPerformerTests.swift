@@ -382,11 +382,39 @@ struct AppUnblockIntentPerformerTests {
         try seed()
         context.insert(locationKey())
         screenTime.stubBlockStatus = .all
-        activity.startError = DeviceActivityCenter.MonitoringError.excessiveActivities
+        activity.startError = DeviceActivityCenter.MonitoringError.unauthorized
 
         await #expect(throws: UnblockIntentError.unblockFailed) {
             try await performer.unblock(locationRequest())
         }
         #expect(!timedUnblock.isMainUnblockActive)
+    }
+
+    @Test func unblockAtTheActivityLimitStillStarts() async throws {
+        try seed()
+        context.insert(locationKey())
+        screenTime.stubBlockStatus = .all
+        let schedule = try ScheduleDTO(
+            id: UUID(),
+            name: "S",
+            selectionData: FamilyActivitySelection().toData(),
+            startHour: 20,
+            startMinute: 0,
+            durationMinutes: 60,
+            weekdays: Set(1 ... 7),
+            shouldBlock: true,
+            isTimed: true,
+            isEnabled: true
+        )
+        store.saveSchedules([schedule])
+        try activity.startMonitoring(
+            DeviceActivityName(SharedConstants.reblockHeartbeatActivityName),
+            during: DeviceActivityScheduleFactory.heartbeat(),
+            events: [:]
+        )
+        activity.startError = DeviceActivityCenter.MonitoringError.excessiveActivities
+
+        #expect(try await performer.unblock(locationRequest()) == .unblocked(name: "All Apps", length: .timed(.oneHour)))
+        #expect(timedUnblock.isMainUnblockActive)
     }
 }

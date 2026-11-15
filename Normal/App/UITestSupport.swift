@@ -22,6 +22,12 @@ enum UITestSupport {
 
     static let websitesOnly = arguments.contains("-uiTestWebsitesOnly")
 
+    static let timedUnblockFails = arguments.contains("-uiTestTimedUnblockFails")
+
+    static let timerLimitReached = arguments.contains("-uiTestTimerLimitReached")
+
+    static let slowScan = arguments.contains("-uiTestSlowScan")
+
     static let seedGroupKey = arguments.contains("-uiTestSeedGroupKey")
 
     static let seedLocationKey = arguments.contains("-uiTestSeedLocationKey")

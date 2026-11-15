@@ -52,23 +52,24 @@ enum UnblockTarget: Identifiable {
 }
 
 extension TimedUnblockService {
+    @discardableResult
     func start(
         _ grant: UnblockGrant,
         duration: TimedUnblockDuration,
         settings: Settings,
         screenTimeService: any ScreenTimeProviding
-    ) throws {
+    ) throws -> UnblockTiming {
         let target = grant.target
         switch target {
         case let .all(mainSelection):
-            try startMain(
+            return try startMain(
                 duration: duration,
                 mainSelection: mainSelection,
                 settings: settings,
                 screenTimeService: screenTimeService
             )
         case let .group(group):
-            try startGroup(
+            return try startGroup(
                 duration: duration,
                 groupId: group.id,
                 selection: group.selection,
