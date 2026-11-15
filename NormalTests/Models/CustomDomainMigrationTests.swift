@@ -6,10 +6,6 @@ import Testing
 
 @MainActor
 struct CustomDomainMigrationTests {
-    private static let models: [any PersistentModel.Type] = [
-        Key.self, Settings.self, BlockSchedule.self, SelectedApps.self, AppGroup.self,
-    ]
-
     private func storeURL() -> URL {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("customdomainmig-\(UUID().uuidString).store")
@@ -26,8 +22,8 @@ struct CustomDomainMigrationTests {
 
     private func makeContainer(at url: URL) throws -> ModelContainer {
         try ModelContainer(
-            for: Schema(Self.models),
-            configurations: ModelConfiguration(schema: Schema(Self.models), url: url)
+            for: Schema(NormalApp.models),
+            configurations: ModelConfiguration(schema: Schema(NormalApp.models), url: url)
         )
     }
 

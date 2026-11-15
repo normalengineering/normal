@@ -5,14 +5,10 @@ import SwiftData
 @MainActor
 enum InMemoryModelContainer {
     static func make() throws -> ModelContainer {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let schema = Schema(NormalApp.models)
         let container = try ModelContainer(
-            for: Key.self,
-            Settings.self,
-            BlockSchedule.self,
-            SelectedApps.self,
-            AppGroup.self,
-            configurations: config
+            for: schema,
+            configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         )
         container.mainContext.autosaveEnabled = false
         return container

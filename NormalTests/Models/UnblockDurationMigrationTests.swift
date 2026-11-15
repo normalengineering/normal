@@ -29,10 +29,6 @@ enum LegacySettingsSchema {
 
 @MainActor
 struct UnblockDurationMigrationTests {
-    private static let currentModels: [any PersistentModel.Type] = [
-        Key.self, Normal.Settings.self, BlockSchedule.self, SelectedApps.self, AppGroup.self,
-    ]
-
     private func storeURL() -> URL {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("durationmig-\(UUID().uuidString).store")
@@ -56,7 +52,7 @@ struct UnblockDurationMigrationTests {
 
     /// Returns the container too: a model instance dies with its container's context.
     private func reopenWithCurrentSchema(at url: URL) throws -> (ModelContainer, Normal.Settings) {
-        let schema = Schema(Self.currentModels)
+        let schema = Schema(NormalApp.models)
         let container = try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url))
         let settings = try #require(try container.mainContext.fetch(FetchDescriptor<Normal.Settings>()).first)
         return (container, settings)
@@ -93,7 +89,7 @@ struct UnblockDurationMigrationTests {
         defer { removeStore(at: url) }
 
         do {
-            let schema = Schema(Self.currentModels)
+            let schema = Schema(NormalApp.models)
             let container = try ModelContainer(
                 for: schema, configurations: ModelConfiguration(schema: schema, url: url)
             )
