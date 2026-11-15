@@ -20,6 +20,8 @@ enum UITestSupport {
 
     static let customDomains = arguments.contains("-uiTestCustomDomains")
 
+    static let websitesOnly = arguments.contains("-uiTestWebsitesOnly")
+
     static let seedGroupKey = arguments.contains("-uiTestSeedGroupKey")
 
     static let seedLocationKey = arguments.contains("-uiTestSeedLocationKey")
@@ -36,7 +38,9 @@ enum UITestSupport {
 
     static let stubScanValue = "UITEST-SCAN-VALUE"
 
-    static let mainSelection = selection(apps: [1, 2, 3])
+    static let mainSelection = selection(apps: websitesOnly ? [] : [1, 2, 3])
+
+    static let mainCustomDomains = websitesOnly ? ["example.com"] : []
 
     static let groupSelection = selection(apps: [1])
 

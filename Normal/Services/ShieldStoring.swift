@@ -81,7 +81,7 @@ final class InMemoryShieldStore: ShieldStoring {
 
     init(startBlocked: Bool = UITestSupport.startBlocked) {
         guard startBlocked else { return }
-        plan.formUnion(UITestSupport.mainSelection, customDomains: [])
+        plan.formUnion(UITestSupport.mainSelection, customDomains: UITestSupport.mainCustomDomains)
         plan.denyAppRemoval = true
     }
 

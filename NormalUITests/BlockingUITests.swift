@@ -61,6 +61,24 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(app.buttons["home.blockAll"].waitForExistence(timeout: timeout))
     }
 
+    func testBlockedWebsitesWithoutAppsCanBeUnblockedFromHome() {
+        let app = launch(["-uiTestCustomDomains", "-uiTestWebsitesOnly", "-uiTestStartBlocked"])
+
+        let unblock = app.buttons["home.unblockAll"]
+        require(unblock, "Home should offer Unblock All while only websites are blocked")
+        unblock.tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblock should require choosing the registered key")
+        keyRow.tap()
+
+        let permanent = app.buttons["timedUnblock.permanent"]
+        require(permanent, "Unblock duration sheet should appear after key scan")
+        permanent.tap()
+        app.buttons["timedUnblock.confirm"].tap()
+
+        require(app.staticTexts["No Active Blocks"], "Websites should be unblocked")
+    }
+
     func testLocationKeyIsCheckedFromThePicker() {
         let app = launch(["-uiTestSeedLocationKey"])
         blockViaBypass(app)
