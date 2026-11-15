@@ -74,11 +74,10 @@ struct AppSelectView: View {
                             CustomDomainsEditor(
                                 domains: $customDomains,
                                 otherItemCount: selection.count,
-                                isEditable: !isBlocked
+                                canRemove: !isBlocked
                             )
                         } label: {
                             CountRow(title: "Custom Domains", count: customDomains.count)
-                                .opacity(isBlocked ? DS.Opacity.dim : 1)
                         }
                         .accessibilityIdentifier("appSelect.customDomainsLink")
                     }
