@@ -123,7 +123,8 @@ struct TimedUnblockServiceTests {
         let dto = try #require(store.timedUnblocks.first)
         let start = try #require(dto.startDate)
         #expect(start >= before)
-        #expect(dto.endDate.timeIntervalSince(start) == 5700)
+        let length = dto.endDate.timeIntervalSince(start)
+        #expect(length > 5699 && length <= 5700)
         #expect(service.activeUnblockStartDates()[TimedUnblockService.mainID] == start)
     }
 

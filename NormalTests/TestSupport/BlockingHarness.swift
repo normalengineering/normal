@@ -1,7 +1,9 @@
+import DeviceActivity
 import FamilyControls
 import Foundation
 import ManagedSettings
 @testable import Normal
+import Testing
 
 @MainActor
 final class BlockingHarness {
@@ -79,6 +81,11 @@ final class BlockingHarness {
 
     func apps(_ ids: UInt8...) -> Set<ApplicationToken> {
         Set(ids.map(TokenFixtures.app))
+    }
+
+    func registeredEnd(of activityName: String) throws -> Date {
+        let schedule = try #require(activity.registeredSchedule(for: DeviceActivityName(activityName)))
+        return try #require(Calendar.current.date(from: schedule.intervalEnd))
     }
 
     func passTime(to date: Date) {
