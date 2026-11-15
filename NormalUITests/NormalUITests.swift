@@ -5,6 +5,7 @@ final class NormalUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
     }
 
     private func launch(_ arguments: [String]) -> XCUIApplication {
@@ -34,7 +35,7 @@ final class NormalUITests: XCTestCase {
         require(skip, "Welcome skip button should exist")
         skip.tap()
 
-        require(app.tabBars.buttons["Keys"], "Main tab bar should be visible after skipping onboarding")
+        require(app.mainTab("Keys"), "Main tab bar should be visible after skipping onboarding")
         XCTAssertFalse(app.staticTexts["Welcome to Normal"].exists, "Onboarding should be dismissed")
     }
 
@@ -86,7 +87,7 @@ final class NormalUITests: XCTestCase {
     func testAddKeyViaScanCreatesKey() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 
-        let keysTab = app.tabBars.buttons["Keys"]
+        let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable when onboarding is skipped")
         keysTab.tap()
 
@@ -116,7 +117,7 @@ final class NormalUITests: XCTestCase {
     func testAddLocationKeyCreatesKey() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 
-        let keysTab = app.tabBars.buttons["Keys"]
+        let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable when onboarding is skipped")
         keysTab.tap()
 
@@ -156,7 +157,7 @@ final class NormalUITests: XCTestCase {
     func testLocationPickerShowsMapAndCurrentLocationControl() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 
-        let keysTab = app.tabBars.buttons["Keys"]
+        let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable when onboarding is skipped")
         keysTab.tap()
 
@@ -183,7 +184,7 @@ final class NormalUITests: XCTestCase {
     func testCustomDomainsEditorHiddenWhenToggleOff() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 
-        let appSelectTab = app.tabBars.buttons["App Select"]
+        let appSelectTab = app.mainTab("App Select")
         require(appSelectTab, "App Select tab should be reachable")
         appSelectTab.tap()
 
@@ -197,7 +198,7 @@ final class NormalUITests: XCTestCase {
     func testCustomDomainsEditorAddsDomainWhenToggleOn() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains"])
 
-        let appSelectTab = app.tabBars.buttons["App Select"]
+        let appSelectTab = app.mainTab("App Select")
         require(appSelectTab, "App Select tab should be reachable")
         appSelectTab.tap()
 
@@ -221,7 +222,7 @@ final class NormalUITests: XCTestCase {
     func testCustomDomainsEditorIsReadOnlyWhileBlocked() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestCustomDomains", "-uiTestStartBlocked"])
 
-        let appSelectTab = app.tabBars.buttons["App Select"]
+        let appSelectTab = app.mainTab("App Select")
         require(appSelectTab, "App Select tab should be reachable")
         appSelectTab.tap()
 
@@ -240,7 +241,7 @@ final class NormalUITests: XCTestCase {
     func testGroupKeyHiddenFromKeysTabAndVisibleInViewer() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedGroupKey"])
 
-        let keysTab = app.tabBars.buttons["Keys"]
+        let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable")
         keysTab.tap()
 
