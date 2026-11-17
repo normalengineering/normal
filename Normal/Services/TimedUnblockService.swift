@@ -116,23 +116,6 @@ final class TimedUnblockService {
         return timing
     }
 
-    func cancelMain(
-        selection: FamilyActivitySelection,
-        customDomains: [String] = [],
-        screenTimeService: any ScreenTimeProviding,
-        blockAllPreventsAppDelete: Bool = false
-    ) {
-        cancelMonitoring(activityName: SharedConstants.mainTimedUnblockActivityName)
-        cancelAllGroupUnblocks()
-        forget(id: Self.mainID)
-        syncHeartbeat()
-        screenTimeService.blockAll(
-            selection: selection,
-            customDomains: customDomains,
-            blockAllPreventsAppDelete: blockAllPreventsAppDelete
-        )
-    }
-
     func cancelGroup(groupId: UUID) {
         cancelMonitoring(activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId))
         forget(id: groupId.uuidString)
