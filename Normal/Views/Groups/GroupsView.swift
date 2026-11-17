@@ -14,6 +14,7 @@ struct GroupsView: View {
     @State private var authAction: ProtectedAction?
     @State private var pendingGroupID: UUID?
     @State private var durationGrant: UnblockGrant?
+    @State private var unblockAlert: UnblockAlert?
 
     private var hasSelection: Bool {
         selectedApps.first?.selection.isEmpty == false
@@ -56,7 +57,8 @@ struct GroupsView: View {
                     appGroup: group,
                     authAction: $authAction,
                     pendingGroupID: $pendingGroupID,
-                    durationGrant: $durationGrant
+                    durationGrant: $durationGrant,
+                    unblockAlert: $unblockAlert
                 )
             }, onMove: move)
                 .safeAreaInset(edge: .bottom) {
@@ -74,8 +76,9 @@ struct GroupsView: View {
                     keyGroupID: pendingGroupID
                 )
                 .sheet(item: $durationGrant) { grant in
-                    UnblockDurationSheet(grant: grant)
+                    UnblockDurationSheet(grant: grant) { unblockAlert = UnblockAlert($0) }
                 }
+                .unblockAlert($unblockAlert)
         }
     }
 

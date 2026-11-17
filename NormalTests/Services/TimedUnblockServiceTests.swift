@@ -109,6 +109,44 @@ struct TimedUnblockServiceTests {
         #expect(store.timedUnblocks.isEmpty)
     }
 
+    @Test func startMainAtTheActivityLimitStillUnblocksButMayEndLate() throws {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        try activity.startMonitoring(
+            DeviceActivityName(SharedConstants.reblockHeartbeatActivityName),
+            during: DeviceActivityScheduleFactory.heartbeat(),
+            events: [:]
+        )
+        activity.activityLimit = 1
+
+        let timing = try service.startMain(
+            duration: .fifteenMinutes,
+            selection: FamilyActivitySelection(),
+            screenTimeService: screenTime
+        )
+
+        #expect(timing == .mayEndLate)
+        #expect(service.isMainUnblockActive)
+        #expect(store.timedUnblocks.count == 1)
+        #expect(activity.registeredSchedule(for: DeviceActivityName(SharedConstants.mainTimedUnblockActivityName)) == nil)
+    }
+
+    @Test func startMainAtTheActivityLimitWithoutTheHeartbeatFails() {
+        let (service, activity, store) = makeService()
+        let screenTime = FakeScreenTimeService()
+        activity.activityLimit = 0
+
+        #expect(throws: DeviceActivityCenter.MonitoringError.self) {
+            try service.startMain(
+                duration: .fifteenMinutes,
+                selection: FamilyActivitySelection(),
+                screenTimeService: screenTime
+            )
+        }
+        #expect(!service.isMainUnblockActive)
+        #expect(store.timedUnblocks.isEmpty)
+    }
+
     @Test func customDurationSetsEndDateAndPersistsStartDate() throws {
         let (service, _, store) = makeService()
         let custom = try #require(TimedUnblockDuration(validating: 5700))

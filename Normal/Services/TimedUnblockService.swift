@@ -53,19 +53,20 @@ final class TimedUnblockService {
         activeUnblocks[groupId.uuidString]
     }
 
+    @discardableResult
     func startMain(
         duration: TimedUnblockDuration,
         selection: FamilyActivitySelection,
         customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding,
         blockAllPreventsAppDelete: Bool = false
-    ) throws {
+    ) throws -> UnblockTiming {
         let activityName = SharedConstants.mainTimedUnblockActivityName
         cancelMonitoring(activityName: activityName)
 
         let start = clock()
         let endDate = Self.endDate(of: duration, from: start)
-        try scheduleActivity(name: activityName, start: start, endDate: endDate)
+        let timing = try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
             id: Self.mainID,
@@ -81,22 +82,24 @@ final class TimedUnblockService {
         cancelAllGroupUnblocks()
         syncHeartbeat()
         screenTimeService.reconcile()
+        return timing
     }
 
+    @discardableResult
     func startGroup(
         duration: TimedUnblockDuration,
         groupId: UUID,
         selection: FamilyActivitySelection,
         customDomains: [String] = [],
         screenTimeService: any ScreenTimeProviding
-    ) throws {
+    ) throws -> UnblockTiming {
         let id = groupId.uuidString
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
         cancelMonitoring(activityName: activityName)
 
         let start = clock()
         let endDate = Self.endDate(of: duration, from: start)
-        try scheduleActivity(name: activityName, start: start, endDate: endDate)
+        let timing = try scheduleActivity(name: activityName, start: start, endDate: endDate)
 
         try persist(
             id: id,
@@ -110,6 +113,7 @@ final class TimedUnblockService {
 
         syncHeartbeat()
         screenTimeService.reconcile()
+        return timing
     }
 
     func cancelMain(
@@ -285,13 +289,20 @@ final class TimedUnblockService {
         return Date(timeIntervalSinceReferenceDate: end.rounded(.down))
     }
 
-    private func scheduleActivity(name: String, start: Date, endDate: Date) throws {
+    private func scheduleActivity(name: String, start: Date, endDate: Date) throws -> UnblockTiming {
         let schedule = DeviceActivityScheduleFactory.window(from: start, to: endDate)
-        try activityCenter.startMonitoring(
-            DeviceActivityName(name),
-            during: schedule,
-            events: [:]
-        )
+        do {
+            try activityCenter.startMonitoring(
+                DeviceActivityName(name),
+                during: schedule,
+                events: [:]
+            )
+            return .exact
+        } catch DeviceActivityCenter.MonitoringError.excessiveActivities
+            where activityCenter.monitoredActivityNames.contains(SharedConstants.reblockHeartbeatActivityName)
+        {
+            return .mayEndLate
+        }
     }
 
     private func syncHeartbeat() {
@@ -329,12 +340,13 @@ final class TimedUnblockService {
 }
 
 extension TimedUnblockService {
+    @discardableResult
     func startMain(
         duration: TimedUnblockDuration,
         mainSelection: SelectedApps,
         settings: Settings,
         screenTimeService: any ScreenTimeProviding
-    ) throws {
+    ) throws -> UnblockTiming {
         try startMain(
             duration: duration,
             selection: mainSelection.selection,
@@ -343,4 +355,9 @@ extension TimedUnblockService {
             blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
         )
     }
+}
+
+enum UnblockTiming: Equatable {
+    case exact
+    case mayEndLate
 }

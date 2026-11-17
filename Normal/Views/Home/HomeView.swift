@@ -14,6 +14,7 @@ struct HomeView: View {
 
     @State private var authAction: ProtectedAction?
     @State private var durationGrant: UnblockGrant?
+    @State private var unblockAlert: UnblockAlert?
 
     private var mainSelection: SelectedApps? {
         selectedApps.first
@@ -53,8 +54,12 @@ struct HomeView: View {
             }
             .protectedAction($authAction, defaultKeyType: settings.defaultKeyType)
             .sheet(item: $durationGrant) { grant in
-                UnblockDurationSheet(grant: grant, onUnblock: recordUnblockForReview)
+                UnblockDurationSheet(grant: grant) { timing in
+                    recordUnblockForReview()
+                    unblockAlert = UnblockAlert(timing)
+                }
             }
+            .unblockAlert($unblockAlert)
             .navigationTitle("Home")
             .settingsToolbar()
         }
@@ -76,7 +81,7 @@ struct HomeView: View {
             return
         }
         do {
-            try BlockActions.unblock(
+            let timing = try BlockActions.unblock(
                 grant,
                 for: .timed(duration),
                 settings: settings,
@@ -84,7 +89,10 @@ struct HomeView: View {
                 timedUnblockService: timedUnblockService
             )
             recordUnblockForReview()
-        } catch {}
+            unblockAlert = UnblockAlert(timing)
+        } catch {
+            unblockAlert = .failed(error)
+        }
     }
 
     private func recordUnblockForReview() {

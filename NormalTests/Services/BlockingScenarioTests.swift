@@ -1,3 +1,4 @@
+import DeviceActivity
 import FamilyControls
 import Foundation
 import ManagedSettings
@@ -282,6 +283,41 @@ struct BlockingScenarioTests {
         try h.unblockAllTimed(.thirtyMinutes)
 
         h.wake(at: try h.registeredEnd(of: SharedConstants.mainTimedUnblockActivityName))
+        #expect(h.blocked == h.apps(1, 2, 3))
+    }
+
+    @Test func timedUnblockAllAtTheActivityLimitReblocksAtTheNextHeartbeat() throws {
+        let h = BlockingHarness()
+        try h.addSchedule([4], from: (20, 0), minutes: 60, block: true)
+        h.blockAll()
+        h.activity.activityLimit = h.activity.monitoredActivityNames.count
+        h.passTime(to: h.at(10, 1))
+
+        #expect(try h.unblockAllTimed(.fifteenMinutes) == .mayEndLate)
+        #expect(h.blocked.isEmpty)
+        #expect(h.activity.registeredSchedule(for: DeviceActivityName(SharedConstants.mainTimedUnblockActivityName)) == nil)
+        #expect(h.activity.registeredSchedule(for: DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)) != nil)
+
+        h.wake(at: h.at(10, 30))
+        #expect(h.blocked == h.apps(1, 2, 3))
+    }
+
+    @Test func timedUnblockAllAtTheActivityLimitWithoutAHeartbeatStaysBlocked() throws {
+        let h = BlockingHarness()
+        for minute in 0 ..< 20 {
+            try h.addSchedule([4], from: (20, minute), minutes: 60, block: true)
+        }
+        let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
+        h.activity.stopMonitoring([heartbeat])
+        h.activity.activityLimit = 20
+        h.openApp(at: h.at(9, 0))
+        #expect(h.activity.registeredSchedule(for: heartbeat) == nil)
+        h.blockAll()
+        h.passTime(to: h.at(10, 1))
+
+        #expect(throws: DeviceActivityCenter.MonitoringError.self) {
+            try h.unblockAllTimed(.fifteenMinutes)
+        }
         #expect(h.blocked == h.apps(1, 2, 3))
     }
 

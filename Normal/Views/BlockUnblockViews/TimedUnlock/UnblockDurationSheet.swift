@@ -7,7 +7,7 @@ struct UnblockDurationSheet: View {
     @Query private var allSettings: [Settings]
 
     let grant: UnblockGrant
-    var onUnblock: () -> Void = {}
+    var onUnblock: (UnblockTiming) -> Void = { _ in }
 
     private var settings: Settings {
         allSettings.unwrapped
@@ -26,14 +26,14 @@ struct UnblockDurationSheet: View {
             durations: settings.unblockDurations,
             initialDuration: settings.defaultDuration,
             onConfirm: { length in
-                try BlockActions.unblock(
+                let timing = try BlockActions.unblock(
                     grant,
                     for: length,
                     settings: settings,
                     screenTimeService: screenTimeService,
                     timedUnblockService: timedUnblockService
                 )
-                onUnblock()
+                onUnblock(timing)
             }
         )
     }

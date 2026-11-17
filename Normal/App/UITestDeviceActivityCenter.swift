@@ -13,6 +13,14 @@ final class UITestDeviceActivityCenter: DeviceActivityProviding {
         during schedule: DeviceActivitySchedule,
         events _: [DeviceActivityEvent.Name: DeviceActivityEvent]
     ) throws {
+        if activityName.rawValue.hasPrefix("timedUnblock_") {
+            if UITestSupport.timedUnblockFails {
+                throw DeviceActivityCenter.MonitoringError.unauthorized
+            }
+            if UITestSupport.timerLimitReached {
+                throw DeviceActivityCenter.MonitoringError.excessiveActivities
+            }
+        }
         schedules[activityName.rawValue] = schedule
     }
 

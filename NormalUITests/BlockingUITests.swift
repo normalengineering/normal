@@ -226,6 +226,100 @@ final class BlockingUITests: XCTestCase {
         require(app.buttons["group.blockButton"], "Group should be unblocked again")
     }
 
+    func testFailedDefaultDurationUnblockShowsError() {
+        let app = launch(["-uiTestDefaultDuration", "900", "-uiTestTimedUnblockFails"])
+        blockViaBypass(app)
+
+        app.buttons["home.unblockAll"].tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblock should require choosing the registered key")
+        keyRow.tap()
+
+        let alert = app.alerts["Couldn't Unblock"]
+        require(alert, "A failed unblock should say so")
+        alert.buttons["OK"].tap()
+        require(app.buttons["home.unblockAll"], "Apps should stay blocked")
+    }
+
+    func testDefaultDurationUnblockAtTheTimerLimitSaysItMayEndLate() {
+        let app = launch(["-uiTestDefaultDuration", "900", "-uiTestTimerLimitReached", "-uiTestSeedSchedule"])
+        blockViaBypass(app)
+
+        app.buttons["home.unblockAll"].tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblock should require choosing the registered key")
+        keyRow.tap()
+
+        requireMayEndLateAlert(app)
+        require(app.staticTexts["Timed Unblock Active"], "The timed unblock should still start")
+    }
+
+    func testDurationSheetUnblockAtTheTimerLimitSaysItMayEndLate() {
+        let app = launch(["-uiTestTimerLimitReached", "-uiTestSeedSchedule"])
+        blockViaBypass(app)
+
+        app.buttons["home.unblockAll"].tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblock should require choosing the registered key")
+        keyRow.tap()
+        let confirm = app.buttons["timedUnblock.confirm"]
+        require(confirm, "Timed unblock sheet should appear")
+        confirm.tap()
+
+        requireMayEndLateAlert(app)
+        require(app.staticTexts["Timed Unblock Active"], "The timed unblock should still start")
+    }
+
+    private func requireMayEndLateAlert(_ app: XCUIApplication) {
+        let alert = app.alerts["Unblocked"]
+        require(alert, "An unblock without its own iOS timer should say so")
+        XCTAssertTrue(
+            alert.staticTexts[
+                "iOS only tracks 20 schedules and timers at once, so this unblock may end up to 30 minutes late."
+            ].exists,
+            "The alert should explain why the unblock may end late"
+        )
+        alert.buttons["OK"].tap()
+    }
+
+    func testFailedDefaultDurationGroupUnblockShowsError() {
+        let app = launch(["-uiTestSeedGroupKey", "-uiTestDefaultDuration", "900", "-uiTestTimedUnblockFails"])
+        app.mainTab("Groups").tap()
+
+        let blockButton = app.buttons["group.blockButton"]
+        require(blockButton, "Group block button should render")
+        blockButton.tap()
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Group block should offer bypass")
+        bypass.tap()
+        confirmBypass(app)
+
+        let unblockButton = app.buttons["group.unblockButton"]
+        require(unblockButton, "Group unblock button should render after blocking")
+        unblockButton.tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblocking the group should ask for a key")
+        keyRow.tap()
+
+        require(app.alerts["Couldn't Unblock"], "A failed group unblock should say so")
+    }
+
+    func testFailedUnlockLinkShowsError() throws {
+        let app = launch(["-uiTestSeedGroupKey", "-uiTestTimedUnblockFails", "-uiTestSlowScan"])
+        let groupID = "6E0A1C9B-2D4F-4B7A-9C3E-5F8D1A2B3C4D"
+
+        app.open(try XCTUnwrap(URL(string: "normal://block?group=\(groupID)")))
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Block link should offer bypass")
+        bypass.tap()
+        confirmBypass(app)
+        require(app.buttons["group.unblockButton"], "Group should be blocked")
+
+        app.open(try XCTUnwrap(URL(string: "normal://unlock?group=\(groupID)&duration=3600&key=QR")))
+
+        require(app.alerts["Couldn't Unblock"], "A failed unlock from a link should say so")
+    }
+
     func testUnlockLinkDuringBypassConfirmationFallsBackToKeySelection() throws {
         let app = launch(["-uiTestSeedGroupKey"])
         let groupID = "6E0A1C9B-2D4F-4B7A-9C3E-5F8D1A2B3C4D"
