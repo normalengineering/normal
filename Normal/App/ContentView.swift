@@ -13,7 +13,6 @@ struct ContentView: View {
     @Query private var schedules: [BlockSchedule]
     @Query private var usageLimits: [UsageLimit]
 
-    @State private var selectedTab: AppTab = .home
     @State private var navigationCoordinator = NavigationCoordinator()
 
     private var settings: Settings? {
@@ -22,20 +21,20 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            MainTabView(selectedTab: $selectedTab)
+            MainTabView(selectedTab: $navigationCoordinator.selectedTab)
             if onboardingService.isOnboardingActive {
                 OnboardingOverlayView()
             }
         }
-        .environment(\.navigationCoordinator, navigationCoordinator)
-        .widgetActionResponder(coordinator: navigationCoordinator, selectedTab: $selectedTab)
+        .widgetActionResponder(coordinator: navigationCoordinator)
         .liveActivitySync()
         .sheet(isPresented: $navigationCoordinator.isSettingsPresented, onDismiss: navigationCoordinator.settingsDidDismiss) {
             SettingsView(initialTab: navigationCoordinator.settingsInitialTab)
         }
+        .environment(\.navigationCoordinator, navigationCoordinator)
         .onChange(of: onboardingService.requiredTab) { _, newTab in
             if let newTab {
-                selectedTab = newTab
+                navigationCoordinator.selectedTab = newTab
             }
         }
         .onChange(of: onboardingService.isOnboardingActive, onOnboardingCompleted)
@@ -63,7 +62,7 @@ struct ContentView: View {
         if settings?.hasCompletedOnboarding == true {
             onboardingService.isOnboardingActive = false
             onboardingService.currentStep = .complete
-            selectedTab = settings?.defaultTab ?? .home
+            navigationCoordinator.selectedTab = settings?.defaultTab ?? .home
         }
         Task {
             await screenTimeService.checkAuthorizationStatus()
@@ -91,7 +90,7 @@ struct ContentView: View {
     private func onOnboardingCompleted(_: Bool, _ isActive: Bool) {
         if !isActive, settings?.hasCompletedOnboarding != true {
             settings?.hasCompletedOnboarding = true
-            selectedTab = .appSelect
+            navigationCoordinator.selectedTab = .appSelect
         }
     }
 }

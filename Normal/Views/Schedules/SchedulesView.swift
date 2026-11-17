@@ -4,6 +4,7 @@ import SwiftUI
 struct SchedulesView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(ScheduleService.self) private var scheduleService
+    @Environment(\.navigationCoordinator) private var navigation
 
     @Query(sort: [SortDescriptor(\BlockSchedule.sortIndex)])
     private var schedules: [BlockSchedule]
@@ -87,11 +88,14 @@ struct SchedulesView: View {
                 description: Text("Go to App Select to choose which apps to manage before creating schedules.")
             )
         } else if !hasGlobalKey {
-            ContentUnavailableView(
-                "No Keys",
-                systemImage: "key.viewfinder",
-                description: Text("Add a key in the Keys tab before creating schedules.")
-            )
+            ContentUnavailableView {
+                Label("No Keys", systemImage: "key.viewfinder")
+            } description: {
+                Text("Add a key in the Keys tab before creating schedules.")
+            } actions: {
+                Button("Go to Keys") { navigation.show(.keys) }
+                    .buttonStyle(.borderedProminent)
+            }
         } else if isBlocked {
             ContentUnavailableView(
                 "Apps Blocked",

@@ -6,15 +6,23 @@ final class KeyCheckFlow {
     struct Request {
         let id = UUID()
         let keys: [Key]
+        let hasAnyGroupKey: Bool
         let keyGroupID: UUID?
         let availableKeyTypes: [KeyType]
         let defaultKeyType: KeyType?
         var requestedKeyType: KeyType?
     }
 
+    enum MissingKey: Equatable {
+        case noKeys
+        case onlyGroupKeys
+        case noKeyToUnblock
+        case unsupportedOnDevice
+    }
+
     enum Stage: Equatable {
         case idle
-        case noKeys
+        case missingKey(MissingKey)
         case choosing
         case confirmingBypass
         case scanningQR
@@ -57,7 +65,7 @@ final class KeyCheckFlow {
         switch stage {
         case .choosing, .confirmingBypass, .scanningQR, .checkingLocation: true
         case .scanningNFC: nfcOverPicker
-        case .idle, .noKeys: false
+        case .idle, .missingKey: false
         }
     }
 
@@ -80,6 +88,10 @@ final class KeyCheckFlow {
         self.request = request
         self.action = action
         allowsBypass = action.allowsBypass
+        if allowsBypass, request.keys.isEmpty {
+            stage = .missingKey(request.hasAnyGroupKey ? .onlyGroupKeys : .noKeys)
+            return
+        }
         switch KeySelectLogic.decide(
             availableKeyTypes: request.availableKeyTypes,
             allowBypass: allowsBypass,
@@ -87,7 +99,7 @@ final class KeyCheckFlow {
             requestedKeyType: request.requestedKeyType
         ) {
         case .showNoKeysAlert:
-            stage = .noKeys
+            stage = .missingKey(request.keys.isEmpty ? .noKeyToUnblock : .unsupportedOnDevice)
         case let .autoSelect(keyType):
             begin(keyType, fromPicker: false)
         case .showSheet:

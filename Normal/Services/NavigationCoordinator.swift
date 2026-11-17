@@ -13,11 +13,17 @@ struct ActionRequest: Equatable {
 @MainActor
 @Observable
 final class NavigationCoordinator {
+    var selectedTab: AppTab = .home
     var isSettingsPresented = false
     private(set) var settingsInitialTab: SettingsTab = .general
 
     private(set) var pendingAction: ActionRequest?
     private var actionAfterSettings: ActionRequest?
+
+    func show(_ tab: AppTab) {
+        isSettingsPresented = false
+        selectedTab = tab
+    }
 
     func presentSettings(tab: SettingsTab = .general) {
         settingsInitialTab = tab

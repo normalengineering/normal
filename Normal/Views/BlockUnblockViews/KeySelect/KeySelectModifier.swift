@@ -4,6 +4,7 @@ import SwiftUI
 struct KeySelectModifier: ViewModifier {
     @Environment(QRService.self) private var qrService
     @Environment(LocationService.self) private var locationService
+    @Environment(\.navigationCoordinator) private var navigation
     @Query private var keys: [Key]
     @Query private var allSettings: [Settings]
 
@@ -60,14 +61,14 @@ struct KeySelectModifier: ViewModifier {
                     }
                 }
             }
-            .alert("No Keys Available", isPresented: noKeysAlert) {
-                Button("OK", role: .cancel) { flow.cancel() }
-            } message: {
-                Text(
-                    flow.request?.keys.isEmpty ?? true
-                        ? "Add a key in the Keys tab before blocking apps."
-                        : "None of your registered keys are supported on this device. Add a QR code or barcode key to use on iPad."
-                )
+            .alert("Add a Key First", isPresented: missingKeyAlert, presenting: missingKey) { _ in
+                Button("Not Now", role: .cancel) { flow.cancel() }
+                Button("Go to Keys") {
+                    flow.cancel()
+                    navigation.show(.keys)
+                }
+            } message: { missingKey in
+                Text(message(for: missingKey))
             }
             .sheet(item: keySheet, onDismiss: flow.keySheetDismissed) { _ in
                 keySelectSheet
@@ -139,11 +140,31 @@ struct KeySelectModifier: ViewModifier {
         allowsMinimizedDetent ? [sheetDetent, Self.minimizedDetent] : [sheetDetent]
     }
 
-    private var noKeysAlert: Binding<Bool> {
+    private var missingKey: KeyCheckFlow.MissingKey? {
+        if case let .missingKey(missingKey) = flow.stage {
+            return missingKey
+        }
+        return nil
+    }
+
+    private var missingKeyAlert: Binding<Bool> {
         Binding(
-            get: { flow.stage == .noKeys },
+            get: { missingKey != nil },
             set: { if !$0 { flow.cancel() } }
         )
+    }
+
+    private func message(for missingKey: KeyCheckFlow.MissingKey) -> LocalizedStringKey {
+        switch missingKey {
+        case .noKeys:
+            "You'll need a key to unblock your apps later."
+        case .onlyGroupKeys:
+            "Group keys only unblock their own group. Add a key in the Keys tab to block."
+        case .noKeyToUnblock:
+            "You'll need a key to unblock these apps."
+        case .unsupportedOnDevice:
+            "None of your registered keys are supported on this device. Add a QR code or barcode key to use on iPad."
+        }
     }
 
     private var keySheet: Binding<SheetID?> {
@@ -166,6 +187,7 @@ struct KeySelectModifier: ViewModifier {
         flow.start(
             KeyCheckFlow.Request(
                 keys: scopedKeys,
+                hasAnyGroupKey: keys.contains { $0.groupID != nil },
                 keyGroupID: keyGroupID,
                 availableKeyTypes: KeyType.selectable(registered: scopedKeys.map(\.type)),
                 defaultKeyType: defaultKeyType,

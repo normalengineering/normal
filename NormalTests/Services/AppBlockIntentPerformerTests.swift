@@ -136,6 +136,30 @@ struct AppBlockIntentPerformerTests {
         #expect(screenTime.blockCustomDomains == ["x.com"])
     }
 
+    @Test func blockGroupAcceptsItsOwnKey() throws {
+        try seed(globalKey: false)
+        let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
+        context.insert(group)
+        context.insert(Key(name: "group", type: .qr, rawValue: "a", groupID: group.id))
+        try context.save()
+
+        #expect(try performer.blockGroup(id: group.id) == BlockOutcome(name: "Social", wasAlreadyBlocked: false))
+        #expect(screenTime.blockCalled)
+    }
+
+    @Test func blockGroupRejectsAnotherGroupsKey() throws {
+        try seed(globalKey: false)
+        let group = AppGroup(name: "Social", selection: FamilyActivitySelection())
+        context.insert(group)
+        context.insert(Key(name: "other", type: .qr, rawValue: "a", groupID: UUID()))
+        try context.save()
+
+        #expect(throws: BlockIntentError.noGlobalKey) {
+            try performer.blockGroup(id: group.id)
+        }
+        #expect(!screenTime.blockCalled)
+    }
+
     @Test func blockGroupThrowsForDeletedGroup() throws {
         try seed()
 

@@ -100,7 +100,7 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
     }
 
     private func readiness(for request: UnblockRequest) throws -> Readiness {
-        let settings = try intents.validatedSettings(requiringGlobalKey: false)
+        let settings = try intents.validatedSettings(requiringKey: false)
         intents.timedUnblockService.refresh(screenTimeService: intents.screenTimeService)
         let target = try intents.target(groupID: request.groupID, settings: settings)
         let status = intents.screenTimeService.blockStatus(of: target, settings: settings)

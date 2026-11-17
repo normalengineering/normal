@@ -10,14 +10,15 @@ struct IntentContext {
         container.mainContext
     }
 
-    func validatedSettings(requiringGlobalKey: Bool) throws -> Settings {
+    func validatedSettings(requiringKey: Bool, groupID: UUID? = nil) throws -> Settings {
         let settings = try context.fetch(FetchDescriptor<Settings>()).first
         let hasCompletedOnboarding = settings?.hasCompletedOnboarding == true
-        if requiringGlobalKey {
+        if requiringKey {
             try BlockActions.validate(
                 isAuthorized: screenTimeService.isAuthorizedNow,
                 hasCompletedOnboarding: hasCompletedOnboarding,
-                keys: keys()
+                keys: keys(),
+                groupID: groupID
             )
         } else {
             try BlockActions.validateSetup(
