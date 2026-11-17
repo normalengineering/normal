@@ -17,6 +17,7 @@ struct GroupListCardView: View {
     @Binding var authAction: ProtectedAction?
     @Binding var pendingGroupID: UUID?
     @Binding var durationGrant: UnblockGrant?
+    @Binding var unblockAlert: UnblockAlert?
 
     @State private var isEditing = false
     @State private var isReselecting = false
@@ -254,12 +255,17 @@ struct GroupListCardView: View {
             durationGrant = grant
             return
         }
-        try? BlockActions.unblock(
-            grant,
-            for: .timed(duration),
-            settings: settings,
-            screenTimeService: screenTimeService,
-            timedUnblockService: timedUnblockService
-        )
+        do {
+            let timing = try BlockActions.unblock(
+                grant,
+                for: .timed(duration),
+                settings: settings,
+                screenTimeService: screenTimeService,
+                timedUnblockService: timedUnblockService
+            )
+            unblockAlert = UnblockAlert(timing)
+        } catch {
+            unblockAlert = .failed(error)
+        }
     }
 }

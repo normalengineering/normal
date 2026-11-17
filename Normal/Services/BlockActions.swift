@@ -28,16 +28,17 @@ enum BlockActions {
         screenTimeService.block(selection: group.selection, customDomains: customDomains)
     }
 
+    @discardableResult
     static func unblock(
         _ grant: UnblockGrant,
         for length: UnblockLength,
         settings: Settings,
         screenTimeService: any ScreenTimeProviding,
         timedUnblockService: TimedUnblockService
-    ) throws {
+    ) throws -> UnblockTiming {
         switch length {
         case let .timed(duration):
-            try timedUnblockService.start(
+            return try timedUnblockService.start(
                 grant,
                 duration: duration,
                 settings: settings,
@@ -45,6 +46,7 @@ enum BlockActions {
             )
         case .permanent:
             screenTimeService.unblockPermanently(grant, settings: settings)
+            return .exact
         }
     }
 

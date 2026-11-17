@@ -129,7 +129,8 @@ final class BlockingHarness {
         screenTime.unblock(selection: group.selection, customDomains: group.customDomains)
     }
 
-    func unblockAllTimed(_ duration: TimedUnblockDuration) throws {
+    @discardableResult
+    func unblockAllTimed(_ duration: TimedUnblockDuration) throws -> UnblockTiming {
         try timedUnblock.startMain(
             duration: duration,
             mainSelection: main,

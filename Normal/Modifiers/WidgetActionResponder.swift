@@ -19,6 +19,7 @@ private struct WidgetActionResponder: ViewModifier {
     @State private var active: ActiveRequest?
     @State private var heldRequest: ActionRequest?
     @State private var durationGrant: UnblockGrant?
+    @State private var unblockAlert: UnblockAlert?
 
     private struct ActiveRequest {
         let token: UUID
@@ -39,8 +40,9 @@ private struct WidgetActionResponder: ViewModifier {
                 requestID: active?.token
             )
             .sheet(item: $durationGrant, onDismiss: durationSheetDismissed) { grant in
-                UnblockDurationSheet(grant: grant)
+                UnblockDurationSheet(grant: grant) { unblockAlert = UnblockAlert($0) }
             }
+            .unblockAlert($unblockAlert)
             .onOpenURL { coordinator.handle(url: $0) }
             .onChange(of: coordinator.pendingAction) { _, request in resolve(request) }
             .onChange(of: unlockInbox.pending, initial: true) { _, _ in takeInboxRequest() }
@@ -132,13 +134,18 @@ private struct WidgetActionResponder: ViewModifier {
             durationGrant = grant
             return
         }
-        try? BlockActions.unblock(
-            grant,
-            for: length,
-            settings: settings,
-            screenTimeService: screenTimeService,
-            timedUnblockService: timedUnblockService
-        )
+        do {
+            let timing = try BlockActions.unblock(
+                grant,
+                for: length,
+                settings: settings,
+                screenTimeService: screenTimeService,
+                timedUnblockService: timedUnblockService
+            )
+            unblockAlert = UnblockAlert(timing)
+        } catch {
+            unblockAlert = .failed(error)
+        }
     }
 
     private func block(_ group: AppGroup) {
