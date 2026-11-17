@@ -1,23 +1,10 @@
-import FamilyControls
-import SwiftData
 import SwiftUI
 
 struct TimedUnblockBannerView: View {
-    @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
-    @Query private var allSettings: [Settings]
 
-    let selection: FamilyActivitySelection
-    var customDomains: [String] = []
     @Binding var authAction: ProtectedAction?
-
-    private var settings: Settings {
-        allSettings.unwrapped
-    }
-
-    private var effectiveCustomDomains: [String] {
-        settings.enableCustomDomains ? customDomains : []
-    }
+    let onBlockAllNow: () -> Void
 
     var body: some View {
         if let endDate = timedUnblockService.mainUnblockEndDate, endDate > .now {
@@ -41,14 +28,7 @@ struct TimedUnblockBannerView: View {
                         prominent: false,
                         tint: .orange
                     ) {
-                        authAction = .tighten {
-                            timedUnblockService.cancelMain(
-                                selection: selection,
-                                customDomains: effectiveCustomDomains,
-                                screenTimeService: screenTimeService,
-                                blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-                            )
-                        }
+                        authAction = .tighten { onBlockAllNow() }
                     }
                     .accessibilityIdentifier("home.blockAllNow")
                 }

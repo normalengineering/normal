@@ -33,9 +33,8 @@ struct HomeView: View {
             List {
                 if let mainSelection, mainSelection.hasItemsToBlock(customDomainsEnabled: settings.enableCustomDomains) {
                     TimedUnblockBannerView(
-                        selection: mainSelection.selection,
-                        customDomains: mainSelection.customDomains,
-                        authAction: $authAction
+                        authAction: $authAction,
+                        onBlockAllNow: { blockMain(mainSelection) }
                     )
                     MainBlockButtonView(
                         mainSelection: mainSelection,

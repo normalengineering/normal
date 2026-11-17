@@ -150,12 +150,7 @@ final class BlockingHarness {
     }
 
     func blockAllNow() {
-        timedUnblock.cancelMain(
-            selection: main.selection,
-            customDomains: main.customDomains,
-            screenTimeService: screenTime,
-            blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
-        )
+        blockAll()
     }
 
     func emergencyUnblock() {
