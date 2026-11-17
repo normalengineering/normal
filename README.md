@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/hero.svg" alt="Normal: reclaim your time. Keep your apps blocked." width="100%">
+</p>
+
 # Normal — Screen Time Blocker
 
 A powerful screen time blocker that actually works to reduce your screen time. Open source and privacy-focused. No subscriptions, paywalls, or data collection.
@@ -39,11 +43,27 @@ Establish recurring blocking patterns for specific days and times — block emai
 
 No accounts. No cloud sync. No analytics. No tracking. All settings, keys, and preferences stay on your device.
 
-## Un-bypassable
+## Hard to Bypass
 
-Using shortcuts, can prevent bypassing. Either unlock via
-a Hardware blocker or reset your phone to un-dumbify your phone.
+Blocked apps stay blocked until you present a key: an NFC tag, QR code, barcode or a saved location. Use Shortcuts to prevent bypassing, and keep the key out of reach, like a tag at the office. The only other way back in is to reset your phone.
 
 ## Complete Granular Control
 
 Feature packed so you can do what works best for you.
+
+## Development
+
+Requires the latest stable Xcode and an iOS 17.4+ deployment target. Screen Time blocking (FamilyControls) needs a real device and an Apple developer team with the Family Controls entitlement. The simulator is enough for the unit and UI tests.
+
+```bash
+xcodebuild test \
+  -project Normal.xcodeproj \
+  -scheme Normal \
+  -destination "platform=iOS Simulator,name=iPhone 17" \
+  -only-testing:NormalTests \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+## License
+
+See [LICENSE](LICENSE).
