@@ -24,7 +24,7 @@ struct UnblockDurationSheet: View {
         TimedUnblockSheet(
             title: title,
             durations: settings.unblockDurations,
-            initialDuration: settings.defaultDuration,
+            initialDuration: settings.defaultDuration(for: grant.target.group),
             onConfirm: { length in
                 let timing = try BlockActions.unblock(
                     grant,

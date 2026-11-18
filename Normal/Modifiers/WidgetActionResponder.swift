@@ -129,7 +129,7 @@ private struct WidgetActionResponder: ViewModifier {
 
     private func unlock(_ target: UnblockTarget, duration request: UnlockDurationRequest, proof: KeyProof) {
         guard let grant = UnblockGrant(target, proof: proof) else { return }
-        guard let settings = allSettings.first, let length = settings.unblockLength(for: request) else {
+        guard let settings = allSettings.first, let length = settings.unblockLength(for: request, group: target.group) else {
             durationGrant = grant
             return
         }

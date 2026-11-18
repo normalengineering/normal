@@ -12,6 +12,13 @@ enum UnblockTarget: Identifiable {
         }
     }
 
+    var group: AppGroup? {
+        if case let .group(group) = self {
+            return group
+        }
+        return nil
+    }
+
     var groupID: UUID? {
         if case let .group(group) = self {
             return group.id

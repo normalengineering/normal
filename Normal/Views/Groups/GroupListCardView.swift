@@ -246,7 +246,7 @@ struct GroupListCardView: View {
 
     private func unblockGroup(_ proof: KeyProof) {
         guard let grant = UnblockGrant(.group(appGroup), proof: proof) else { return }
-        guard let duration = settings.defaultDuration else {
+        guard let duration = settings.defaultDuration(for: appGroup) else {
             durationGrant = grant
             return
         }

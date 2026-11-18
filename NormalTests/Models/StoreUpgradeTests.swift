@@ -318,6 +318,8 @@ struct StoreUpgradeTests {
         #expect(group.lastUpdated == Self.updated)
         #expect(group.sortIndex == 2)
         #expect(group.customDomains == ["reddit.com"])
+        #expect(group.durationOverride == .appDefault)
+        #expect(group.keyOverride == .appDefault)
 
         let main = try #require(try context.fetch(FetchDescriptor<SelectedApps>()).first)
         #expect(main.selection == TokenFixtures.selection(apps: [1, 2, 3], webDomains: [1]))
