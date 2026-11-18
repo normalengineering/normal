@@ -97,6 +97,25 @@ final class BlockingUITests: XCTestCase {
         require(app.staticTexts["No Active Blocks"], "Apps should be unblocked")
     }
 
+    func testLocationKeyCheckCanBeClosedWhenOutOfRange() {
+        let app = launch(["-uiTestSeedLocationKey", "-uiTestLocationKeyFarAway"])
+        blockViaBypass(app)
+
+        app.buttons["home.unblockAll"].tap()
+        let locationRow = app.buttons["keySelect.row.LOCATION"]
+        require(locationRow, "The picker should offer the location key")
+        locationRow.tap()
+
+        require(app.staticTexts["You're not in an unlock area"], "Away from the key, the check should say so")
+        let close = app.buttons["locationUnlock.close"]
+        require(close, "The location check should have a close button")
+        XCTAssertEqual(close.label, "Close")
+        close.tap()
+
+        require(app.buttons["keySelect.row.QR"], "Closing should return to Choose Key")
+        XCTAssertFalse(close.exists, "The location check should be gone")
+    }
+
     func testBlockingDisablesKeysTab() {
         let app = launch()
         blockViaBypass(app)

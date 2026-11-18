@@ -182,6 +182,29 @@ final class NormalUITests: XCTestCase {
     }
 
     @MainActor
+    func testLocationKeyInfoClosesWithTheCloseButton() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedLocationKey"])
+        app.mainTab("Keys").tap()
+        app.buttons["keys.addButton"].tap()
+        let locationSegment = app.buttons["Location"]
+        require(locationSegment, "Location key type should be selectable")
+        locationSegment.tap()
+        app.buttons["key.locationButton"].tap()
+
+        let map = app.otherElements["locationPicker.map"].firstMatch
+        require(map, "Location picker should show the map")
+        sleep(2)
+        map.tap()
+
+        let close = app.buttons["locationKeyInfo.close"]
+        require(close, "Tapping a saved key's area should show its details")
+        XCTAssertEqual(close.label, "Close")
+        close.tap()
+        XCTAssertTrue(close.waitForNonExistence(timeout: timeout), "Close should dismiss the details")
+        require(map, "Closing the details should return to the map")
+    }
+
+    @MainActor
     func testCustomDomainsEditorHiddenWhenToggleOff() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 

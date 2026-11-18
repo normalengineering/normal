@@ -32,8 +32,14 @@ struct SettingsView: View {
         NavigationStack {
             tabView
                 .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Close") { dismiss() }
+                    if #available(iOS 26.0, *) {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(role: .close) { dismiss() }
+                        }
+                    } else {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Close") { dismiss() }
+                        }
                     }
                 }
                 .alert("Emergency Unblock", isPresented: $showConfirmation) {

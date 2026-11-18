@@ -31,17 +31,11 @@ struct LocationUnlockView: View {
         .navigationTitle("Location Key")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
-        .toolbarBackground(.visible, for: .navigationBar)
+        .opaqueNavigationBarBeforeLiquidGlass()
         .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button(action: onClose) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityLabel("Close")
-                .accessibilityIdentifier("locationUnlock.close")
+            ToolbarItem(placement: .topBarTrailing) {
+                CloseButton(action: onClose)
+                    .accessibilityIdentifier("locationUnlock.close")
             }
         }
         .task {
@@ -181,5 +175,16 @@ struct LocationUnlockView: View {
         kind == .unblock
             ? "Move into a highlighted area to unlock."
             : "Leave the highlighted area to unlock."
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func opaqueNavigationBarBeforeLiquidGlass() -> some View {
+        if #available(iOS 26.0, *) {
+            self
+        } else {
+            toolbarBackground(.visible, for: .navigationBar)
+        }
     }
 }

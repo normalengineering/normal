@@ -32,12 +32,8 @@ struct LocationKeyInfoSheet: View {
                     }
                 }
                 Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.tertiary)
-                }
-                .buttonStyle(.plain)
+                CloseButton(placement: .inline) { dismiss() }
+                    .accessibilityIdentifier("locationKeyInfo.close")
             }
 
             HStack(spacing: DS.Spacing.md) {

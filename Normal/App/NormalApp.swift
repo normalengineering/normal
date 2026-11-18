@@ -57,8 +57,8 @@ struct NormalApp: App {
             if UITestSupport.seedLocationKey {
                 context.insert(Key(
                     name: "Test Place",
-                    latitude: 37.33182,
-                    longitude: -122.03118,
+                    latitude: UITestSupport.locationKeyFarAway ? 40.7484 : 37.33182,
+                    longitude: UITestSupport.locationKeyFarAway ? -73.9857 : -122.03118,
                     radiusMeters: 400,
                     radiusKind: .unblock
                 ))
