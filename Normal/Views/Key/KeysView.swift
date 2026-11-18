@@ -46,7 +46,7 @@ struct KeysView: View {
                 }, onMove: move, footer: { groupKeysRow })
             }
         }
-        .safeAreaInset(edge: .bottom) {
+        .bottomFooter {
             if isBlocked {
                 FooterMessage(text: BlockedMessage.keys)
             } else if keys.isEmpty, !groupKeys.isEmpty {

@@ -31,7 +31,7 @@ struct CustomDomainsEditor: View {
         }
         .navigationTitle("Custom Domains")
         .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .bottom) {
+        .bottomFooter {
             if !canRemove {
                 FooterMessage(text: BlockedMessage.customDomains)
             }

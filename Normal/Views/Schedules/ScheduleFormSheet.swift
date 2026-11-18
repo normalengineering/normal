@@ -125,7 +125,7 @@ struct ScheduleFormSheet: View {
             }
             .navigationTitle(isReadOnly ? "Schedule" : (isNew ? "New Schedule" : "Edit Schedule"))
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
+            .bottomFooter {
                 if isReadOnly {
                     FooterMessage(text: BlockedMessage.schedules)
                 }

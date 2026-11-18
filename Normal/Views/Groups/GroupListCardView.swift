@@ -128,10 +128,10 @@ struct GroupListCardView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
+        AdaptiveStack(spacing: DS.Spacing.sm) {
             Text(appGroup.name)
                 .font(.headline)
-            Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
             statusBadge
         }
     }

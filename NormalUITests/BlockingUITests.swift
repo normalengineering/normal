@@ -1,3 +1,4 @@
+import Vision
 import XCTest
 
 final class BlockingUITests: XCTestCase {
@@ -224,6 +225,56 @@ final class BlockingUITests: XCTestCase {
         app.buttons["timedUnblock.confirm"].tap()
 
         require(app.buttons["group.blockButton"], "Group should be unblocked again")
+    }
+
+    func testCardsKeepWholeWordsAtTheLargestTextSize() throws {
+        let app = launch([
+            "-uiTestSeedSchedule", "-uiTestSeedGroupKey",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ])
+
+        app.mainTab("Schedules").tap()
+        require(app.descendants(matching: .any)["schedule.weekdayStrip"], "The schedule card should render")
+        let schedule = try screenLines()
+        XCTAssertTrue(schedule.contains { $0.contains("Block") }, "\"Block\" should stay one word: \(schedule)")
+        XCTAssertTrue(schedule.contains { $0.contains("Permanent") }, "\"Permanent\" should stay one word: \(schedule)")
+
+        app.mainTab("Groups").tap()
+        require(app.buttons["group.blockButton"], "The group card should render")
+        let group = try screenLines()
+        XCTAssertTrue(group.contains { $0.contains("Unblocked") }, "\"Unblocked\" should stay one word: \(group)")
+    }
+
+    private func screenLines() throws -> [String] {
+        sleep(1)
+        guard let image = XCUIScreen.main.screenshot().image.cgImage else { return [] }
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = false
+        try VNImageRequestHandler(cgImage: image).perform([request])
+        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+    }
+
+    func testScheduleCardShowsDayChipsWhenTheyFit() {
+        let app = launch(["-uiTestSeedSchedule"])
+        app.mainTab("Schedules").tap()
+
+        require(app.descendants(matching: .any)["schedule.weekdayChips"], "The days should show as chips when they fit")
+        XCTAssertFalse(app.descendants(matching: .any)["schedule.weekdayStrip"].exists)
+    }
+
+    func testScheduleCardShowsAWeekStripWhenDayChipsDontFit() {
+        let app = launch([
+            "-uiTestSeedSchedule",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ])
+        app.mainTab("Schedules").tap()
+
+        let strip = app.descendants(matching: .any)["schedule.weekdayStrip"]
+        require(strip, "The days should switch to the week strip instead of breaking words")
+        let weekdays = Calendar.current.weekdaySymbols[1 ... 5]
+        XCTAssertEqual(strip.label, weekdays.formatted(.list(type: .and)))
+        XCTAssertFalse(app.descendants(matching: .any)["schedule.weekdayChips"].exists)
     }
 
     func testFailedDefaultDurationUnblockShowsError() {
