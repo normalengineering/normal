@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum BlockActions {
     static func blockAll(
@@ -13,6 +14,7 @@ enum BlockActions {
             customDomains: settings.enableCustomDomains ? mainSelection.customDomains : [],
             blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
         )
+        playHaptic()
     }
 
     static func blockGroup(
@@ -26,6 +28,7 @@ enum BlockActions {
             timedUnblockService.cancelGroup(groupId: group.id)
         }
         screenTimeService.block(selection: group.selection, customDomains: customDomains)
+        playHaptic()
     }
 
     @discardableResult
@@ -36,9 +39,10 @@ enum BlockActions {
         screenTimeService: any ScreenTimeProviding,
         timedUnblockService: TimedUnblockService
     ) throws -> UnblockTiming {
+        let timing: UnblockTiming
         switch length {
         case let .timed(duration):
-            return try timedUnblockService.start(
+            timing = try timedUnblockService.start(
                 grant,
                 duration: duration,
                 settings: settings,
@@ -46,8 +50,10 @@ enum BlockActions {
             )
         case .permanent:
             screenTimeService.unblockPermanently(grant, settings: settings)
-            return .exact
+            timing = .exact
         }
+        playHaptic()
+        return timing
     }
 
     static func emergencyUnblock(
@@ -61,6 +67,11 @@ enum BlockActions {
         scheduleService.disableAll(schedules, screenTimeService: screenTimeService)
         usageLimitService.overrideToday()
         screenTimeService.removeAllRestrictions()
+        playHaptic()
+    }
+
+    private static func playHaptic() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
     static func validate(isAuthorized: Bool, hasCompletedOnboarding: Bool, keys: [Key]) throws {
