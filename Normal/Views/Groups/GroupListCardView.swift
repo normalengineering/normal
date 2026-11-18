@@ -194,12 +194,14 @@ struct GroupListCardView: View {
     }
 
     private func timedUnblockRow(endDate: Date) -> some View {
-        HStack(spacing: DS.Spacing.sm) {
-            Image(systemName: "timer").foregroundStyle(.orange)
-            Text(timerInterval: .now ... endDate, countsDown: true)
-                .font(.subheadline.monospacedDigit())
-                .foregroundStyle(.secondary)
-            Spacer()
+        AdaptiveStack(spacing: DS.Spacing.sm) {
+            HStack(spacing: DS.Spacing.sm) {
+                Image(systemName: "timer").foregroundStyle(.orange)
+                Text(timerInterval: .now ... endDate, countsDown: true)
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             Button {
                 requestAction(.tighten(blockGroup))
             } label: {
@@ -211,7 +213,7 @@ struct GroupListCardView: View {
     }
 
     private var actionRow: some View {
-        HStack(spacing: DS.Spacing.md - 2) {
+        AdaptiveStack(spacing: DS.Spacing.md - 2) {
             if blockStatus != .all {
                 blockButton
             }
