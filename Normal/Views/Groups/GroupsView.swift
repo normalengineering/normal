@@ -61,7 +61,7 @@ struct GroupsView: View {
                     unblockAlert: $unblockAlert
                 )
             }, onMove: move)
-                .safeAreaInset(edge: .bottom) {
+                .bottomFooter {
                     if isBlocked {
                         FooterMessage(text: BlockedMessage.groups)
                     } else if !hasGlobalKey {

@@ -55,7 +55,7 @@ struct SchedulesView: View {
             ReorderableListView(items: schedules, rowContent: { schedule in
                 ScheduleCardView(schedule: schedule)
             }, onMove: move)
-                .safeAreaInset(edge: .bottom) {
+                .bottomFooter {
                     if let message = bottomMessage {
                         FooterMessage(text: message)
                     }

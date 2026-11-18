@@ -18,3 +18,14 @@ enum BlockedMessage {
     static let keys: LocalizedStringKey = "Unblock all apps to add or delete keys."
     static let customDomains: LocalizedStringKey = "Unblock all apps to remove custom domains."
 }
+
+extension View {
+    @ViewBuilder
+    func bottomFooter(@ViewBuilder _ footer: () -> some View) -> some View {
+        if #available(iOS 26.0, *) {
+            safeAreaBar(edge: .bottom) { footer() }
+        } else {
+            safeAreaInset(edge: .bottom) { footer() }
+        }
+    }
+}

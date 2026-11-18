@@ -6,6 +6,7 @@ struct ScheduleCardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Query private var allSchedules: [BlockSchedule]
     @Query private var keys: [Key]
@@ -112,16 +113,18 @@ struct ScheduleCardView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 titleRow
-                HStack(spacing: DS.Spacing.sm - 2) {
+                AdaptiveStack(spacing: DS.Spacing.sm - 2) {
                     InlineIconText(
                         systemImage: schedule.shouldBlock ? "lock.fill" : "lock.open.fill",
                         text: schedule.shouldBlock ? "Block" : "Unblock",
                         tint: .blue
                     )
-                    Text("\u{00B7}").foregroundStyle(.secondary)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("\u{00B7}").foregroundStyle(.secondary)
+                    }
                     InlineIconText(
                         systemImage: schedule.isTimed ? "hourglass" : "infinity",
                         text: schedule.isTimed ? "Timed" : "Permanent",
@@ -135,7 +138,7 @@ struct ScheduleCardView: View {
     }
 
     private var titleRow: some View {
-        HStack(spacing: DS.Spacing.sm) {
+        AdaptiveStack(spacing: DS.Spacing.sm) {
             Text(schedule.name).font(.headline)
             if !schedule.isEnabled {
                 Text("OFF")
@@ -157,7 +160,7 @@ struct ScheduleCardView: View {
     }
 
     private var timingRow: some View {
-        HStack(spacing: DS.Spacing.lg) {
+        AdaptiveStack(spacing: dynamicTypeSize.isAccessibilitySize ? DS.Spacing.xs : DS.Spacing.lg) {
             if schedule.isTimed {
                 Label(
                     "\(schedule.formattedStartTime) \u{2013} \(schedule.formattedEndTime)",
@@ -178,10 +181,19 @@ struct ScheduleCardView: View {
     }
 
     private var weekdayChips: some View {
-        HStack(spacing: DS.Spacing.xs) {
-            ForEach(schedule.weekdayLabels, id: \.self) { label in
-                Chip(text: label)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: DS.Spacing.xs) {
+                ForEach(schedule.weekdayLabels, id: \.self) { label in
+                    Chip(text: label)
+                        .fixedSize()
+                }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("schedule.weekdayChips")
+
+            WeekdayStrip(weekdays: schedule.weekdays)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                .accessibilityIdentifier("schedule.weekdayStrip")
         }
     }
 

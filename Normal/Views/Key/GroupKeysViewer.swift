@@ -34,7 +34,7 @@ struct GroupKeysViewer: View {
         }
         .navigationTitle("Group Keys")
         .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .bottom) {
+        .bottomFooter {
             if isBlocked, !sections.isEmpty {
                 FooterMessage(text: "Unblock all apps to delete keys.")
             }

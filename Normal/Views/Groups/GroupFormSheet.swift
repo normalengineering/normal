@@ -111,7 +111,7 @@ struct GroupFormSheet: View {
             }
             .navigationTitle(isReadOnly ? "Group" : (isNew ? "New Group" : "Edit Group"))
             .navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
+            .bottomFooter {
                 if isReadOnly {
                     FooterMessage(text: BlockedMessage.groups)
                 }
