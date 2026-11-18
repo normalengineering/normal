@@ -1,6 +1,8 @@
 name: UI Tests
 
 on:
+  schedule:
+    - cron: "0 9 * * *"
   workflow_dispatch:
     inputs:
       only:
@@ -20,7 +22,7 @@ jobs:
     env:
       SCHEME: Normal
       SIMULATOR: iPhone 17
-      ONLY: ${{ inputs.only }}
+      ONLY: ${{ inputs.only || 'NormalUITests' }}
     steps:
       - uses: actions/checkout@v4
 
