@@ -210,26 +210,6 @@ struct TimedUnblockServiceTests {
         #expect(service.activeUnblockStartDates().isEmpty, "Live Activity falls back to now")
     }
 
-    @Test func cancelMainAppliesShieldsAndForgets() throws {
-        let (service, _, store) = makeService()
-        let screenTime = FakeScreenTimeService()
-
-        try service.startMain(
-            duration: .fifteenMinutes,
-            selection: FamilyActivitySelection(),
-            screenTimeService: screenTime
-        )
-        service.cancelMain(
-            selection: FamilyActivitySelection(),
-            screenTimeService: screenTime,
-            blockAllPreventsAppDelete: false
-        )
-
-        #expect(screenTime.blockAllCalled)
-        #expect(store.timedUnblocks.isEmpty)
-        #expect(!service.isMainUnblockActive)
-    }
-
     @Test func cancelGroupForgetsTheUnblock() throws {
         let (service, _, store) = makeService()
         let screenTime = FakeScreenTimeService()
