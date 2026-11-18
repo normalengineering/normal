@@ -42,6 +42,16 @@ struct NavigationCoordinatorTests {
         #expect(c.pendingAction?.action == .unblock(request))
     }
 
+    @Test func showingATabClosesSettings() {
+        let c = NavigationCoordinator()
+        c.presentSettings()
+
+        c.show(.keys)
+
+        #expect(c.selectedTab == .keys)
+        #expect(!c.isSettingsPresented)
+    }
+
     @Test func dismissingSettingsWithoutARequestDoesNothing() {
         let c = NavigationCoordinator()
         c.presentSettings()

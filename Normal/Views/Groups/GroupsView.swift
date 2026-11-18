@@ -7,7 +7,6 @@ struct GroupsView: View {
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
     private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
-    @Query private var keys: [Key]
     @Query private var allSettings: [Settings]
     @State private var isShowingSheet = false
 
@@ -22,10 +21,6 @@ struct GroupsView: View {
 
     private var isBlocked: Bool {
         screenTimeService.activeShieldCount() > 0
-    }
-
-    private var hasGlobalKey: Bool {
-        Key.hasGlobalKey(in: keys)
     }
 
     var body: some View {
@@ -64,8 +59,6 @@ struct GroupsView: View {
                 .safeAreaInset(edge: .bottom) {
                     if isBlocked {
                         FooterMessage(text: BlockedMessage.groups)
-                    } else if !hasGlobalKey {
-                        FooterMessage(text: "Add a key in the Keys tab before blocking groups.")
                     }
                 }
                 // Host the key prompt on the stable list, scoped to whichever card

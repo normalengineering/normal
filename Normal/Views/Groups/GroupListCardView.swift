@@ -35,10 +35,6 @@ struct GroupListCardView: View {
         screenTimeService.activeShieldCount() > 0
     }
 
-    private var hasGlobalKey: Bool {
-        Key.hasGlobalKey(in: allKeys)
-    }
-
     private var blockStatus: BlockStatus {
         screenTimeService.blockStatus(selection: appGroup.selection, customDomains: customDomains)
     }
@@ -235,7 +231,6 @@ struct GroupListCardView: View {
             requestAction(.tighten(blockGroup))
         }
         .accessibilityIdentifier("group.blockButton")
-        .disabled(!hasGlobalKey)
     }
 
     private var unblockButton: some View {

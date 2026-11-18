@@ -74,9 +74,9 @@ enum BlockActions {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
-    static func validate(isAuthorized: Bool, hasCompletedOnboarding: Bool, keys: [Key]) throws {
+    static func validate(isAuthorized: Bool, hasCompletedOnboarding: Bool, keys: [Key], groupID: UUID? = nil) throws {
         try validateSetup(isAuthorized: isAuthorized, hasCompletedOnboarding: hasCompletedOnboarding)
-        guard Key.hasGlobalKey(in: keys) else { throw BlockIntentError.noGlobalKey }
+        guard !Key.scoped(keys, toGroup: groupID).isEmpty else { throw BlockIntentError.noGlobalKey }
     }
 
     static func validateSetup(isAuthorized: Bool, hasCompletedOnboarding: Bool) throws {

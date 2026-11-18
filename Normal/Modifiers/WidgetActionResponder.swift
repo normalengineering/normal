@@ -13,7 +13,6 @@ private struct WidgetActionResponder: ViewModifier {
     @Query private var selectedApps: [SelectedApps]
 
     let coordinator: NavigationCoordinator
-    @Binding var selectedTab: AppTab
 
     @State private var authAction: ProtectedAction?
     @State private var active: ActiveRequest?
@@ -124,7 +123,7 @@ private struct WidgetActionResponder: ViewModifier {
     }
 
     private func present(_ request: ActiveRequest) {
-        selectedTab = request.target.groupID == nil ? .home : .groups
+        coordinator.selectedTab = request.target.groupID == nil ? .home : .groups
         active = request
     }
 
@@ -159,10 +158,7 @@ private struct WidgetActionResponder: ViewModifier {
 }
 
 extension View {
-    func widgetActionResponder(
-        coordinator: NavigationCoordinator,
-        selectedTab: Binding<AppTab>
-    ) -> some View {
-        modifier(WidgetActionResponder(coordinator: coordinator, selectedTab: selectedTab))
+    func widgetActionResponder(coordinator: NavigationCoordinator) -> some View {
+        modifier(WidgetActionResponder(coordinator: coordinator))
     }
 }

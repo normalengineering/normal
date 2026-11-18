@@ -281,4 +281,25 @@ struct BlockActionsTests {
             )
         }
     }
+
+    @Test func validateAcceptsAGroupsOwnKeyForThatGroup() throws {
+        let groupID = UUID()
+        try BlockActions.validate(
+            isAuthorized: true,
+            hasCompletedOnboarding: true,
+            keys: [Key(name: "group", type: .qr, rawValue: "a", groupID: groupID)],
+            groupID: groupID
+        )
+    }
+
+    @Test func validateRejectsAnotherGroupsKey() {
+        #expect(throws: BlockIntentError.noGlobalKey) {
+            try BlockActions.validate(
+                isAuthorized: true,
+                hasCompletedOnboarding: true,
+                keys: [Key(name: "group", type: .qr, rawValue: "a", groupID: UUID())],
+                groupID: UUID()
+            )
+        }
+    }
 }

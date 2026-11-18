@@ -25,11 +25,13 @@ struct KeyCheckFlowTests {
     private func request(
         _ keys: [Key],
         available: [KeyType],
+        hasAnyGroupKey: Bool = false,
         keyGroupID: UUID? = nil,
         defaultKeyType: KeyType? = nil
     ) -> KeyCheckFlow.Request {
         KeyCheckFlow.Request(
             keys: keys,
+            hasAnyGroupKey: hasAnyGroupKey,
             keyGroupID: keyGroupID,
             availableKeyTypes: available,
             defaultKeyType: defaultKeyType
@@ -58,13 +60,60 @@ struct KeyCheckFlowTests {
     @Test func noKeysShowsTheAlertUntilCancelled() {
         let request = request([], available: [])
         start(request)
-        #expect(flow.stage == .noKeys)
+        #expect(flow.stage == .missingKey(.noKeyToUnblock))
 
         flow.cancel()
 
         #expect(flow.stage == .idle)
         #expect(flow.finishedRequestID == request.id)
         #expect(counter.runs == 0)
+    }
+
+    @Test func blockingWithNoKeysAsksForOne() {
+        start(request([], available: []), allowBypass: true)
+
+        #expect(flow.stage == .missingKey(.noKeys))
+        #expect(!flow.showsKeySheet)
+    }
+
+    @Test func blockingAGroupWithItsOwnKeyOffersTheKeySheet() {
+        let groupID = UUID()
+        let groupKey = Key(name: "tag", type: .nfc, rawValue: "tag", groupID: groupID)
+        start(request([groupKey], available: [.nfc], hasAnyGroupKey: true, keyGroupID: groupID), allowBypass: true)
+
+        #expect(flow.stage == .choosing)
+        #expect(counter.runs == 0)
+    }
+
+    @Test func blockingAGroupWithOnlyOtherGroupsKeysAsksForAKey() {
+        start(request([], available: [], hasAnyGroupKey: true, keyGroupID: UUID()), allowBypass: true)
+
+        #expect(flow.stage == .missingKey(.onlyGroupKeys))
+    }
+
+    @Test func blockingAllWithOnlyOtherGroupsKeysAsksForAKeyOutsideGroups() {
+        start(request([], available: [], hasAnyGroupKey: true), allowBypass: true)
+
+        #expect(flow.stage == .missingKey(.onlyGroupKeys))
+    }
+
+    @Test func groupKeyStillUnblocksItsGroup() async {
+        let groupID = UUID()
+        let groupKey = Key(name: "tag", type: .nfc, rawValue: "tag", groupID: groupID)
+        start(request([groupKey], available: [.nfc], hasAnyGroupKey: true, keyGroupID: groupID))
+        #expect(flow.stage == .scanningNFC)
+        await waitUntil { nfc.isScanning }
+
+        nfc.present("tag")
+        await waitUntil { flow.stage == .idle }
+
+        #expect(counter.proofs == [KeyProof(keyGroupID: groupID)])
+    }
+
+    @Test func keysThisDeviceCantReadAskForOneItCan() {
+        start(request([key(.nfc, "tag")], available: []), allowBypass: true)
+
+        #expect(flow.stage == .missingKey(.unsupportedOnDevice))
     }
 
     @Test func severalKeyTypesShowThePicker() {

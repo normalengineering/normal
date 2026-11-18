@@ -64,14 +64,91 @@ final class RecoveryUITests: XCTestCase {
         require(app.staticTexts["All Selected Apps Blocked"], "Should start blocked")
         app.buttons["home.unblockAll"].tap()
 
-        let alert = app.alerts["No Keys Available"]
+        let alert = app.alerts["Add a Key First"]
         require(alert, "No-keys unblock attempt must surface a recoverable alert")
-        alert.buttons["OK"].tap()
+        alert.buttons["Not Now"].tap()
 
         XCTAssertTrue(
             app.staticTexts["All Selected Apps Blocked"].waitForExistence(timeout: timeout),
             "Dismissing the alert returns to a usable screen, not a dead end"
         )
+    }
+
+    func testBlockingWithoutKeysOffersTheKeysTab() {
+        let app = launch(["-uiTestNoKeys"])
+
+        let blockAll = app.buttons["home.blockAll"]
+        require(blockAll, "Block All should show without a key")
+        blockAll.tap()
+
+        let alert = app.alerts["Add a Key First"]
+        require(alert, "Blocking without a key should explain why")
+        alert.buttons["Go to Keys"].tap()
+
+        require(app.staticTexts["No Keys Yet"], "Go to Keys should open the Keys tab")
+    }
+
+    func testBlockingAllWithOnlyGroupKeysExplainsWhy() {
+        let app = launch(["-uiTestNoKeys", "-uiTestSeedGroupKey"])
+
+        let blockAll = app.buttons["home.blockAll"]
+        require(blockAll, "Block All should show with only group keys")
+        blockAll.tap()
+
+        let alert = app.alerts["Add a Key First"]
+        require(alert, "Blocking all apps with only group keys should explain why")
+        XCTAssertTrue(
+            alert.staticTexts["Group keys only unblock their own group. Add a key in the Keys tab to block."].exists,
+            "The alert should say group keys aren't enough"
+        )
+        alert.buttons["Not Now"].tap()
+
+        XCTAssertTrue(blockAll.waitForExistence(timeout: timeout), "Not Now should stay on Home")
+    }
+
+    func testGroupWithItsOwnKeyCanBlock() {
+        let app = launch(["-uiTestNoKeys", "-uiTestSeedGroupKey"])
+
+        app.mainTab("Groups").tap()
+        let block = app.buttons["group.blockButton"]
+        require(block, "Seeded group should show a Block button")
+        block.tap()
+
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "A group with its own key should offer the key sheet")
+        bypass.tap()
+        let confirm = app.buttons["keySelect.confirmBlockWithoutKey"]
+        require(confirm, "Blocking without scanning should ask to confirm")
+        confirm.tap()
+
+        require(app.buttons["group.unblockButton"], "The group should be blocked")
+    }
+
+    func testSchedulesWithoutKeysLinkToTheKeysTab() {
+        let app = launch(["-uiTestNoKeys"])
+
+        app.mainTab("Schedules").tap()
+        let goToKeys = app.buttons["Go to Keys"]
+        require(goToKeys, "The No Keys screen should link to the Keys tab")
+        goToKeys.tap()
+
+        require(app.staticTexts["No Keys Yet"], "Go to Keys should open the Keys tab")
+    }
+
+    func testGoToKeysFromSettingsClosesSettings() {
+        let app = launch(["-uiTestNoKeys"])
+
+        app.buttons["nav.settings"].tap()
+        let toggle = app.switches["settings.blockAdultContentToggle"]
+        require(toggle, "Settings should show the adult content toggle")
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+
+        let alert = app.alerts["Add a Key First"]
+        require(alert, "Turning on a filter without a key should explain why")
+        alert.buttons["Go to Keys"].tap()
+
+        XCTAssertTrue(toggle.waitForNonExistence(timeout: timeout), "Go to Keys should close Settings")
+        require(app.staticTexts["No Keys Yet"], "Go to Keys should open the Keys tab")
     }
 
     func testEmergencyUnblockDisablesAfterThreeUses() {
