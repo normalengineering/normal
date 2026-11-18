@@ -19,6 +19,8 @@ struct GroupFormSheet: View {
     @State private var name: String
     @State private var selection: FamilyActivitySelection
     @State private var customDomains: [String]
+    @State private var durationOverride: DefaultOverride<TimedUnblockDuration>
+    @State private var keyOverride: DefaultOverride<KeyType>
     @State private var isShowingAppSelectSheet = false
     @State private var showAddKey = false
     @State private var showDeleteConfirmation = false
@@ -26,6 +28,50 @@ struct GroupFormSheet: View {
 
     private var groupKeys: [Key] {
         allKeys.filter { $0.groupID == groupID }
+    }
+
+    private var durations: [TimedUnblockDuration] {
+        allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
+    }
+
+    private var groupKeyTypes: [KeyType] {
+        let keys = Key.scoped(allKeys, toGroup: groupID)
+        return KeyType.allCases.filter { type in keys.contains { $0.type == type } }
+    }
+
+    private var appDefaultDurationLabel: String {
+        allSettings.first?.defaultDuration?.label ?? String(localized: "None")
+    }
+
+    private var appDefaultKeyLabel: String {
+        guard let keyType = allSettings.first?.defaultKeyType, groupKeyTypes.contains(keyType) else {
+            return String(localized: "None")
+        }
+        return keyType.label
+    }
+
+    private var durationSelection: Binding<DefaultOverride<TimedUnblockDuration>> {
+        Binding(
+            get: {
+                if case let .value(duration) = durationOverride, !durations.contains(duration) {
+                    return .none
+                }
+                return durationOverride
+            },
+            set: { durationOverride = $0 }
+        )
+    }
+
+    private var keySelection: Binding<DefaultOverride<KeyType>> {
+        Binding(
+            get: {
+                if case let .value(keyType) = keyOverride, !groupKeyTypes.contains(keyType) {
+                    return .none
+                }
+                return keyOverride
+            },
+            set: { keyOverride = $0 }
+        )
     }
 
     private var isNew: Bool {
@@ -63,6 +109,8 @@ struct GroupFormSheet: View {
         _name = State(initialValue: existing?.name ?? "")
         _selection = State(initialValue: existing?.selection ?? FamilyActivitySelection())
         _customDomains = State(initialValue: existing?.customDomains ?? [])
+        _durationOverride = State(initialValue: existing?.durationOverride ?? .appDefault)
+        _keyOverride = State(initialValue: existing?.keyOverride ?? .appDefault)
     }
 
     var body: some View {
@@ -95,6 +143,8 @@ struct GroupFormSheet: View {
                         )
                     }
                 }
+
+                unblockingSection
 
                 if !groupKeys.isEmpty || !isReadOnly {
                     groupKeysSection
@@ -165,6 +215,67 @@ struct GroupFormSheet: View {
         }
     }
 
+    private var unblockingSection: some View {
+        Section("Unblocking") {
+            Group {
+                if #available(iOS 18.0, *) {
+                    Picker("Default Duration", selection: durationSelection) {
+                        durationOptions(appDefault: String(localized: "App Default (\(appDefaultDurationLabel))"))
+                    } currentValueLabel: {
+                        Text(rowLabel(for: durationSelection.wrappedValue) { $0.label })
+                    }
+                } else {
+                    Picker("Default Duration", selection: durationSelection) {
+                        durationOptions(appDefault: String(localized: "App Default"))
+                    }
+                }
+            }
+            .accessibilityIdentifier("groupForm.defaultDuration")
+
+            Group {
+                if #available(iOS 18.0, *) {
+                    Picker("Default Key", selection: keySelection) {
+                        keyOptions(appDefault: String(localized: "App Default (\(appDefaultKeyLabel))"))
+                    } currentValueLabel: {
+                        Text(rowLabel(for: keySelection.wrappedValue) { $0.label })
+                    }
+                } else {
+                    Picker("Default Key", selection: keySelection) {
+                        keyOptions(appDefault: String(localized: "App Default"))
+                    }
+                }
+            }
+            .accessibilityIdentifier("groupForm.defaultKey")
+        }
+        .disabled(isReadOnly)
+    }
+
+    @ViewBuilder
+    private func durationOptions(appDefault: String) -> some View {
+        Text(appDefault).tag(DefaultOverride<TimedUnblockDuration>.appDefault)
+        Text("None").tag(DefaultOverride<TimedUnblockDuration>.none)
+        ForEach(durations) { duration in
+            Text(duration.label).tag(DefaultOverride.value(duration))
+        }
+    }
+
+    @ViewBuilder
+    private func keyOptions(appDefault: String) -> some View {
+        Text(appDefault).tag(DefaultOverride<KeyType>.appDefault)
+        Text("None").tag(DefaultOverride<KeyType>.none)
+        ForEach(groupKeyTypes) { type in
+            Label(type.label, systemImage: type.icon).tag(DefaultOverride.value(type))
+        }
+    }
+
+    private func rowLabel<Value>(for choice: DefaultOverride<Value>, value: (Value) -> String) -> String {
+        switch choice {
+        case .appDefault: String(localized: "App Default")
+        case .none: String(localized: "None")
+        case let .value(chosen): value(chosen)
+        }
+    }
+
     private var groupKeysSection: some View {
         Section {
             ForEach(groupKeys) { key in
@@ -210,6 +321,8 @@ struct GroupFormSheet: View {
             existing.name = trimmed
             existing.selection = selection
             existing.customDomains = storedCustomDomains
+            existing.durationOverride = durationOverride
+            existing.keyOverride = keyOverride
             existing.lastUpdated = .now
             timedUnblockService.updateGroupSelection(
                 groupId: existing.id,
@@ -218,13 +331,16 @@ struct GroupFormSheet: View {
             )
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allGroups, sortIndex: \.sortIndex)
-            modelContext.insert(AppGroup(
+            let group = AppGroup(
                 id: groupID,
                 name: trimmed,
                 selection: selection,
                 sortIndex: nextIndex,
                 customDomains: storedCustomDomains
-            ))
+            )
+            group.durationOverride = durationOverride
+            group.keyOverride = keyOverride
+            modelContext.insert(group)
         }
         dismiss()
     }

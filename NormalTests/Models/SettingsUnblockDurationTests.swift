@@ -136,28 +136,28 @@ struct SettingsUnblockDurationTests {
     @Test func fixedRequestUsesItsDuration() {
         let s = Settings()
         s.defaultDuration = .thirtyMinutes
-        #expect(s.unblockLength(for: .fixed(.fourHours)) == .timed(.fourHours))
+        #expect(s.unblockLength(for: .fixed(.fourHours), group: nil) == .timed(.fourHours))
     }
 
     @Test func defaultRequestUsesDefaultDuration() {
         let s = Settings()
         s.defaultDuration = .thirtyMinutes
-        #expect(s.unblockLength(for: .useDefault) == .timed(.thirtyMinutes))
+        #expect(s.unblockLength(for: .useDefault, group: nil) == .timed(.thirtyMinutes))
     }
 
     @Test func defaultRequestWithoutDefaultHasNoDuration() {
-        #expect(Settings().unblockLength(for: .useDefault) == nil)
+        #expect(Settings().unblockLength(for: .useDefault, group: nil) == nil)
     }
 
     @Test func askRequestHasNoDuration() {
         let s = Settings()
         s.defaultDuration = .thirtyMinutes
-        #expect(s.unblockLength(for: .ask) == nil)
+        #expect(s.unblockLength(for: .ask, group: nil) == nil)
     }
 
     @Test func permanentRequestIsPermanent() {
         let s = Settings()
         s.defaultDuration = .thirtyMinutes
-        #expect(s.unblockLength(for: .permanent) == .permanent)
+        #expect(s.unblockLength(for: .permanent, group: nil) == .permanent)
     }
 }

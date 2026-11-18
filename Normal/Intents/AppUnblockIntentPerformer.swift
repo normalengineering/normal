@@ -40,16 +40,18 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
     func unblock(_ request: UnblockRequest) async throws -> UnblockOutcome {
         logger.info("Unblock intent: \(request.groupID == nil ? "all" : "group", privacy: .public)")
         let settings: Settings
+        let target: UnblockTarget
         switch try readiness(for: request) {
         case let .settled(outcome):
             return outcome
-        case let .ready(readySettings, _):
+        case let .ready(readySettings, readyTarget):
             settings = readySettings
+            target = readyTarget
         }
 
         let keys = try Key.scoped(intents.keys(), toGroup: request.groupID)
-        guard keyType(for: request, keys: keys, settings: settings) == .location,
-              settings.unblockLength(for: request.duration) != nil
+        guard keyType(for: request, keys: keys, settings: settings, group: target.group) == .location,
+              settings.unblockLength(for: request.duration, group: target.group) != nil
         else { return .continueInApp(.checkKey) }
         let radiusKind = Key.existingLocationKind(in: keys) ?? .unblock
 
@@ -75,7 +77,7 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         case let .settled(outcome):
             return outcome
         case let .ready(settings, target):
-            guard let length = settings.unblockLength(for: request.duration),
+            guard let length = settings.unblockLength(for: request.duration, group: target.group),
                   let grant = UnblockGrant(target, proof: proof)
             else { return .continueInApp(.checkKey) }
             return try start(grant, for: length, settings: settings)
@@ -89,7 +91,8 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
             keyType: keyType(
                 for: request,
                 keys: Key.scoped((try? intents.keys()) ?? [], toGroup: request.groupID),
-                settings: intents.settings()
+                settings: intents.settings(),
+                group: request.groupID.flatMap { try? intents.group(id: $0) }
             )
         ))
     }
@@ -129,10 +132,10 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         return .unblocked(name: grant.target.name, length: length)
     }
 
-    private func keyType(for request: UnblockRequest, keys: [Key], settings: Settings?) -> KeyType? {
+    private func keyType(for request: UnblockRequest, keys: [Key], settings: Settings?, group: AppGroup?) -> KeyType? {
         KeySelectLogic.shortcutKeyType(
             requested: request.keyType,
-            defaultKeyType: settings?.defaultKeyType,
+            defaultKeyType: settings?.defaultKeyType(for: group),
             availableKeyTypes: KeyType.selectable(registered: keys.map(\.type))
         )
     }

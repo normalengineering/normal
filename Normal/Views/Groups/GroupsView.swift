@@ -65,7 +65,9 @@ struct GroupsView: View {
                 // triggered it, instead of on the card row.
                 .protectedAction(
                     $authAction,
-                    defaultKeyType: allSettings.unwrapped.defaultKeyType,
+                    defaultKeyType: allSettings.unwrapped.defaultKeyType(
+                        for: appGroups.first { $0.id == pendingGroupID }
+                    ),
                     keyGroupID: pendingGroupID
                 )
                 .sheet(item: $durationGrant) { grant in

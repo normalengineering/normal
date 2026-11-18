@@ -277,6 +277,44 @@ final class BlockingUITests: XCTestCase {
         XCTAssertFalse(app.descendants(matching: .any)["schedule.weekdayChips"].exists)
     }
 
+    func testGroupDefaultDurationSkipsTheDurationSheet() {
+        let app = launch(["-uiTestSeedGroupKey"])
+        app.mainTab("Groups").tap()
+
+        let group = app.staticTexts["Test Group"]
+        require(group, "Seeded group should render")
+        group.tap()
+
+        let picker = app.buttons["groupForm.defaultDuration"]
+        require(picker, "Edit Group should offer a default duration")
+        picker.tap()
+        if #available(iOS 18.0, *) {
+            XCTAssertTrue(app.buttons["App Default (None)"].waitForExistence(timeout: timeout), "The menu should say what App Default is")
+        }
+        let fourHours = app.buttons["4 hours"]
+        require(fourHours, "The menu should list the unblock durations")
+        fourHours.tap()
+        app.buttons["Update"].tap()
+
+        let blockButton = app.buttons["group.blockButton"]
+        require(blockButton, "Group block button should render")
+        blockButton.tap()
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Group block should offer bypass")
+        bypass.tap()
+        confirmBypass(app)
+
+        let unblockButton = app.buttons["group.unblockButton"]
+        require(unblockButton, "Group unblock button should render after blocking")
+        unblockButton.tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblocking the group should ask for a key")
+        keyRow.tap()
+
+        require(app.staticTexts["Timed Unblock"], "The group's default should start the unblock")
+        XCTAssertFalse(app.buttons["timedUnblock.confirm"].exists, "The group's default should skip the duration sheet")
+    }
+
     func testFailedDefaultDurationUnblockShowsError() {
         let app = launch(["-uiTestDefaultDuration", "900", "-uiTestTimedUnblockFails"])
         blockViaBypass(app)

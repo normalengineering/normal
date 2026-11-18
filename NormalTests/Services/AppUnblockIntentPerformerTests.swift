@@ -209,6 +209,18 @@ struct AppUnblockIntentPerformerTests {
         #expect(inbox.pending?.keyType == .location)
     }
 
+    @Test func continueInAppUsesTheGroupsDefaultKey() throws {
+        let settings = try seed()
+        settings.defaultKeyType = .qr
+        let group = try seedGroup()
+        group.keyOverride = .value(.location)
+        context.insert(locationKey(groupID: group.id))
+
+        performer.continueInApp(request(group: group.id, key: nil))
+
+        #expect(inbox.pending?.keyType == .location)
+    }
+
     @Test func continueInAppUsesTheOnlyKeyType() throws {
         try seed()
 
@@ -376,6 +388,20 @@ struct AppUnblockIntentPerformerTests {
 
         #expect(try await performer.unblock(locationRequest(group: group.id)) == .unblocked(name: "Social", length: .timed(.oneHour)))
         #expect(timedUnblock.isGroupUnblockActive(groupId: group.id))
+    }
+
+    @Test func groupLocationUnblockUsesTheGroupsDefaultDuration() async throws {
+        let settings = try seed()
+        settings.defaultDuration = .thirtyMinutes
+        let group = try seedGroup()
+        group.durationOverride = .value(.fourHours)
+        context.insert(locationKey(groupID: group.id))
+        screenTime.stubBlockStatus = .all
+
+        #expect(
+            try await performer.unblock(locationRequest(group: group.id, duration: .useDefault))
+                == .unblocked(name: "Social", length: .timed(.fourHours))
+        )
     }
 
     @Test func failingToStartTheUnblockThrows() async throws {
