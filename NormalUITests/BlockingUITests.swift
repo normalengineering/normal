@@ -245,6 +245,33 @@ final class BlockingUITests: XCTestCase {
         XCTAssertTrue(group.contains { $0.contains("Unblocked") }, "\"Unblocked\" should stay one word: \(group)")
     }
 
+    func testGroupTimedUnblockRowKeepsWholeWordsAtTheLargestTextSize() throws {
+        let app = launch([
+            "-uiTestSeedGroupKey",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ])
+        app.mainTab("Groups").tap()
+
+        let blockButton = app.buttons["group.blockButton"]
+        require(blockButton, "Group block button should render")
+        blockButton.tap()
+        app.buttons["keySelect.blockWithoutKey"].tap()
+        confirmBypass(app)
+
+        let unblockButton = app.buttons["group.unblockButton"]
+        require(unblockButton, "Group unblock button should render after blocking")
+        unblockButton.tap()
+        app.buttons["keySelect.row.QR"].tap()
+        let duration = app.buttons["timedUnblock.duration.900"]
+        require(duration, "Group unblock duration sheet should appear after key scan")
+        duration.tap()
+        app.buttons["timedUnblock.confirm"].tap()
+
+        require(app.buttons["Block Now"], "The group card should show the timed unblock")
+        let lines = try screenLines()
+        XCTAssertTrue(lines.contains { $0.contains("Block Now") }, "\"Block Now\" should stay on one line: \(lines)")
+    }
+
     private func screenLines() throws -> [String] {
         sleep(1)
         guard let image = XCUIScreen.main.screenshot().image.cgImage else { return [] }
