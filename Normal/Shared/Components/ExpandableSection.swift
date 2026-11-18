@@ -24,6 +24,7 @@ struct ExpandableSection<Content: View>: View {
                 .padding(.vertical, DS.Spacing.md)
                 .contentShape(Rectangle())
             }
+            .accessibilityIdentifier("expandableSection")
             .buttonStyle(.plain)
 
             if isExpanded {
