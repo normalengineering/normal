@@ -1,3 +1,4 @@
+import Vision
 import XCTest
 
 final class NormalUITests: XCTestCase {
@@ -303,5 +304,63 @@ final class NormalUITests: XCTestCase {
         let resetSave = app.buttons["usage.resetSave"]
         require(resetSave, "Reset time page should open")
         XCTAssertFalse(resetSave.isEnabled, "An unchanged reset time can't be saved")
+    }
+
+    @MainActor
+    func testFAQAnswersAreNotCutOff() throws {
+        try requireFAQIsNotCutOff([])
+    }
+
+    @MainActor
+    func testFAQAnswersAreNotCutOffAtLargeTextSizes() throws {
+        try requireFAQIsNotCutOff(["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityL"])
+    }
+
+    @MainActor
+    private func requireFAQIsNotCutOff(_ extra: [String]) throws {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"] + extra)
+        app.buttons["nav.settings"].tap()
+        let faqTab = app.tabBars.buttons["FAQ"]
+        require(faqTab, "Settings should have an FAQ tab")
+        faqTab.tap()
+
+        var opened = Set<String>()
+        var cutOff = Set<String>()
+        var previousPage: [String] = []
+        for _ in 0 ..< 300 {
+            let headers = app.buttons.matching(identifier: "expandableSection").allElementsBoundByIndex
+            if let next = headers.first(where: { $0.isHittable && !opened.contains($0.label) }) {
+                opened.insert(next.label)
+                next.tap()
+                sleep(1)
+                continue
+            }
+            let page = try visibleLines(in: app)
+            cutOff.formUnion(page.filter { $0.hasSuffix("\u{2026}") || $0.hasSuffix("...") })
+            if page == previousPage { break }
+            previousPage = page
+            app.swipeUp(velocity: .slow)
+            sleep(1)
+        }
+
+        XCTAssertGreaterThan(opened.count, 10, "Every FAQ question should have been opened")
+        XCTAssertEqual(cutOff, [], "FAQ text should never end in an ellipsis")
+    }
+
+    @MainActor
+    private func visibleLines(in app: XCUIApplication) throws -> [String] {
+        let screenshot = XCUIScreen.main.screenshot().image
+        guard let image = screenshot.cgImage else { return [] }
+        let scale = screenshot.scale
+        let top = app.buttons["Close"].frame.maxY * scale
+        let bottom = app.tabBars.firstMatch.frame.minY * scale
+        guard bottom > top, let band = image.cropping(to: CGRect(x: 0, y: top, width: CGFloat(image.width), height: bottom - top)) else {
+            return []
+        }
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = false
+        try VNImageRequestHandler(cgImage: band).perform([request])
+        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
     }
 }

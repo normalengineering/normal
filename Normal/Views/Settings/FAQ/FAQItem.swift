@@ -8,6 +8,7 @@ struct FAQItem: View {
     var body: some View {
         ExpandableSection(title: LocalizedStringKey(question), isExpanded: $isExpanded) {
             answer
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
