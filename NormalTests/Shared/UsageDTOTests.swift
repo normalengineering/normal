@@ -301,6 +301,17 @@ struct UsageDTOTests {
         #expect(nyPeriod.couldHaveMetered(minutes: 5, by: date("2026-03-14T15:00:00-04:00")))
     }
 
+    @Test func onlyLimitsCreatedBeforeTheCurrentResetCountPastActivity() {
+        let period = newYorkPeriod(resetAt: 4)
+        let now = date("2026-03-14T12:00:00-04:00")
+
+        #expect(period.countsPastActivity(createdAt: nil, on: now))
+        #expect(period.countsPastActivity(createdAt: date("2026-03-14T03:59:00-04:00"), on: now))
+        #expect(period.countsPastActivity(createdAt: date("2026-03-14T04:00:00-04:00"), on: now) == false)
+        #expect(period.countsPastActivity(createdAt: date("2026-03-14T11:00:00-04:00"), on: now) == false)
+        #expect(period.countsPastActivity(createdAt: date("2026-03-14T11:00:00-04:00"), on: date("2026-03-15T04:00:00-04:00")))
+    }
+
     @Test func plausibilityIsMeasuredFromTheTopOfTheResetHour() {
         let period = newYorkPeriod(resetAt: 4, 30)
 

@@ -435,5 +435,6 @@ struct StoreUpgradeTests {
         #expect(limit.selection == TokenFixtures.selection(apps: [4]))
         #expect(limit.minutesPerDay == 45)
         #expect(limit.lockAnchor == Self.updated)
+        #expect(limit.createdAt == nil)
     }
 }

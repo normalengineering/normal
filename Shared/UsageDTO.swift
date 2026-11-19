@@ -34,6 +34,7 @@ nonisolated struct UsageLimitDTO: Codable, Sendable, Identifiable {
     let id: UUID
     let selectionData: Data
     let minutesPerDay: Int
+    var createdAt: Date? = nil
 }
 
 nonisolated struct UsageLimitConfig: Codable, Sendable, Equatable {
@@ -162,6 +163,11 @@ nonisolated struct UsagePeriod: Equatable, Sendable {
     func key(for date: Date) -> String {
         let parts = calendar.dateComponents([.year, .month, .day], from: start(containing: date))
         return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
+    }
+
+    func countsPastActivity(createdAt: Date?, on date: Date) -> Bool {
+        guard let createdAt else { return true }
+        return createdAt < start(containing: date)
     }
 
     func couldHaveMetered(minutes: Int, by date: Date) -> Bool {

@@ -20,7 +20,7 @@ struct UsageLimitsGuideView: View {
         Section("How It Works") {
             FeatureRow(
                 systemImage: "square.grid.2x2.fill", text: "Pick apps, websites, or categories. You can group multiple apps in a single limit.")
-            FeatureRow(systemImage: "timer", text: "Choose how much time they get each day. Time you've already used today counts.")
+            FeatureRow(systemImage: "timer", text: "Choose how much time they get each day. On the day you add a limit, only time after that counts.")
             FeatureRow(
                 systemImage: "lock.fill", text: "When the time runs out, they stay blocked until the reset. Only Emergency Unblock lifts them early.",
                 tint: .red)

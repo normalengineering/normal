@@ -54,7 +54,7 @@ struct UsageLimitServiceTests {
         let first = try dto(minutes: 60)
         let second = try dto(minutes: 20)
 
-        let specs = UsageLimitService.eventSpecs(for: [first, second])
+        let specs = UsageLimitService.eventSpecs(for: [first, second], period: config.period, on: day)
 
         #expect(specs.count == 2)
         #expect(specs.map(\.minutes).sorted() == [20, 60])
@@ -63,7 +63,7 @@ struct UsageLimitServiceTests {
     @Test func eventNamesRoundTripBackToTheirLimit() throws {
         let limit = try dto(minutes: 60)
 
-        let spec = try #require(UsageLimitService.eventSpecs(for: [limit]).first)
+        let spec = try #require(UsageLimitService.eventSpecs(for: [limit], period: config.period, on: day).first)
 
         #expect(spec.eventName == SharedConstants.usageLimitEventName(for: limit.id))
         #expect(SharedConstants.usageLimitID(fromEventName: spec.eventName) == limit.id)
@@ -73,7 +73,7 @@ struct UsageLimitServiceTests {
     /// armed — otherwise the threshold never fires and the limit looks active
     /// while doing nothing.
     @Test func aLimitWithAnEmptySelectionIsNotArmable() throws {
-        let spec = try #require(try UsageLimitService.eventSpecs(for: [dto(minutes: 60)]).first)
+        let spec = try #require(try UsageLimitService.eventSpecs(for: [dto(minutes: 60)], period: config.period, on: day).first)
 
         #expect(spec.isArmable == false)
     }
@@ -85,7 +85,54 @@ struct UsageLimitServiceTests {
             minutesPerDay: 60
         )
 
-        #expect(UsageLimitService.eventSpecs(for: [broken]).isEmpty)
+        #expect(UsageLimitService.eventSpecs(for: [broken], period: config.period, on: day).isEmpty)
+    }
+
+    @Test func aLimitCreatedTodayCountsOnlyTimeAfterItIsRegistered() throws {
+        var limit = try dto(minutes: 60)
+        limit.createdAt = day
+
+        let spec = try #require(UsageLimitService.eventSpecs(for: [limit], period: config.period, on: day).first)
+
+        #expect(spec.includesPastActivity == false)
+        #expect(spec.event.includesPastActivity == false)
+    }
+
+    @Test func aLimitCreatedBeforeTodaysResetCountsTheWholeDay() throws {
+        var limit = try dto(minutes: 60)
+        limit.createdAt = day - .days(1)
+
+        let spec = try #require(UsageLimitService.eventSpecs(for: [limit], period: config.period, on: day).first)
+
+        #expect(spec.includesPastActivity)
+        #expect(spec.event.includesPastActivity)
+    }
+
+    @Test func aLimitSavedBeforeCreationDatesExistedCountsTheWholeDay() throws {
+        let spec = try #require(try UsageLimitService.eventSpecs(for: [dto(minutes: 60)], period: config.period, on: day).first)
+
+        #expect(spec.includesPastActivity)
+    }
+
+    @Test func aNewLimitCountsTheWholeDayFromTheNextDaysRegistration() throws {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60, createdAt: day)
+
+        h.service.registerAll([limit], config: config, on: day)
+        h.service.registerAll([limit], config: config, on: day + .days(1))
+
+        let flags = h.center.startCalls.compactMap { $0.events.values.first?.includesPastActivity }
+        #expect(flags == [false, true])
+    }
+
+    @Test func theEditorSaysWhetherTimeUsedEarlierTodayCounts() {
+        let h = makeService()
+        let createdToday = UsageLimit(minutesPerDay: 60, createdAt: day)
+        let createdYesterday = UsageLimit(minutesPerDay: 60, createdAt: day - .days(1))
+
+        #expect(h.service.countsTimeUsedEarlierToday(by: nil, on: day) == false)
+        #expect(h.service.countsTimeUsedEarlierToday(by: createdToday, on: day) == false)
+        #expect(h.service.countsTimeUsedEarlierToday(by: createdYesterday, on: day))
     }
 
     // MARK: - The daily schedule
