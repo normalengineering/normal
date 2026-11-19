@@ -60,20 +60,25 @@ struct StatusDetailView: View {
 
     private var limitsSection: some View {
         let states = usageLimitService.states(for: limits)
+        let failure = usageLimitService.registrationFailure
         let isPaused = usageLimitService.isDayOverridden()
         let reset = usageLimitService.nextReset().formatted(date: .omitted, time: .shortened)
         return Section {
             ForEach(limits) { limit in
-                limitRow(limit, state: states[limit.id] ?? .under, isPaused: isPaused)
+                limitRow(limit, state: states[limit.id] ?? .under, isOff: failure != nil, isPaused: isPaused)
             }
         } header: {
             Text("Max Daily Limits")
         } footer: {
-            Text(isPaused ? "Paused by emergency unblock until \(reset)." : "Resets at \(reset).")
+            if let failure {
+                Text(failure.message)
+            } else {
+                Text(isPaused ? "Paused by emergency unblock until \(reset)." : "Resets at \(reset).")
+            }
         }
     }
 
-    private func limitRow(_ limit: UsageLimit, state: UsageLimitState, isPaused: Bool) -> some View {
+    private func limitRow(_ limit: UsageLimit, state: UsageLimitState, isOff: Bool, isPaused: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 SelectionIconsView(tokens: limit.selection.allTokens, limit: 5)
@@ -82,7 +87,9 @@ struct StatusDetailView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if isPaused {
+            if isOff {
+                StatusBadge(title: "Off", systemImage: "exclamationmark.triangle.fill", tint: .red)
+            } else if isPaused {
                 StatusBadge(title: "Paused", systemImage: "pause.circle.fill", tint: .secondary)
             } else {
                 StatusBadge(title: state.label, systemImage: state.icon, tint: state.color)

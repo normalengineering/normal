@@ -18,6 +18,8 @@ final class UsageLimitService {
 
     private(set) var resetAnchor: Date?
 
+    private(set) var registrationFailure: UsageLimitRegistrationFailure?
+
     /// Minutes of usage before a limit is hit that `eventWillReachThresholdWarning` fires.
     static let warningMinutes = SharedConstants.usageLimitWarningMinutes
 
@@ -59,14 +61,19 @@ final class UsageLimitService {
 
         let specs = Self.eventSpecs(for: dtos, period: config.period, on: date).filter(\.isArmable)
         let fingerprint = Self.fingerprint(for: dtos, period: config.period, on: date)
-        guard fingerprint != sharedStore.loadUsageRegistration() else { return }
-
         let activityName = DeviceActivityName(SharedConstants.usageLimitsActivityName)
+        let isMonitored = activityCenter.monitoredActivityNames.contains(activityName.rawValue)
+        if fingerprint == sharedStore.loadUsageRegistration() {
+            guard !specs.isEmpty, !isMonitored else { return }
+            CallbackLog.record("app usage limits: iOS no longer lists the activity, registering again")
+        }
+
         activityCenter.stopMonitoring([activityName])
         sharedStore.saveUsageRegistration(nil)
 
         guard !specs.isEmpty else {
             sharedStore.saveUsageRegistration(fingerprint)
+            registrationFailure = nil
             notifyUpdate()
             return
         }
@@ -81,10 +88,14 @@ final class UsageLimitService {
                 events: specs.reduce(into: [:]) { $0[$1.name] = $1.event }
             )
             sharedStore.saveUsageRegistration(fingerprint)
+            registrationFailure = nil
+            CallbackLog.record("app usage limits: registered \(specs.map { "\($0.minutes) min" }.joined(separator: ", "))")
         } catch {
             // Every limit shares one activity, so a throw here disables all of
             // them. Leave the fingerprint cleared so the next launch retries.
+            registrationFailure = UsageLimitRegistrationFailure(error)
             logger.error("Usage limit monitoring failed: \(error.localizedDescription, privacy: .public)")
+            CallbackLog.record("app usage limits: startMonitoring failed: \(error)")
         }
         notifyUpdate()
     }
@@ -217,5 +228,31 @@ final class UsageLimitService {
             sharedStore.reachedUsageLimits(on: date),
             preventsAppDelete: sharedStore.loadUsageLimitConfig().preventsAppDelete
         )
+    }
+}
+
+enum UsageLimitRegistrationFailure: Equatable {
+    case tooManyActivities
+    case failed
+
+    init(_ error: any Error) {
+        switch error {
+        case DeviceActivityCenter.MonitoringError.excessiveActivities:
+            self = .tooManyActivities
+        default:
+            self = .failed
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .tooManyActivities:
+            String(
+                localized:
+                    "Daily limits are off: iOS only tracks 20 schedules and timers at once. Turn off a schedule and they'll start the next time you open Normal."
+            )
+        case .failed:
+            String(localized: "Daily limits are off: iOS couldn't start them. Normal tries again each time you open it.")
+        }
     }
 }
