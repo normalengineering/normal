@@ -171,7 +171,7 @@ struct GroupFormSheet: View {
             .toolbar {
                 if isReadOnly {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { dismiss() }.fontWeight(.semibold)
+                        Button("Done", action: saveDefaults).fontWeight(.semibold)
                     }
                 } else {
                     ToolbarItem(placement: .cancellationAction) {
@@ -249,7 +249,6 @@ struct GroupFormSheet: View {
             }
             .accessibilityIdentifier("groupForm.defaultKey")
         }
-        .disabled(isReadOnly)
     }
 
     @ViewBuilder
@@ -313,6 +312,15 @@ struct GroupFormSheet: View {
 
     private func presentPicker() {
         screenTimeService.ifAuthorized { isShowingAppSelectSheet = true }
+    }
+
+    private func saveDefaults() {
+        if let existing, existing.durationOverride != durationOverride || existing.keyOverride != keyOverride {
+            existing.durationOverride = durationOverride
+            existing.keyOverride = keyOverride
+            existing.lastUpdated = .now
+        }
+        dismiss()
     }
 
     private func save() {
