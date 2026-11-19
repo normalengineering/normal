@@ -16,6 +16,7 @@ final class AppServices {
             let store = SharedStore(
                 defaults: UserDefaults(suiteName: "uitest-\(UUID().uuidString)")
             )
+            store.setCustomDomainsEnabled(UITestSupport.customDomains)
             let screenTime = ScreenTimeService(sharedStore: store, activityCenter: center)
             self.screenTime = screenTime
             timedUnblock = TimedUnblockService(

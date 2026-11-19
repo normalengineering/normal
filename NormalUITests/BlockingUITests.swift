@@ -253,7 +253,10 @@ final class BlockingUITests: XCTestCase {
         ])
 
         app.mainTab("Schedules").tap()
-        require(app.descendants(matching: .any)["schedule.weekdayStrip"], "The schedule card should render")
+        let days = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier IN %@", ["schedule.weekdayStrip", "schedule.weekdayChips"]))
+            .firstMatch
+        require(days, "The schedule card should render")
         let schedule = try screenLines()
         XCTAssertTrue(schedule.contains { $0.contains("Block") }, "\"Block\" should stay one word: \(schedule)")
         XCTAssertTrue(schedule.contains { $0.contains("Permanent") }, "\"Permanent\" should stay one word: \(schedule)")
@@ -266,25 +269,17 @@ final class BlockingUITests: XCTestCase {
 
     func testGroupTimedUnblockRowKeepsWholeWordsAtTheLargestTextSize() throws {
         let app = launch([
-            "-uiTestSeedGroupKey",
+            "-uiTestSeedGroupKey", "-uiTestStartBlocked", "-uiTestDefaultDuration", "900",
             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
         ])
         app.mainTab("Groups").tap()
 
-        let blockButton = app.buttons["group.blockButton"]
-        require(blockButton, "Group block button should render")
-        blockButton.tap()
-        app.buttons["keySelect.blockWithoutKey"].tap()
-        confirmBypass(app)
-
         let unblockButton = app.buttons["group.unblockButton"]
-        require(unblockButton, "Group unblock button should render after blocking")
+        require(unblockButton, "The group should start blocked")
         unblockButton.tap()
-        app.buttons["keySelect.row.QR"].tap()
-        let duration = app.buttons["timedUnblock.duration.900"]
-        require(duration, "Group unblock duration sheet should appear after key scan")
-        duration.tap()
-        app.buttons["timedUnblock.confirm"].tap()
+        let keyRow = app.buttons["keySelect.row.QR"]
+        require(keyRow, "Unblocking the group should ask for a key")
+        keyRow.tap()
 
         require(app.buttons["Block Now"], "The group card should show the timed unblock")
         let lines = try screenLines()
@@ -309,7 +304,8 @@ final class BlockingUITests: XCTestCase {
         XCTAssertFalse(app.descendants(matching: .any)["schedule.weekdayStrip"].exists)
     }
 
-    func testScheduleCardShowsAWeekStripWhenDayChipsDontFit() {
+    func testScheduleCardShowsAWeekStripWhenDayChipsDontFit() throws {
+        try XCTSkipIf(UIDevice.current.userInterfaceIdiom == .pad, "Day chips fit on iPad's wider cards at every text size")
         let app = launch([
             "-uiTestSeedSchedule",
             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
