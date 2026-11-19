@@ -296,6 +296,34 @@ final class BlockingUITests: XCTestCase {
         return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
     }
 
+    func testStatusShowsDailyLimitIconsInOneRow() {
+        let app = launch(["-uiTestSeedUsageLimit"])
+        let status = app.buttons["home.statusLink"]
+        require(status, "Home should link to Status")
+        status.tap()
+
+        let row = app.descendants(matching: .any)["selectionIcons.row"].firstMatch
+        require(row, "The daily limit should show its icons")
+        let more = app.descendants(matching: .any)["selectionIcons.overflow"].firstMatch
+        require(more, "Eight apps should end in a count of the ones that don't fit")
+        XCTAssertLessThan(row.frame.height, more.frame.height * 1.5, "The icons should sit in one row, not a column")
+    }
+
+    func testCardIconRowsKeepTheOverflowCountReadableAtTheLargestTextSize() {
+        let app = launch([
+            "-uiTestCrowdedSelections", "-uiTestSeedGroupKey",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+        ])
+        app.mainTab("Groups").tap()
+
+        let more = app.descendants(matching: .any)["selectionIcons.overflow"].firstMatch
+        require(more, "Ten items should end in a count of the ones that don't fit")
+        XCTAssertGreaterThanOrEqual(more.frame.width, more.frame.height * 0.9, "The count should not be squeezed")
+        XCTAssertTrue(more.label.hasSuffix("more"), "VoiceOver should read the count: \(more.label)")
+        let row = app.descendants(matching: .any)["selectionIcons.row"].firstMatch
+        XCTAssertLessThanOrEqual(row.frame.maxX, app.windows.firstMatch.frame.maxX, "The row should fit on screen")
+    }
+
     func testScheduleCardShowsDayChipsWhenTheyFit() {
         let app = launch(["-uiTestSeedSchedule"])
         app.mainTab("Schedules").tap()

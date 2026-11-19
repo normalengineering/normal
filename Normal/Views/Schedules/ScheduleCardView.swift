@@ -200,13 +200,11 @@ struct ScheduleCardView: View {
     @ViewBuilder
     private var tokenStrip: some View {
         if !schedule.selection.allTokens.isEmpty || !customDomains.isEmpty {
-            HStack(spacing: DS.Spacing.sm) {
-                SelectionIconsView(
-                    tokens: schedule.selection.allTokens,
-                    customDomains: customDomains,
-                    limit: 6
-                )
-            }
+            SelectionIconRow(
+                tokens: schedule.selection.allTokens,
+                customDomains: customDomains,
+                maxCount: 6
+            )
         }
     }
 

@@ -15,7 +15,6 @@ struct SelectionIconsView: View {
     var body: some View {
         let items = tokens.sortedStably.map(Item.token) + customDomains.map(Item.domain)
         let shown = limit.map { Array(items.prefix($0)) } ?? items
-        let overflow = items.count - shown.count
 
         ForEach(shown, id: \.self) { item in
             Group {
@@ -35,15 +34,6 @@ struct SelectionIconsView: View {
                 }
             }
             .labelStyle(.iconOnly)
-        }
-
-        if overflow > 0 {
-            Text("+\(overflow)")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, DS.Spacing.sm)
-                .padding(.vertical, DS.Spacing.xs)
-                .background(.quaternary, in: Capsule())
         }
     }
 }

@@ -148,13 +148,11 @@ struct GroupListCardView: View {
     }
 
     private var tokenStrip: some View {
-        HStack(spacing: DS.Spacing.sm) {
-            SelectionIconsView(
-                tokens: appGroup.selection.allTokens,
-                customDomains: customDomains,
-                limit: 6
-            )
-        }
+        SelectionIconRow(
+            tokens: appGroup.selection.allTokens,
+            customDomains: customDomains,
+            maxCount: 6
+        )
     }
 
     private var reselectionBinding: Binding<FamilyActivitySelection> {
