@@ -53,14 +53,17 @@ struct SchedulesView: View {
         if schedules.isEmpty {
             emptyState
         } else {
-            ReorderableListView(items: schedules, rowContent: { schedule in
-                ScheduleCardView(schedule: schedule)
-            }, onMove: move)
-                .bottomFooter {
-                    if let message = bottomMessage {
-                        FooterMessage(text: message)
-                    }
+            ReorderableListView(
+                items: schedules,
+                rowContent: { schedule in
+                    ScheduleCardView(schedule: schedule)
+                }, onMove: move
+            )
+            .bottomFooter {
+                if let message = bottomMessage {
+                    FooterMessage(text: message)
                 }
+            }
         }
     }
 

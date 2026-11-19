@@ -74,8 +74,8 @@ final class QRCameraController: UIViewController {
 
     private func configureSession() {
         guard !isConfigured,
-              let device = AVCaptureDevice.default(for: .video),
-              let input = try? AVCaptureDeviceInput(device: device)
+            let device = AVCaptureDevice.default(for: .video),
+            let input = try? AVCaptureDeviceInput(device: device)
         else { return }
 
         session.beginConfiguration()
@@ -114,8 +114,8 @@ extension QRCameraController: AVCaptureMetadataOutputObjectsDelegate {
         from _: AVCaptureConnection
     ) {
         guard !hasScanned,
-              let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
-              let value = object.stringValue
+            let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+            let value = object.stringValue
         else { return }
 
         hasScanned = true

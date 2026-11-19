@@ -1,7 +1,8 @@
 import Foundation
-@testable import Normal
 import SwiftData
 import Testing
+
+@testable import Normal
 
 enum LegacySettingsSchema {
     @Model

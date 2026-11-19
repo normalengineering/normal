@@ -8,7 +8,7 @@ struct DurationWheelPicker: View {
     var identifierPrefix: String?
 
     private var hourOptions: [Int] {
-        Array(0 ... (maxMinutes / 60))
+        Array(0...(maxMinutes / 60))
     }
 
     private var minuteOptions: [Int] {

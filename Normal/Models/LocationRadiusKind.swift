@@ -56,8 +56,10 @@ enum LocationRadiusKind: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var pickerFooter: String {
         switch self {
-        case .unblock: "Your location key will only work while you're inside one of these areas. Set one up to unlock at the office, the gym, or anywhere you choose."
-        case .block: "Your location key will only work while you're outside the selected areas. Set one up to lock yourself out at home, school, or anywhere you choose."
+        case .unblock:
+            "Your location key will only work while you're inside one of these areas. Set one up to unlock at the office, the gym, or anywhere you choose."
+        case .block:
+            "Your location key will only work while you're outside the selected areas. Set one up to lock yourself out at home, school, or anywhere you choose."
         }
     }
 }

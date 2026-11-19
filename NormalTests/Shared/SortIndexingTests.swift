@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct SortIndexingTests {
     private final class Item {
@@ -13,7 +14,7 @@ struct SortIndexingTests {
     }
 
     private func makeItems(_ count: Int) -> [Item] {
-        (0 ..< count).map { Item(id: $0, sortIndex: $0) }
+        (0..<count).map { Item(id: $0, sortIndex: $0) }
     }
 
     @Test func moveDownAssignsContiguousIndices() {

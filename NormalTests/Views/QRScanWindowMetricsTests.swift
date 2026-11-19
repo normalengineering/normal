@@ -1,6 +1,7 @@
 import CoreGraphics
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct QRScanWindowMetricsTests {
     private func assertSafe(_ m: QRScanWindowMetrics) {

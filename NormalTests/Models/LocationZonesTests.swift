@@ -1,6 +1,7 @@
 import CoreLocation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct LocationZonesTests {
     private static let center = CLLocationCoordinate2D(latitude: 37.3349, longitude: -122.0090)
@@ -33,7 +34,7 @@ struct LocationZonesTests {
     }
 
     @Test func outsideAnUnblockZoneIsUnsatisfied() {
-        guard case let .unsatisfied(margin) = fit(zone(kind: .unblock), fix(metersNorth: 400)) else {
+        guard case .unsatisfied(let margin) = fit(zone(kind: .unblock), fix(metersNorth: 400)) else {
             Issue.record("Expected unsatisfied")
             return
         }

@@ -1,8 +1,8 @@
 import DeviceActivity
 import FamilyControls
 import Foundation
-import Observation
 import OSLog
+import Observation
 
 @MainActor
 @Observable
@@ -28,7 +28,8 @@ final class ScreenTimeService: ScreenTimeProviding {
         clock: @escaping () -> Date = { .now }
     ) {
         self.defaults = defaults
-        self.shield = shield
+        self.shield =
+            shield
             ?? (UITestSupport.isActive ? InMemoryShieldStore() : ManagedSettingsShieldStore())
         self.sharedStore = sharedStore
         self.activityCenter = activityCenter

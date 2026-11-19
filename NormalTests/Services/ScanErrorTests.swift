@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct ScanErrorTests {
     @Test func alreadyScanningHasDescription() {

@@ -2,9 +2,10 @@ import CoreLocation
 import DeviceActivity
 import FamilyControls
 import Foundation
-@testable import Normal
 import SwiftData
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct AppUnblockIntentPerformerTests {
@@ -427,7 +428,7 @@ struct AppUnblockIntentPerformerTests {
             startHour: 20,
             startMinute: 0,
             durationMinutes: 60,
-            weekdays: Set(1 ... 7),
+            weekdays: Set(1...7),
             shouldBlock: true,
             isTimed: true,
             isEnabled: true

@@ -28,7 +28,7 @@ nonisolated struct TimedUnblockDuration: Hashable, Comparable, Identifiable, Sen
     }
 
     static func isValid(_ seconds: Int) -> Bool {
-        (minimumSeconds ... maximumSeconds).contains(seconds) && seconds % stepSeconds == 0
+        (minimumSeconds...maximumSeconds).contains(seconds) && seconds % stepSeconds == 0
     }
 
     static func sanitized(_ seconds: [Int]?) -> [TimedUnblockDuration] {
@@ -76,7 +76,7 @@ nonisolated enum UnlockDurationRequest: Equatable, Sendable {
         switch self {
         case .useDefault: nil
         case .ask: Self.askQueryValue
-        case let .fixed(duration): String(duration.seconds)
+        case .fixed(let duration): String(duration.seconds)
         case .permanent: Self.permanentQueryValue
         }
     }
@@ -91,7 +91,7 @@ nonisolated enum UnlockDurationRequest: Equatable, Sendable {
             return
         }
         if let seconds = Int(queryValue), String(seconds) == queryValue,
-           let duration = TimedUnblockDuration(validating: seconds)
+            let duration = TimedUnblockDuration(validating: seconds)
         {
             self = .fixed(duration)
         } else {

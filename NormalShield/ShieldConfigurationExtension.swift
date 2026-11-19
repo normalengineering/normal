@@ -55,7 +55,8 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     }
 
     private func makeConfiguration(subject: String, isDailyLimit: Bool) -> ShieldConfiguration {
-        let subtitle = isDailyLimit
+        let subtitle =
+            isDailyLimit
             ? "You've reached your max daily limit."
             : "If you need to use this \(subject), unblock with a key in Normal."
 

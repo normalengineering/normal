@@ -1,4 +1,5 @@
 import DeviceActivity
+
 @testable import Normal
 
 final class FakeDeviceActivityCenter: DeviceActivityProviding {
@@ -24,8 +25,8 @@ final class FakeDeviceActivityCenter: DeviceActivityProviding {
             throw startError
         }
         if let activityLimit,
-           !monitoredActivityNames.contains(activityName.rawValue),
-           monitoredActivityNames.count >= activityLimit
+            !monitoredActivityNames.contains(activityName.rawValue),
+            monitoredActivityNames.count >= activityLimit
         {
             throw DeviceActivityCenter.MonitoringError.excessiveActivities
         }

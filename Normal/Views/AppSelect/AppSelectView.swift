@@ -92,7 +92,9 @@ struct AppSelectView: View {
                     isFamilyActivityPickerPresented = true
                 }
             } message: {
-                Text("Updating your app selection will affect the functionality of your groups. After updating selection please update your groups to ensure consistency.")
+                Text(
+                    "Updating your app selection will affect the functionality of your groups. After updating selection please update your groups to ensure consistency."
+                )
             }
             .familyActivityPicker(isPresented: $isFamilyActivityPickerPresented, selection: $selection)
             .onAppear {

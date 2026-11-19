@@ -25,16 +25,19 @@ struct UnblockDurationsView: View {
                     offsets.map { durations[$0] }.first.map(attemptDelete)
                 }
             } footer: {
-                Text(isAtLimit
-                    ? "You can save up to \(Settings.maxUnblockDurations) durations."
-                    : "Durations you can pick when unblocking. Minimum 15 minutes.")
+                Text(
+                    isAtLimit
+                        ? "You can save up to \(Settings.maxUnblockDurations) durations."
+                        : "Durations you can pick when unblocking. Minimum 15 minutes.")
             }
         }
         .navigationTitle("Unblock Durations")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { isAdding = true } label: {
+                Button {
+                    isAdding = true
+                } label: {
                     Label("Add Duration", systemImage: "plus")
                 }
                 .disabled(isAtLimit)
@@ -91,7 +94,9 @@ struct UnblockDurationsView: View {
         }
         .contextMenu {
             defaultToggleButton(duration, isDefault: isDefault)
-            Button(role: .destructive) { attemptDelete(duration) } label: {
+            Button(role: .destructive) {
+                attemptDelete(duration)
+            } label: {
                 Label("Delete", systemImage: "trash")
             }
         }

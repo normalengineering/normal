@@ -1,7 +1,8 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct SharedDTOTests {
     @Test func timedUnblockDTORoundTrips() throws {

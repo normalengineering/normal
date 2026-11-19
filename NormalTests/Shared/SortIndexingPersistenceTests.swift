@@ -1,8 +1,9 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import SwiftData
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct SortIndexingPersistenceTests {
@@ -77,7 +78,7 @@ struct SortIndexingPersistenceTests {
         let container = try InMemoryModelContainer.make()
         let context = container.mainContext
 
-        let items = (0 ..< 5).map { i in
+        let items = (0..<5).map { i in
             makeSchedule(name: "S\(i)", sortIndex: i)
         }
         items.forEach(context.insert)

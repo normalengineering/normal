@@ -94,9 +94,13 @@ struct KeyFormSheetSetupSection: View {
                 .foregroundStyle(.secondary)
 
             stepLabel(number: hasMultipleTypes ? 3 : 2, title: "Set Location")
-            Button { showLocationPicker = true } label: { locationButtonContent }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("key.locationButton")
+            Button {
+                showLocationPicker = true
+            } label: {
+                locationButtonContent
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("key.locationButton")
         }
         .padding(.vertical, DS.Spacing.sm)
     }
@@ -105,9 +109,11 @@ struct KeyFormSheetSetupSection: View {
         HStack(alignment: .top, spacing: DS.Spacing.sm) {
             Image(systemName: "info.circle.fill")
                 .foregroundStyle(.blue)
-            Text("Normal checks a location key when you unblock. With Background Location on in Settings, a shortcut can check it without opening Normal. Your NFC and QR keys work from anywhere!")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(
+                "Normal checks a location key when you unblock. With Background Location on in Settings, a shortcut can check it without opening Normal. Your NFC and QR keys work from anywhere!"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(DS.Spacing.md)
@@ -124,10 +130,12 @@ struct KeyFormSheetSetupSection: View {
                 Image(systemName: "lock.fill").foregroundStyle(.tertiary)
             }
             .font(.subheadline.weight(.medium))
-            Text("You currently have \(kind.label) keys. You can only have one type of location key at a time. To change the type, delete all existing location keys of this type.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                "You currently have \(kind.label) keys. You can only have one type of location key at a time. To change the type, delete all existing location keys of this type."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(DS.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)

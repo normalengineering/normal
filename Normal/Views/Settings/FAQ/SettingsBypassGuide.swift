@@ -27,9 +27,11 @@ struct SettingsBypassGuide: View {
             Label("Proceed at your own risk", systemImage: "exclamationmark.triangle.fill")
                 .font(.headline)
                 .foregroundStyle(.orange)
-            Text("Preventing the Settings bypass is possible, but with it in place the only ways to turn off blocks are through Normal or resetting your phone. If you lock yourself out of your apps, we are not responsible, even if Normal stops working as expected. We are also not responsible for any data loss if you have to reset your device to regain access.")
-                .font(.subheadline)
-                .foregroundStyle(.primary)
+            Text(
+                "Preventing the Settings bypass is possible, but with it in place the only ways to turn off blocks are through Normal or resetting your phone. If you lock yourself out of your apps, we are not responsible, even if Normal stops working as expected. We are also not responsible for any data loss if you have to reset your device to regain access."
+            )
+            .font(.subheadline)
+            .foregroundStyle(.primary)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,7 +93,9 @@ struct SettingsBypassGuide: View {
     private var howItWorks: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("How it works").font(.headline)
-            Text("Screen Time opens authentication in Settings. The automation detects Settings closing and immediately returns you to the Home Screen, preventing you from reaching the disable option.")
+            Text(
+                "Screen Time opens authentication in Settings. The automation detects Settings closing and immediately returns you to the Home Screen, preventing you from reaching the disable option."
+            )
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 BulletRow(text: "You may need to enable Face ID for this to work")
                 BulletRow(text: "You can still access other device settings normally")
@@ -103,7 +107,10 @@ struct SettingsBypassGuide: View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("Important notes").font(.headline)
             VStack(alignment: .leading, spacing: DS.Spacing.sm) {
-                BulletRow(text: "When you update your selected apps in Normal, you'll need to reselect apps in your schedules and groups due to an Apple Screen Time limitation.")
+                BulletRow(
+                    text:
+                        "When you update your selected apps in Normal, you'll need to reselect apps in your schedules and groups due to an Apple Screen Time limitation."
+                )
 
                 VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                     BulletRow(text: "After this setup, the only ways to disable Normal are:")
@@ -117,7 +124,8 @@ struct SettingsBypassGuide: View {
                     BulletRow(text: "Unblocking Shortcuts or all apps won't turn off this automation. To manage it:")
                     VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                         BulletRow(text: "To disable: Unblock Shortcuts, then manually turn off the automation", indent: DS.Spacing.lg)
-                        BulletRow(text: "To re-enable: Unblock Shortcuts, turn the automation back on, then re-block Shortcuts", indent: DS.Spacing.lg)
+                        BulletRow(
+                            text: "To re-enable: Unblock Shortcuts, turn the automation back on, then re-block Shortcuts", indent: DS.Spacing.lg)
                     }
                 }
             }
@@ -164,9 +172,11 @@ struct SettingsBypassGuide: View {
             Text("Why the Apple ID matters")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.blue)
-            Text("Apple lets you reset a forgotten Screen Time passcode using the Apple ID you registered. If that's your own account, you can bypass the lock yourself. Which is why it's important to use credentials you don't have easy access to.")
-                .font(.footnote)
-                .foregroundStyle(.primary)
+            Text(
+                "Apple lets you reset a forgotten Screen Time passcode using the Apple ID you registered. If that's your own account, you can bypass the lock yourself. Which is why it's important to use credentials you don't have easy access to."
+            )
+            .font(.footnote)
+            .foregroundStyle(.primary)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -200,9 +210,11 @@ struct SettingsBypassGuide: View {
         HStack(alignment: .top, spacing: DS.Spacing.sm) {
             Text("3.")
                 .foregroundStyle(.secondary)
-            Text("Set a Screen Time passcode (have a friend enter it, use [password-locker](https://password-locker.com/), or type a random PIN yourself)")
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(
+                "Set a Screen Time passcode (have a friend enter it, use [password-locker](https://password-locker.com/), or type a random PIN yourself)"
+            )
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

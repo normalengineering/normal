@@ -5,7 +5,7 @@ struct WeekdayPickerView: View {
 
     private let days: [(Int, String)] = {
         let symbols = Calendar.current.veryShortWeekdaySymbols
-        return (1 ... 7).map { ($0, symbols[$0 - 1]) }
+        return (1...7).map { ($0, symbols[$0 - 1]) }
     }()
 
     var body: some View {

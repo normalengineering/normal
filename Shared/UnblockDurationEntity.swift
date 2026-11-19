@@ -16,12 +16,13 @@ struct UnblockDurationEntity: AppEntity {
     }
 
     init(_ request: UnlockDurationRequest) {
-        id = switch request {
-        case .useDefault: Self.appDefaultID
-        case .ask: Self.askEachTimeID
-        case .permanent: Self.permanentID
-        case let .fixed(duration): duration.seconds
-        }
+        id =
+            switch request {
+            case .useDefault: Self.appDefaultID
+            case .ask: Self.askEachTimeID
+            case .permanent: Self.permanentID
+            case .fixed(let duration): duration.seconds
+            }
     }
 
     static func request(forID id: Int) -> UnlockDurationRequest? {
@@ -42,7 +43,7 @@ struct UnblockDurationEntity: AppEntity {
         case .useDefault: DisplayRepresentation(title: "Default Duration")
         case .ask: DisplayRepresentation(title: "Choose in Normal")
         case .permanent: DisplayRepresentation(title: "Until Manually Re-Blocked")
-        case let .fixed(duration): DisplayRepresentation(title: "\(duration.label)")
+        case .fixed(let duration): DisplayRepresentation(title: "\(duration.label)")
         }
     }
 }

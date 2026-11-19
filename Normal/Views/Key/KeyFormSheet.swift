@@ -134,7 +134,8 @@ struct KeyFormSheet: View {
                     }
 
                     if isReadOnly {
-                        Section {} footer: {
+                        Section {
+                        } footer: {
                             Text(BlockedMessage.keys)
                                 .frame(maxWidth: .infinity, alignment: .center)
                         }
@@ -229,25 +230,27 @@ struct KeyFormSheet: View {
             switch keyType {
             case .nfc, .qr:
                 guard let rawValue = scannedKeyId else { return }
-                modelContext.insert(Key(
-                    name: trimmed,
-                    type: keyType,
-                    rawValue: rawValue,
-                    scanKind: scannedKind,
-                    sortIndex: nextIndex,
-                    groupID: groupID
-                ))
+                modelContext.insert(
+                    Key(
+                        name: trimmed,
+                        type: keyType,
+                        rawValue: rawValue,
+                        scanKind: scannedKind,
+                        sortIndex: nextIndex,
+                        groupID: groupID
+                    ))
             case .location:
                 guard let captured = capturedLocation else { return }
-                modelContext.insert(Key(
-                    name: trimmed,
-                    latitude: captured.latitude,
-                    longitude: captured.longitude,
-                    radiusMeters: captured.radiusMeters,
-                    radiusKind: captured.kind,
-                    sortIndex: nextIndex,
-                    groupID: groupID
-                ))
+                modelContext.insert(
+                    Key(
+                        name: trimmed,
+                        latitude: captured.latitude,
+                        longitude: captured.longitude,
+                        radiusMeters: captured.radiusMeters,
+                        radiusKind: captured.kind,
+                        sortIndex: nextIndex,
+                        groupID: groupID
+                    ))
             }
         }
         dismiss()

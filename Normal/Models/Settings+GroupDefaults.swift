@@ -3,7 +3,7 @@ extension Settings {
         switch group?.durationOverride ?? .appDefault {
         case .appDefault: defaultDuration
         case .none: nil
-        case let .value(duration): unblockDurations.contains(duration) ? duration : nil
+        case .value(let duration): unblockDurations.contains(duration) ? duration : nil
         }
     }
 
@@ -11,7 +11,7 @@ extension Settings {
         switch group?.keyOverride ?? .appDefault {
         case .appDefault: defaultKeyType
         case .none: nil
-        case let .value(keyType): keyType
+        case .value(let keyType): keyType
         }
     }
 }

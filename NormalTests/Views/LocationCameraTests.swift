@@ -1,7 +1,8 @@
 import CoreLocation
 import MapKit
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct LocationCameraTests {
     private static let cupertino = CLLocationCoordinate2D(latitude: 37.3349, longitude: -122.0090)

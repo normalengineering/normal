@@ -1,5 +1,6 @@
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct KeySelectLogicTests {
     @Test func noAvailableKeysShowsAlert() {

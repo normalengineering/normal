@@ -18,11 +18,22 @@ struct UsageLimitsGuideView: View {
         }
 
         Section("How It Works") {
-            FeatureRow(systemImage: "square.grid.2x2.fill", text: "Pick apps, websites, or categories. You can group multiple apps in a single limit.")
+            FeatureRow(
+                systemImage: "square.grid.2x2.fill", text: "Pick apps, websites, or categories. You can group multiple apps in a single limit.")
             FeatureRow(systemImage: "timer", text: "Choose how much time they get each day. Time you've already used today counts.")
-            FeatureRow(systemImage: "lock.fill", text: "When the time runs out, they stay blocked until the reset. Only Emergency Unblock lifts them early.", tint: .red)
-            FeatureRow(systemImage: "pencil", text: "Tighten anytime: lowering a limit or adding apps always works. After creating a limit raising or deleting it is allowed once every 7 days.", tint: .orange)
-            FeatureRow(systemImage: "arrow.counterclockwise", text: "Every limit resets at the time you set. Once you have limits, it can be changed once every 7 days. Unused time doesn't carry over.")
+            FeatureRow(
+                systemImage: "lock.fill", text: "When the time runs out, they stay blocked until the reset. Only Emergency Unblock lifts them early.",
+                tint: .red)
+            FeatureRow(
+                systemImage: "pencil",
+                text:
+                    "Tighten anytime: lowering a limit or adding apps always works. After creating a limit raising or deleting it is allowed once every 7 days.",
+                tint: .orange)
+            FeatureRow(
+                systemImage: "arrow.counterclockwise",
+                text:
+                    "Every limit resets at the time you set. Once you have limits, it can be changed once every 7 days. Unused time doesn't carry over."
+            )
         }
 
         Section("Ideas") {
@@ -38,9 +49,11 @@ struct UsageLimitsGuideView: View {
                 .font(.largeTitle)
                 .foregroundStyle(.tint)
             Text("No Max Daily Limits").font(.title2.bold())
-            Text("Cap how long you can use apps each day. Once a limit runs out, those apps stay blocked until the day is over, even if you unblock with a key.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Text(
+                "Cap how long you can use apps each day. Once a limit runs out, those apps stay blocked until the day is over, even if you unblock with a key."
+            )
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
     }
 }

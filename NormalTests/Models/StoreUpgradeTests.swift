@@ -1,8 +1,9 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import SwiftData
 import Testing
+
+@testable import Normal
 
 enum Version14Schema {
     enum KeyType: String, Codable, Sendable {
@@ -254,46 +255,52 @@ struct StoreUpgradeTests {
         let schema = Schema(Version14Schema.models)
         let container = try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url))
         let context = container.mainContext
-        context.insert(Version14Schema.AppGroup(
-            id: Self.groupID,
-            name: "Social",
-            selection: TokenFixtures.selection(apps: [1, 2], categories: [1]),
-            lastUpdated: Self.updated,
-            sortIndex: 2,
-            customDomains: ["reddit.com"]
-        ))
-        context.insert(Version14Schema.SelectedApps(
-            selection: TokenFixtures.selection(apps: [1, 2, 3], webDomains: [1]),
-            lastUpdated: Self.updated,
-            customDomains: ["example.com"]
-        ))
-        context.insert(Version14Schema.Key(
-            name: "Desk",
-            type: .qr,
-            scanKind: .barcode,
-            sortIndex: 0,
-            hashedValue: Self.keyHash,
-            salt: Self.keySalt
-        ))
-        context.insert(Version14Schema.Key(
-            name: "Social Tag",
-            type: .nfc,
-            sortIndex: 1,
-            groupID: Self.groupID,
-            hashedValue: Self.keyHash,
-            salt: Self.keySalt
-        ))
-        context.insert(Version14Schema.Key(
-            name: "Office",
-            type: .location,
-            location: (latitude: 37.3349, longitude: -122.009, radiusMeters: 150, kind: .block),
-            sortIndex: 2
-        ))
-        context.insert(Version14Schema.BlockSchedule(
-            name: "Night",
-            selection: TokenFixtures.selection(apps: [3]),
-            customDomains: ["news.com"]
-        ))
+        context.insert(
+            Version14Schema.AppGroup(
+                id: Self.groupID,
+                name: "Social",
+                selection: TokenFixtures.selection(apps: [1, 2], categories: [1]),
+                lastUpdated: Self.updated,
+                sortIndex: 2,
+                customDomains: ["reddit.com"]
+            ))
+        context.insert(
+            Version14Schema.SelectedApps(
+                selection: TokenFixtures.selection(apps: [1, 2, 3], webDomains: [1]),
+                lastUpdated: Self.updated,
+                customDomains: ["example.com"]
+            ))
+        context.insert(
+            Version14Schema.Key(
+                name: "Desk",
+                type: .qr,
+                scanKind: .barcode,
+                sortIndex: 0,
+                hashedValue: Self.keyHash,
+                salt: Self.keySalt
+            ))
+        context.insert(
+            Version14Schema.Key(
+                name: "Social Tag",
+                type: .nfc,
+                sortIndex: 1,
+                groupID: Self.groupID,
+                hashedValue: Self.keyHash,
+                salt: Self.keySalt
+            ))
+        context.insert(
+            Version14Schema.Key(
+                name: "Office",
+                type: .location,
+                location: (latitude: 37.3349, longitude: -122.009, radiusMeters: 150, kind: .block),
+                sortIndex: 2
+            ))
+        context.insert(
+            Version14Schema.BlockSchedule(
+                name: "Night",
+                selection: TokenFixtures.selection(apps: [3]),
+                customDomains: ["news.com"]
+            ))
         context.insert(Version14Schema.Settings(emergencyUnblockDates: Self.emergencyDates))
         try context.save()
     }
@@ -404,12 +411,13 @@ struct StoreUpgradeTests {
             let schema = Schema(Version15Schema.models)
             let container = try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url))
             container.mainContext.insert(Version15Schema.Settings())
-            container.mainContext.insert(Version15Schema.UsageLimit(
-                id: limitID,
-                selection: TokenFixtures.selection(apps: [4]),
-                minutesPerDay: 45,
-                lockAnchor: Self.updated
-            ))
+            container.mainContext.insert(
+                Version15Schema.UsageLimit(
+                    id: limitID,
+                    selection: TokenFixtures.selection(apps: [4]),
+                    minutesPerDay: 45,
+                    lockAnchor: Self.updated
+                ))
             try container.mainContext.save()
         }
 

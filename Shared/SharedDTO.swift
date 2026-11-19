@@ -143,19 +143,20 @@ nonisolated enum ScheduleWindow {
         let startOfToday = calendar.startOfDay(for: date)
         for dayOffset in [0, -1] {
             guard let day = calendar.date(byAdding: .day, value: dayOffset, to: startOfToday),
-                  let start = calendar.date(
-                      bySettingHour: startHour, minute: startMinute, second: 0, of: day
-                  )
+                let start = calendar.date(
+                    bySettingHour: startHour, minute: startMinute, second: 0, of: day
+                )
             else { continue }
-            let end = end(
-                of: day,
-                startHour: startHour,
-                startMinute: startMinute,
-                durationMinutes: durationMinutes,
-                calendar: calendar
-            ) ?? start.addingTimeInterval(TimeInterval(durationMinutes * 60))
+            let end =
+                end(
+                    of: day,
+                    startHour: startHour,
+                    startMinute: startMinute,
+                    durationMinutes: durationMinutes,
+                    calendar: calendar
+                ) ?? start.addingTimeInterval(TimeInterval(durationMinutes * 60))
             if weekdays.contains(calendar.component(.weekday, from: start)),
-               date >= start, date < end
+                date >= start, date < end
             {
                 return start
             }

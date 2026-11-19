@@ -95,7 +95,7 @@ struct UnblockAllIntent: LiveActivityIntent {
             return .result(dialog: "").withoutDialog
         case .timedUnblockRunning:
             return .result(dialog: "A timed unblock is already running for all apps.")
-        case let .continueInApp(reason):
+        case .continueInApp(let reason):
             return try await continueInApp(
                 request,
                 reason: reason,
@@ -139,9 +139,9 @@ struct UnblockGroupIntent: LiveActivityIntent {
         switch try await performer.unblock(request) {
         case .unblocked, .alreadyUnblocked:
             return .result(dialog: "").withoutDialog
-        case let .timedUnblockRunning(name):
+        case .timedUnblockRunning(let name):
             return .result(dialog: "A timed unblock is already running for \(name).")
-        case let .continueInApp(reason):
+        case .continueInApp(let reason):
             return try await continueInApp(
                 request,
                 reason: reason,
@@ -193,8 +193,8 @@ struct OpenUnblockIntent: AppIntent {
     }
 }
 
-private extension AppIntent {
-    func continueInApp(
+extension AppIntent {
+    fileprivate func continueInApp(
         _ request: UnblockRequest,
         reason: HandOffReason,
         performer: any UnblockIntentPerforming,
@@ -222,8 +222,8 @@ private extension AppIntent {
     }
 }
 
-private extension IntentResultContainer<Never, Never, Never, IntentDialog> {
-    var withoutDialog: Self {
+extension IntentResultContainer<Never, Never, Never, IntentDialog> {
+    fileprivate var withoutDialog: Self {
         var result = self
         result.dialog = nil
         return result

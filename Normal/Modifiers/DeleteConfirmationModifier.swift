@@ -23,11 +23,12 @@ extension View {
         isPresented: Binding<Bool>,
         onDelete: @escaping () -> Void
     ) -> some View {
-        modifier(DeleteConfirmationModifier(
-            title: title,
-            itemName: itemName,
-            isPresented: isPresented,
-            onDelete: onDelete
-        ))
+        modifier(
+            DeleteConfirmationModifier(
+                title: title,
+                itemName: itemName,
+                isPresented: isPresented,
+                onDelete: onDelete
+            ))
     }
 }

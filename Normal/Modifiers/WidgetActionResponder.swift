@@ -70,15 +70,15 @@ private struct WidgetActionResponder: ViewModifier {
 
     private func takeInboxRequest() {
         guard scenePhase == .active,
-              screenTimeService.authorizationState == .authorized,
-              durationGrant == nil,
-              let request = unlockInbox.take(),
-              let settings = allSettings.first,
-              let target = target(for: request.groupID),
-              target.canUnblock(
-                  status: screenTimeService.blockStatus(of: target, settings: settings),
-                  timedUnblockService: timedUnblockService
-              )
+            screenTimeService.authorizationState == .authorized,
+            durationGrant == nil,
+            let request = unlockInbox.take(),
+            let settings = allSettings.first,
+            let target = target(for: request.groupID),
+            target.canUnblock(
+                status: screenTimeService.blockStatus(of: target, settings: settings),
+                timedUnblockService: timedUnblockService
+            )
         else { return }
         coordinator.requestUnblock(request)
     }
@@ -98,11 +98,11 @@ private struct WidgetActionResponder: ViewModifier {
         guard allSettings.first?.hasCompletedOnboarding == true else { return }
 
         switch request.action {
-        case let .unblock(unblock):
+        case .unblock(let unblock):
             guard let target = target(for: unblock.groupID) else { return }
             present(ActiveRequest(token: request.token, target: target, keyType: unblock.keyType))
             authAction = .weaken { unlock(target, duration: unblock.duration, proof: $0) }
-        case let .blockGroup(groupID):
+        case .blockGroup(let groupID):
             guard let group = groups.first(where: { $0.id == groupID }) else { return }
             present(ActiveRequest(token: request.token, target: .group(group), keyType: nil))
             authAction = .tighten { block(group) }

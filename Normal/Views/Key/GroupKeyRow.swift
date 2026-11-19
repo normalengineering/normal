@@ -13,7 +13,9 @@ struct GroupKeyRow: View {
     }
 
     var body: some View {
-        Button { isEditing = true } label: {
+        Button {
+            isEditing = true
+        } label: {
             HStack {
                 Label {
                     VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {

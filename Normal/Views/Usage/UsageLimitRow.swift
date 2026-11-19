@@ -15,7 +15,7 @@ struct UsageLimitRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 StatusBadge(title: state.label, systemImage: state.icon, tint: state.color)
-                if case let .grace(until) = limit.lockState(now: now) {
+                if case .grace(let until) = limit.lockState(now: now) {
                     UsageGraceCountdown(until: until, now: now)
                         .accessibilityIdentifier("usage.graceCountdown")
                 }

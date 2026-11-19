@@ -108,9 +108,10 @@ final class ScheduleService {
         for dto in sharedStore.loadSchedules() {
             previous[dto.id] = dto.activatedAt
         }
-        sharedStore.saveSchedules(schedules.compactMap { schedule in
-            schedule.toDTO(activatedAt: schedule.id == activatedID ? clock() : previous[schedule.id])
-        })
+        sharedStore.saveSchedules(
+            schedules.compactMap { schedule in
+                schedule.toDTO(activatedAt: schedule.id == activatedID ? clock() : previous[schedule.id])
+            })
     }
 
     func syncAndPersist(
@@ -154,6 +155,9 @@ enum ScheduleRegistrationError: LocalizedError {
     case tooManyActivities
 
     var errorDescription: String? {
-        String(localized: "Saved, but iOS only tracks 20 schedules and timers at once, so this schedule may start or end up to 30 minutes late. Turn off another schedule to make it exact.")
+        String(
+            localized:
+                "Saved, but iOS only tracks 20 schedules and timers at once, so this schedule may start or end up to 30 minutes late. Turn off another schedule to make it exact."
+        )
     }
 }

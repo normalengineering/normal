@@ -16,7 +16,7 @@ struct UnblockDurationSheet: View {
     private var title: String {
         switch grant.target {
         case .all: "Unblock All"
-        case let .group(group): "Unblock \(group.name)"
+        case .group(let group): "Unblock \(group.name)"
         }
     }
 

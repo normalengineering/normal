@@ -3,32 +3,34 @@ import Foundation
 import Observation
 import UIKit
 
-private extension NFCTag {
-    var hexId: String? {
-        let bytes: Data? = switch self {
-        case let .feliCa(t): t.currentIDm
-        case let .miFare(t): t.identifier
-        case let .iso7816(t): t.identifier
-        case let .iso15693(t): t.identifier
-        @unknown default: nil
-        }
+extension NFCTag {
+    fileprivate var hexId: String? {
+        let bytes: Data? =
+            switch self {
+            case .feliCa(let t): t.currentIDm
+            case .miFare(let t): t.identifier
+            case .iso7816(let t): t.identifier
+            case .iso15693(let t): t.identifier
+            @unknown default: nil
+            }
         return bytes?.hexString
     }
 
-    var hasRandomIdentifier: Bool {
-        let id: Data? = switch self {
-        case let .miFare(t): t.identifier
-        case let .iso7816(t): t.identifier
-        default: nil
-        }
+    fileprivate var hasRandomIdentifier: Bool {
+        let id: Data? =
+            switch self {
+            case .miFare(let t): t.identifier
+            case .iso7816(let t): t.identifier
+            default: nil
+            }
         return id?.count == 4 && id?.first == 0x08
     }
 }
 
 private let mrtdAID = Data([0xA0, 0x00, 0x00, 0x02, 0x47, 0x10, 0x01])
 
-private extension NFCISO7816Tag {
-    func hasMRTDApplication() async -> Bool {
+extension NFCISO7816Tag {
+    fileprivate func hasMRTDApplication() async -> Bool {
         let apdu = NFCISO7816APDU(
             instructionClass: 0x00,
             instructionCode: 0xA4,
@@ -180,15 +182,15 @@ extension NFCService: NFCTagReaderSessionDelegate {
             hasRandomIdentifier: hasRandomID,
             hasMRTDApplication: hasMRTD
         ) {
-        case let .proceed(hexId):
+        case .proceed(let hexId):
             complete(session: session, hexId: hexId)
-        case let .reject(err):
+        case .reject(let err):
             fail(session: session, with: err)
         }
     }
 
     private func checkMRTD(tag: NFCTag, skipping skip: Bool) async -> Bool {
-        guard !skip, case let .iso7816(iso) = tag else { return false }
+        guard !skip, case .iso7816(let iso) = tag else { return false }
         return await iso.hasMRTDApplication()
     }
 

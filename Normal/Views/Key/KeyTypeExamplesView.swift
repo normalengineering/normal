@@ -21,15 +21,27 @@ struct KeyTypeExamplesView: View {
             cardTitle("NFC tag examples", systemImage: "wave.3.right")
             FeatureRow(systemImage: "tag.fill", text: "Almost any NFC tag works. AirTags, Amiibo, and even Credit Cards have NFC chips you can use.")
             FeatureRow(systemImage: "cart.fill", text: "You can also buy packs of blank NFC tags online for very little.")
-            FeatureRow(systemImage: "lock.shield.fill", text: "Normal only reads the tag's unique ID, never the data on it. That means only the tag you register can unblock your apps, and your privacy stays protected.")
+            FeatureRow(
+                systemImage: "lock.shield.fill",
+                text:
+                    "Normal only reads the tag's unique ID, never the data on it. That means only the tag you register can unblock your apps, and your privacy stays protected."
+            )
         }
     }
 
     private var qrCard: some View {
         card {
             cardTitle("QR code or barcode examples", systemImage: "qrcode")
-            FeatureRow(systemImage: "doc.fill", text: "Any QR code or barcode works, even a product barcode off a snack wrapper. Print one on paper, put it on a sticker, or show it on a second device's screen.")
-            FeatureRow(systemImage: "arrow.triangle.2.circlepath", text: "Normal reads the value inside the QR code or barcode. Use something you can recreate later if you lose it, or make it random so it's hard to reproduce.")
+            FeatureRow(
+                systemImage: "doc.fill",
+                text:
+                    "Any QR code or barcode works, even a product barcode off a snack wrapper. Print one on paper, put it on a sticker, or show it on a second device's screen."
+            )
+            FeatureRow(
+                systemImage: "arrow.triangle.2.circlepath",
+                text:
+                    "Normal reads the value inside the QR code or barcode. Use something you can recreate later if you lose it, or make it random so it's hard to reproduce."
+            )
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Getting one").font(.subheadline.weight(.semibold))
                 BulletRow(text: "Any product barcode, like one off a snack wrapper or book")
@@ -43,9 +55,19 @@ struct KeyTypeExamplesView: View {
     private var locationCard: some View {
         card {
             cardTitle("Location examples", systemImage: KeyType.location.icon)
-            FeatureRow(systemImage: "location.circle.fill", text: "Unblock radius: your key only works inside the areas you choose, like your office or the gym.", tint: LocationRadiusKind.unblock.zoneColor)
-            FeatureRow(systemImage: "location.slash.circle.fill", text: "Block radius: your key only works outside the areas you choose, like home or school, so you can't unblock while you're there.", tint: LocationRadiusKind.block.zoneColor)
-            FeatureRow(systemImage: "iphone", text: "Normal only checks your location at the moment you unblock. With Background Location on in Settings, a shortcut can unblock without opening Normal.")
+            FeatureRow(
+                systemImage: "location.circle.fill",
+                text: "Unblock radius: your key only works inside the areas you choose, like your office or the gym.",
+                tint: LocationRadiusKind.unblock.zoneColor)
+            FeatureRow(
+                systemImage: "location.slash.circle.fill",
+                text: "Block radius: your key only works outside the areas you choose, like home or school, so you can't unblock while you're there.",
+                tint: LocationRadiusKind.block.zoneColor)
+            FeatureRow(
+                systemImage: "iphone",
+                text:
+                    "Normal only checks your location at the moment you unblock. With Background Location on in Settings, a shortcut can unblock without opening Normal."
+            )
         }
     }
 
@@ -55,7 +77,9 @@ struct KeyTypeExamplesView: View {
             FeatureRow(systemImage: "door.left.hand.closed", text: "Another room, a closet, or a high shelf", tint: .orange)
             FeatureRow(systemImage: "car.fill", text: "Your car, office, mailbox or with a trusted person", tint: .orange)
             FeatureRow(systemImage: "location.fill", text: "For location keys, the park, office or somewhere random far away.", tint: .orange)
-            FeatureRow(systemImage: "person.2.fill", text: "However difficult you make it to reach is how difficult it will be to unblock your device.", tint: .orange)
+            FeatureRow(
+                systemImage: "person.2.fill", text: "However difficult you make it to reach is how difficult it will be to unblock your device.",
+                tint: .orange)
             BulletRow(text: "Setup an accessible backup key so you're never fully locked out.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)

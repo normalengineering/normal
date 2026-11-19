@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+
 @testable import Normal
 
 @MainActor
@@ -41,12 +42,12 @@ final class FakeLocationProvider: LocationProviding {
         requestCount += 1
         let ready = requestWaiters.filter { $0.count <= requestCount }
         requestWaiters.removeAll { $0.count <= requestCount }
-        ready.forEach { $0.continuation.resume() }
+        for waiter in ready { waiter.continuation.resume() }
         let next = queuedOutcomes.isEmpty ? outcome : queuedOutcomes.removeFirst()
         switch next {
-        case let .location(location):
+        case .location(let location):
             return location
-        case let .throwKeyError(error):
+        case .throwKeyError(let error):
             throw error
         case .throwGeneric:
             throw NSError(domain: "test", code: 0)

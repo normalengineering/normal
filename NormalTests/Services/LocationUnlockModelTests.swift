@@ -1,6 +1,7 @@
 import CoreLocation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct LocationUnlockModelTests {

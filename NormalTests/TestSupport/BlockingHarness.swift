@@ -2,8 +2,9 @@ import DeviceActivity
 import FamilyControls
 import Foundation
 import ManagedSettings
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 final class BlockingHarness {
@@ -175,7 +176,7 @@ final class BlockingHarness {
         minutes: Int,
         block: Bool,
         timed: Bool = true,
-        weekdays: Set<Int> = Set(1 ... 7)
+        weekdays: Set<Int> = Set(1...7)
     ) throws -> BlockSchedule {
         let schedule = BlockSchedule(
             name: "S\(schedules.count)",

@@ -1,7 +1,8 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct ScheduleActiveDayTests {
     private let cal: Calendar = {
@@ -40,7 +41,7 @@ struct ScheduleActiveDayTests {
     @Test func nonWrappingMondayToFridayActiveOnlyOnWeekdays() {
         let s = schedule(weekdays: [2, 3, 4, 5, 6])
         for (day, weekday) in weekdayOfDay {
-            let expected = (2 ... 6).contains(weekday)
+            let expected = (2...6).contains(weekday)
             #expect(s.isActive(at: date(day: day, hour: 9), calendar: cal) == expected)
         }
     }

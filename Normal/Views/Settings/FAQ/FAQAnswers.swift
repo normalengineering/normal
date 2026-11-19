@@ -6,7 +6,9 @@ enum FAQAnswer {
     static let isNormalFree = AnyView(
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("Yes, it shouldn't cost anything to use your phone less.")
-            Text("Normal is 100% free with no in-app purchases, subscriptions, or hidden fees. It's an open-source project and the source code is available on GitHub for you to modify and tinker with.")
+            Text(
+                "Normal is 100% free with no in-app purchases, subscriptions, or hidden fees. It's an open-source project and the source code is available on GitHub for you to modify and tinker with."
+            )
         }
         .font(body)
         .foregroundStyle(.secondary)
@@ -16,7 +18,9 @@ enum FAQAnswer {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("We don't collect or sell any data. You can view the source code to verify this yourself.")
             Text("There are no accounts, no internet connection required, and no data logging.")
-            Text("Normal uses Apple's Screen Time API and the Managed Settings framework to enforce app limits entirely on your device. All blocking rules, schedules, and configurations are stored locally, nothing is ever sent to a server.")
+            Text(
+                "Normal uses Apple's Screen Time API and the Managed Settings framework to enforce app limits entirely on your device. All blocking rules, schedules, and configurations are stored locally, nothing is ever sent to a server."
+            )
         }
         .font(body)
         .foregroundStyle(.secondary)
@@ -25,7 +29,9 @@ enum FAQAnswer {
     static let bugsWithoutCollection = AnyView(
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("We rely on community feedback and contributions to identify issues and implement improvements.")
-            Text("Since all data remains on your device, we can't gather usage statistics. Instead, we encourage users to report bugs and suggest features directly through our GitHub repository.")
+            Text(
+                "Since all data remains on your device, we can't gather usage statistics. Instead, we encourage users to report bugs and suggest features directly through our GitHub repository."
+            )
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("You can also reach us at")
                 Link("info@normalengineering.org", destination: URL(string: "mailto:info@normalengineering.org")!)
@@ -50,11 +56,15 @@ enum FAQAnswer {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Apple's Screen Time").fontWeight(.medium).foregroundStyle(.primary)
-                Text("works on an opt-out basis. When you hit a limit, you're simply asked whether to continue or not. It's easy to dismiss with a single tap, easy to bypass with a passcode, and tedious to set up.")
+                Text(
+                    "works on an opt-out basis. When you hit a limit, you're simply asked whether to continue or not. It's easy to dismiss with a single tap, easy to bypass with a passcode, and tedious to set up."
+                )
             }
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text("Normal").fontWeight(.medium).foregroundStyle(.primary)
-                Text("takes an opt-in approach. Apps you select are blocked by default. To use them, you have to physically scan an NFC tag, QR code, or barcode you've placed somewhere intentional.")
+                Text(
+                    "takes an opt-in approach. Apps you select are blocked by default. To use them, you have to physically scan an NFC tag, QR code, or barcode you've placed somewhere intentional."
+                )
             }
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 BulletRow(text: "Stronger, harder-to-bypass blocking")
@@ -71,7 +81,8 @@ enum FAQAnswer {
             Text("Aside from being completely free and open source, Normal is built to be much stronger and better serve its purpose.")
             FAQHeadedParagraph(
                 title: "Opt-in approach",
-                text: "Most screen time apps use an opt-out approach, like Apple's Screen Time, where you're asked to confirm each time you exceed a limit. With Normal, selected apps are blocked by default. To use them, you have to physically scan an NFC tag, QR code, or barcode you've placed somewhere intentional."
+                text:
+                    "Most screen time apps use an opt-out approach, like Apple's Screen Time, where you're asked to confirm each time you exceed a limit. With Normal, selected apps are blocked by default. To use them, you have to physically scan an NFC tag, QR code, or barcode you've placed somewhere intentional."
             )
             FAQHeadedParagraph(
                 title: "Physical layer",
@@ -79,11 +90,13 @@ enum FAQAnswer {
             )
             FAQHeadedParagraph(
                 title: "Timed unblocks",
-                text: "Other apps require you to manually reblock when you're done, and users commonly report forgetting to reblock or falling back into doom-scrolling. With Normal, set a timed unblock for 15 minutes and you'll be automatically blocked again when it's up. Going to an event where you need to stay reachable? Unblock for a few hours and Normal handles the rest. You can add your own durations in Settings, under Unblock Durations."
+                text:
+                    "Other apps require you to manually reblock when you're done, and users commonly report forgetting to reblock or falling back into doom-scrolling. With Normal, set a timed unblock for 15 minutes and you'll be automatically blocked again when it's up. Going to an event where you need to stay reachable? Unblock for a few hours and Normal handles the rest. You can add your own durations in Settings, under Unblock Durations."
             )
             FAQHeadedParagraph(
                 title: "App groups",
-                text: "Only need to unblock Instagram to post quickly? Create an app group for it. Select a 15-minute unblock and only the apps you need will be available, no excuse to check anything else. Complete granular control with Normal."
+                text:
+                    "Only need to unblock Instagram to post quickly? Create an app group for it. Select a 15-minute unblock and only the apps you need will be available, no excuse to check anything else. Complete granular control with Normal."
             )
         }
         .font(body)
@@ -122,14 +135,18 @@ enum FAQAnswer {
     static let reselectAppLimitation = AnyView(
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("This is an Apple limitation, not a Normal one.")
-            Text("Apple's Screen Time API is restrictive for privacy reasons. The app-selection pop-over is made by Apple, not us, and is the only way to select apps for Screen Time.")
+            Text(
+                "Apple's Screen Time API is restrictive for privacy reasons. The app-selection pop-over is made by Apple, not us, and is the only way to select apps for Screen Time."
+            )
             Text("Here's the technical reason:")
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 BulletRow(text: "Apple creates a random ID for each app every time you use the picker")
                 BulletRow(text: "Developers aren't told which apps were previously selected")
                 BulletRow(text: "There's no way for us to carry over your previous selections automatically")
             }
-            Text("We require reselecting schedules and groups to ensure Normal's groups, apps, and timed unlocks work consistently. We wish we could make this smoother, but Apple enforces this strictly to protect user privacy.")
+            Text(
+                "We require reselecting schedules and groups to ensure Normal's groups, apps, and timed unlocks work consistently. We wish we could make this smoother, but Apple enforces this strictly to protect user privacy."
+            )
         }
         .font(body)
         .foregroundStyle(.secondary)
@@ -154,13 +171,17 @@ enum FAQAnswer {
     static let nfcTypeSupport = AnyView(
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             Text("Normal identifies an NFC tag by its unique ID, not by the data stored inside it.")
-            Text("Some high-security tags, like certain bank or transit cards, deliberately use a rotating ID that changes on every scan, for privacy and anti-tracking reasons.")
+            Text(
+                "Some high-security tags, like certain bank or transit cards, deliberately use a rotating ID that changes on every scan, for privacy and anti-tracking reasons."
+            )
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 BulletRow(text: "Their ID is different every time you tap them")
                 BulletRow(text: "We can't confirm it's the same tag you registered")
                 BulletRow(text: "So they can't be used as a reliable key")
             }
-            Text("Use a tag with a fixed unique ID; AirTags, Amiibo, most Credit Cards and most everyday NFC tags work well. Or use a QR code/barcode or Location as a key instead.")
+            Text(
+                "Use a tag with a fixed unique ID; AirTags, Amiibo, most Credit Cards and most everyday NFC tags work well. Or use a QR code/barcode or Location as a key instead."
+            )
         }
         .font(body)
         .foregroundStyle(.secondary)

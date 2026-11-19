@@ -53,10 +53,13 @@ struct GeneralSettingsView: View {
             }
             .accessibilityIdentifier("settings.unblockDurationsLink")
 
-            Picker("Default Duration", selection: Binding(
-                get: { settings.defaultDuration },
-                set: { settings.defaultDuration = $0 }
-            )) {
+            Picker(
+                "Default Duration",
+                selection: Binding(
+                    get: { settings.defaultDuration },
+                    set: { settings.defaultDuration = $0 }
+                )
+            ) {
                 Text("None").tag(TimedUnblockDuration?.none)
                 ForEach(settings.unblockDurations) { duration in
                     Text(duration.label).tag(TimedUnblockDuration?.some(duration))
@@ -68,7 +71,7 @@ struct GeneralSettingsView: View {
                 selection: Binding(
                     get: {
                         guard let keyType = settings.defaultKeyType,
-                              availableKeyTypes.contains(keyType)
+                            availableKeyTypes.contains(keyType)
                         else { return KeyType?.none }
                         return keyType
                     },

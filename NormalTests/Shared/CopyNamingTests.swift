@@ -1,5 +1,6 @@
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct CopyNamingTests {
     @Test func appendsCopyWhenNameIsFree() {

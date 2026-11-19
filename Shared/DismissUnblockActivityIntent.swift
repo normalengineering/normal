@@ -28,8 +28,7 @@ struct DismissUnblockActivityIntent: LiveActivityIntent {
     @MainActor
     private static func dismiss(unblockID: String) async {
         for activity in Activity<TimedUnblockActivityAttributes>.activities
-            where activity.attributes.unblockID == unblockID
-        {
+        where activity.attributes.unblockID == unblockID {
             await activity.end(nil, dismissalPolicy: .immediate)
         }
     }

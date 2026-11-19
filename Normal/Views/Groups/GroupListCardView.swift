@@ -57,7 +57,7 @@ struct GroupListCardView: View {
             return true
         }
         if settings.enableCustomDomains,
-           CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains)
+            CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains)
         {
             return true
         }
@@ -197,7 +197,7 @@ struct GroupListCardView: View {
         AdaptiveStack(spacing: DS.Spacing.sm) {
             HStack(spacing: DS.Spacing.sm) {
                 Image(systemName: "timer").foregroundStyle(.orange)
-                Text(timerInterval: .now ... endDate, countsDown: true)
+                Text(timerInterval: .now...endDate, countsDown: true)
                     .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
             }

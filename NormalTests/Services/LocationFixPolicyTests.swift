@@ -1,7 +1,8 @@
 import CoreLocation
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct LocationFixPolicyTests {
     private let now = Date()

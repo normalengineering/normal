@@ -7,9 +7,9 @@ struct SelectionTokenLabel: View {
 
     var body: some View {
         switch kind {
-        case let .application(token): Label(token)
-        case let .webDomain(token): Label(token)
-        case let .category(token): Label(token)
+        case .application(let token): Label(token)
+        case .webDomain(let token): Label(token)
+        case .category(let token): Label(token)
         }
     }
 }

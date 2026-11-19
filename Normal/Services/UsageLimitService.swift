@@ -1,8 +1,8 @@
 import DeviceActivity
 import FamilyControls
 import Foundation
-import Observation
 import OSLog
+import Observation
 
 @MainActor
 @Observable
@@ -32,7 +32,8 @@ final class UsageLimitService {
         self.activityCenter = activityCenter
         self.sharedStore = sharedStore
         self.ledger = ledger
-        self.limitShield = limitShield
+        self.limitShield =
+            limitShield
             ?? (UITestSupport.isActive ? InMemoryDailyLimitShield() : ManagedSettingsDailyLimitShield())
         resetAnchor = ledger.loadLastLoosened()
     }
@@ -138,7 +139,8 @@ final class UsageLimitService {
     }
 
     static func fingerprint(for dtos: [UsageLimitDTO], period: UsagePeriod, on date: Date) -> String {
-        let body = dtos
+        let body =
+            dtos
             .map { "\($0.id.uuidString):\($0.minutesPerDay):\($0.selectionData.stableChecksum)" }
             .sorted()
             .joined(separator: "|")

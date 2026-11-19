@@ -1,8 +1,9 @@
 import FamilyControls
 import Foundation
 import ManagedSettings
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct ShieldResolverTests {
     private let cal: Calendar = {
@@ -22,7 +23,7 @@ struct ShieldResolverTests {
         minutes: Int,
         block: Bool,
         timed: Bool = true,
-        weekdays: Set<Int> = Set(1 ... 7),
+        weekdays: Set<Int> = Set(1...7),
         activatedAt: Date? = nil
     ) throws -> ScheduleDTO {
         try ScheduleDTO(
@@ -460,7 +461,7 @@ struct ShieldResolverTests {
         state.blockAll(TokenFixtures.selection(apps: [1], categories: [1], webDomains: [1]), customDomains: [], at: .distantPast)
         let allow = try ScheduleDTO(
             id: UUID(), name: "S", selectionData: TokenFixtures.selection(apps: [], categories: [1]).toData(),
-            startHour: 12, startMinute: 0, durationMinutes: 60, weekdays: Set(1 ... 7),
+            startHour: 12, startMinute: 0, durationMinutes: 60, weekdays: Set(1...7),
             shouldBlock: false, isTimed: true
         )
 

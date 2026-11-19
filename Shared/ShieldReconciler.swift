@@ -45,7 +45,8 @@ nonisolated enum ShieldReconciler {
             let current = shields.currentShields()
 
             let saved = sharedStore.loadManualBlockState()
-            var manual = saved
+            var manual =
+                saved
                 ?? ShieldResolver.migratedManualState(
                     shielded: current,
                     enabledSchedules: schedules,
@@ -104,7 +105,8 @@ extension ManagedSettingsStore: ShieldApplying {
     func apply(_ plan: ShieldPlan) {
         replaceShields(with: plan.selection)
         replaceFilter(domains: Array(plan.customDomains), blockingAdultContent: plan.blocksAdultContent)
-        application.blockedApplications = plan.hiddenApplications.isEmpty
+        application.blockedApplications =
+            plan.hiddenApplications.isEmpty
             ? nil
             : Set(plan.hiddenApplications.map { Application(token: $0) })
         if let deny = plan.denyAppRemoval {

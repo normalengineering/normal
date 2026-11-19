@@ -155,7 +155,7 @@ final class RecoveryUITests: XCTestCase {
         let app = launch([])
 
         openEmergencyTab(app)
-        for use in 1 ... 3 {
+        for use in 1...3 {
             let button = app.buttons["emergency.unblockButton"]
             require(button, "Emergency button available on use \(use)")
             XCTAssertTrue(button.isEnabled, "Still enabled before use \(use)")

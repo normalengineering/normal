@@ -3,8 +3,8 @@ import ManagedSettings
 extension ManagedSettingsStore {
     func filterDomains() -> Set<WebDomain> {
         switch webContent.blockedByFilter {
-        case let .specific(domains)?: domains
-        case let .auto(domains, _)?: domains
+        case .specific(let domains)?: domains
+        case .auto(let domains, _)?: domains
         default: []
         }
     }

@@ -4,7 +4,8 @@ struct SharedStore: SharedStoreProviding, Sendable {
     private nonisolated(unsafe) let defaults: UserDefaults
 
     init(defaults: UserDefaults? = nil) {
-        self.defaults = defaults
+        self.defaults =
+            defaults
             ?? UserDefaults(suiteName: SharedConstants.appGroupID)
             ?? UserDefaults.standard
     }

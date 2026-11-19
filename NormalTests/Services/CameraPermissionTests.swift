@@ -1,6 +1,7 @@
 import AVFoundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct CameraPermissionTests {

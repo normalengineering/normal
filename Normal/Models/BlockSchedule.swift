@@ -52,7 +52,7 @@ final class BlockSchedule: Identifiable {
     var weekdayLabels: [String] {
         let symbols = Calendar.current.shortWeekdaySymbols
         return weekdays.sorted().compactMap { day in
-            guard (1 ... 7).contains(day) else { return nil }
+            guard (1...7).contains(day) else { return nil }
             return symbols[day - 1]
         }
     }

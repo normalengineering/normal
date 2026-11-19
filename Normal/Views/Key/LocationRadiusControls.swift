@@ -25,7 +25,7 @@ struct LocationRadiusControls: View {
                 .disabled(!canUseCurrentLocation)
             }
 
-            Slider(value: $radiusMeters, in: Self.minRadius ... Self.maxRadius, step: 50) {
+            Slider(value: $radiusMeters, in: Self.minRadius...Self.maxRadius, step: 50) {
                 Text("Radius")
             }
             .tint(kind.zoneColor)

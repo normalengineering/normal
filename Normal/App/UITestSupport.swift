@@ -7,7 +7,8 @@ enum UITestSupport {
 
     static let isActive = arguments.contains("-uiTestMode")
 
-    static let isUnitTestHost = !isActive
+    static let isUnitTestHost =
+        !isActive
         && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 
     static let skipOnboarding = arguments.contains("-uiTestSkipOnboarding")
@@ -54,10 +55,11 @@ enum UITestSupport {
 
     private static func selection(apps: [UInt8]) -> FamilyActivitySelection {
         var selection = FamilyActivitySelection()
-        selection.applicationTokens = Set(apps.compactMap { id in
-            let json = #"{"data":"\#(Data([id]).base64EncodedString())"}"#
-            return try? JSONDecoder().decode(ApplicationToken.self, from: Data(json.utf8))
-        })
+        selection.applicationTokens = Set(
+            apps.compactMap { id in
+                let json = #"{"data":"\#(Data([id]).base64EncodedString())"}"#
+                return try? JSONDecoder().decode(ApplicationToken.self, from: Data(json.utf8))
+            })
         return selection
     }
 

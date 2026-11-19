@@ -1,7 +1,8 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct FamilyControlsUtilTests {
     @Test func emptySelectionIsEmpty() {
@@ -71,8 +72,9 @@ struct FamilyControlsUtilTests {
     // MARK: - selectedTokenCounts
 
     @Test func emptyCountsReturnEmptyStatePhrase() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 0)
-            == String(localized: "No items selected"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 0)
+                == String(localized: "No items selected"))
     }
 
     @Test func emptySelectionReturnsEmptyStatePhrase() {
@@ -80,33 +82,39 @@ struct FamilyControlsUtilTests {
     }
 
     @Test func singleAppUsesSingularNoun() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 0, categories: 0)
-            == String(localized: "1 App"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 1, websites: 0, categories: 0)
+                == String(localized: "1 App"))
     }
 
     @Test func multipleAppsUsePluralNoun() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
-            == String(localized: "\(5) Apps"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 5, websites: 0, categories: 0)
+                == String(localized: "\(5) Apps"))
     }
 
     @Test func singleWebsiteUsesSingularNoun() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 1, categories: 0)
-            == String(localized: "1 Website"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 1, categories: 0)
+                == String(localized: "1 Website"))
     }
 
     @Test func multipleWebsitesUsePluralNoun() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 3, categories: 0)
-            == String(localized: "\(3) Websites"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 3, categories: 0)
+                == String(localized: "\(3) Websites"))
     }
 
     @Test func singleCategoryUsesSingularNoun() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 1)
-            == String(localized: "1 Category"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 1)
+                == String(localized: "1 Category"))
     }
 
     @Test func multipleCategoriesUsePluralNoun() {
-        #expect(FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 4)
-            == String(localized: "\(4) Categories"))
+        #expect(
+            FamilyActivitySelection.selectedTokenCounts(apps: 0, websites: 0, categories: 4)
+                == String(localized: "\(4) Categories"))
     }
 
     @Test func allPluralSegmentsJoinInAppsWebsitesCategoriesOrder() {

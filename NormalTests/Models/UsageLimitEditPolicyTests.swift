@@ -1,7 +1,8 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct UsageLimitEditPolicyTests {
     private let anchor = Date(timeIntervalSinceReferenceDate: 1_000_000)
@@ -137,11 +138,13 @@ struct UsageLimitEditPolicyTests {
         var current: Date? = anchor
         for step in stride(from: 1, through: 5, by: 1) {
             let now = anchor + .minutes(step)
-            guard case let .allowed(allowance) = UsageLimitEditPolicy.decide(
-                .adjust(from: 30, to: 30 + step, dropsCoverage: false),
-                anchor: current,
-                now: now
-            ) else {
+            guard
+                case .allowed(let allowance) = UsageLimitEditPolicy.decide(
+                    .adjust(from: 30, to: 30 + step, dropsCoverage: false),
+                    anchor: current,
+                    now: now
+                )
+            else {
                 Issue.record("edit inside grace should be allowed")
                 return
             }
