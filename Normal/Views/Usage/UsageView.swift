@@ -43,7 +43,13 @@ struct UsageView: View {
 
     @ViewBuilder
     private var noticeSection: some View {
-        if !limits.isEmpty, usageLimitService.isDayOverridden() {
+        if !limits.isEmpty, let failure = usageLimitService.registrationFailure {
+            Section {
+                MessageView(text: Text(failure.message), color: .red)
+                    .standaloneListRow()
+                    .accessibilityIdentifier("usage.registrationFailure")
+            }
+        } else if !limits.isEmpty, usageLimitService.isDayOverridden() {
             let reset = usageLimitService.nextReset().formatted(date: .omitted, time: .shortened)
             Section {
                 MessageView(text: Text("Paused by emergency unblock until \(reset)."), color: .orange)

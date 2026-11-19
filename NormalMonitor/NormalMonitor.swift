@@ -30,6 +30,7 @@ final class NormalMonitor: DeviceActivityMonitor {
         if let limit = credibleUsageLimit(eventName: event.rawValue, minutes: \.minutesPerDay) {
             sharedStore.recordUsageState(.reached, for: limit.id)
             limitStore.syncDailyLimits(from: sharedStore)
+            CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: reached")
         }
         reconcile("eventDidReachThreshold", activity: event.rawValue)
     }
@@ -43,6 +44,7 @@ final class NormalMonitor: DeviceActivityMonitor {
             minutes: { $0.minutesPerDay - SharedConstants.usageLimitWarningMinutes }
         ) {
             sharedStore.recordUsageState(.warning, for: limit.id)
+            CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: warning")
         }
         reconcile("eventWillReachThresholdWarning", activity: event.rawValue)
     }
@@ -76,9 +78,16 @@ final class NormalMonitor: DeviceActivityMonitor {
         if let start = sharedStore.loadUsageLimitsIntervalStart(),
             Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds
         {
+            CallbackLog.record(
+                "monitor usage limit \(limit.minutesPerDay) min: dropped, "
+                    + "\(Date.now.timeIntervalSince(start).formatted(.number.precision(.fractionLength(1)))) s after the interval started"
+            )
             return nil
         }
-        guard sharedStore.usagePeriod.couldHaveMetered(minutes: minutes(limit), by: .now) else { return nil }
+        guard sharedStore.usagePeriod.couldHaveMetered(minutes: minutes(limit), by: .now) else {
+            CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: dropped, too soon after the reset")
+            return nil
+        }
         return limit
     }
 

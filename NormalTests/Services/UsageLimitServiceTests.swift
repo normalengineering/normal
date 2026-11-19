@@ -205,6 +205,101 @@ struct UsageLimitServiceTests {
         #expect(h.center.stopCalls.count == stopsAfterFirst)
     }
 
+    @Test func reRegisteringAnUnchangedArmedSetDoesNotTouchMonitoring() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)
+
+        h.service.registerAll([limit], config: config, on: day)
+        h.service.registerAll([limit], config: config, on: day)
+
+        #expect(h.center.startCalls.count == 1)
+        #expect(h.center.stopCalls.count == 1)
+    }
+
+    @Test func anUnchangedSetIsRegisteredAgainWhenIOSNoLongerListsIt() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)
+        h.service.registerAll([limit], config: config, on: day)
+        h.center.stopMonitoring([usageActivity])
+
+        h.service.registerAll([limit], config: config, on: day)
+
+        #expect(h.center.startCalls.count == 2)
+        #expect(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+    }
+
+    @Test func tooManyActivitiesIsReportedUntilRegistrationSucceeds() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)
+        h.center.startError = DeviceActivityCenter.MonitoringError.excessiveActivities
+
+        h.service.registerAll([limit], config: config, on: day)
+        #expect(h.service.registrationFailure == .tooManyActivities)
+
+        h.center.startError = nil
+        h.service.registerAll([limit], config: config, on: day)
+        #expect(h.service.registrationFailure == nil)
+        #expect(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+    }
+
+    @Test func aLimitAddedWhenSchedulesFillEverySlotIsReportedUntilOneIsFreed() {
+        let center = FakeDeviceActivityCenter()
+        center.activityLimit = 20
+        let store = FakeSharedStore()
+        let schedules = ScheduleService(activityCenter: center, sharedStore: store, clock: { day })
+        let limits = UsageLimitService(
+            activityCenter: center,
+            sharedStore: store,
+            ledger: InMemoryUsageLimitLedger(date: nil),
+            limitShield: InMemoryDailyLimitShield()
+        )
+        let nineteen = (0..<19).map { _ in
+            BlockSchedule(
+                name: "Work",
+                selection: FamilyActivitySelection(),
+                startHour: 9, startMinute: 0,
+                durationMinutes: 60,
+                weekdays: [2, 3, 4, 5, 6],
+                shouldBlock: true,
+                isTimed: true,
+                isEnabled: true
+            )
+        }
+        schedules.registerAll(nineteen, screenTimeService: FakeScreenTimeService())
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 30, createdAt: day)
+
+        limits.registerAll([limit], config: config, on: day)
+        #expect(!center.monitoredActivityNames.contains(usageActivity.rawValue))
+        #expect(limits.registrationFailure == .tooManyActivities)
+
+        nineteen[0].isEnabled = false
+        schedules.registerAll(nineteen, screenTimeService: FakeScreenTimeService())
+        limits.registerAll([limit], config: config, on: day)
+        #expect(center.monitoredActivityNames.contains(usageActivity.rawValue))
+        #expect(limits.registrationFailure == nil)
+    }
+
+    @Test func otherRegistrationErrorsAreReportedAsFailed() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)
+        h.center.startError = DeviceActivityCenter.MonitoringError.unauthorized
+
+        h.service.registerAll([limit], config: config, on: day)
+
+        #expect(h.service.registrationFailure == .failed)
+    }
+
+    @Test func removingEveryLimitClearsARegistrationFailure() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)
+        h.center.startError = DeviceActivityCenter.MonitoringError.excessiveActivities
+        h.service.registerAll([limit], config: config, on: day)
+
+        h.service.registerAll([], config: config, on: day)
+
+        #expect(h.service.registrationFailure == nil)
+    }
+
     @Test func changingALimitReRegisters() {
         let h = makeService()
         let limit = UsageLimit(minutesPerDay: 60)
