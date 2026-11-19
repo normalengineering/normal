@@ -15,6 +15,7 @@ final class UsageLimit: Identifiable {
     var minutesPerDay: Int
     var sortIndex: Int = 0
     var lockAnchor: Date?
+    var createdAt: Date?
 
     /// Shortest allowance we offer. `DeviceActivity` thresholds below a few
     /// minutes fire unreliably, so the picker never goes lower.
@@ -32,6 +33,7 @@ final class UsageLimit: Identifiable {
         self.minutesPerDay = minutesPerDay
         self.sortIndex = sortIndex
         lockAnchor = createdAt
+        self.createdAt = createdAt
     }
 
     func lockState(now: Date = .now) -> UsageLimitLockState {
@@ -54,6 +56,6 @@ final class UsageLimit: Identifiable {
     /// without the app running.
     func toDTO() -> UsageLimitDTO? {
         guard let data = try? selection.toData() else { return nil }
-        return UsageLimitDTO(id: id, selectionData: data, minutesPerDay: minutesPerDay)
+        return UsageLimitDTO(id: id, selectionData: data, minutesPerDay: minutesPerDay, createdAt: createdAt)
     }
 }

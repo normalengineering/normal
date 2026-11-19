@@ -57,7 +57,7 @@ final class UsageLimitService {
         sharedStore.saveUsageLimitConfig(config)
         syncShields(on: date)
 
-        let specs = Self.eventSpecs(for: dtos).filter(\.isArmable)
+        let specs = Self.eventSpecs(for: dtos, period: config.period, on: date).filter(\.isArmable)
         let fingerprint = Self.fingerprint(for: dtos, period: config.period, on: date)
         guard fingerprint != sharedStore.loadUsageRegistration() else { return }
 
@@ -98,6 +98,7 @@ final class UsageLimitService {
         let eventName: String
         let minutes: Int
         let selection: FamilyActivitySelection
+        let includesPastActivity: Bool
 
         var name: DeviceActivityEvent.Name {
             DeviceActivityEvent.Name(eventName)
@@ -115,9 +116,10 @@ final class UsageLimitService {
                 categories: selection.categoryTokens,
                 webDomains: selection.webDomainTokens,
                 threshold: DateComponents(minute: minutes),
-                // Accounts for usage already spent earlier in the interval, so
-                // re-registering mid-day cannot refund an allowance.
-                includesPastActivity: true
+                // A limit counts from when it's created on its first day. After
+                // that it counts the whole interval, so re-registering mid-day
+                // cannot refund an allowance.
+                includesPastActivity: includesPastActivity
             )
         }
     }
@@ -125,7 +127,7 @@ final class UsageLimitService {
     /// Drops only limits whose selection cannot be decoded; whether a spec is
     /// worth arming is `EventSpec.isArmable`, kept separate so the naming and
     /// threshold rules stay checkable without real `ManagedSettings` tokens.
-    static func eventSpecs(for dtos: [UsageLimitDTO]) -> [EventSpec] {
+    static func eventSpecs(for dtos: [UsageLimitDTO], period: UsagePeriod, on date: Date) -> [EventSpec] {
         dtos.compactMap { dto in
             guard let selection = try? FamilyActivitySelection.fromData(dto.selectionData)
             else { return nil }
@@ -133,7 +135,8 @@ final class UsageLimitService {
                 id: dto.id,
                 eventName: SharedConstants.usageLimitEventName(for: dto.id),
                 minutes: dto.minutesPerDay,
-                selection: selection
+                selection: selection,
+                includesPastActivity: period.countsPastActivity(createdAt: dto.createdAt, on: date)
             )
         }
     }
@@ -157,6 +160,11 @@ final class UsageLimitService {
     func states(for limits: [UsageLimit], on date: Date = .now) -> [UUID: UsageLimitState] {
         _ = lastUpdate
         return sharedStore.usageStates(for: limits.map(\.id), on: date)
+    }
+
+    func countsTimeUsedEarlierToday(by limit: UsageLimit?, on date: Date = .now) -> Bool {
+        guard let limit else { return false }
+        return sharedStore.usagePeriod.countsPastActivity(createdAt: limit.createdAt, on: date)
     }
 
     func nextReset(after date: Date = .now) -> Date {
