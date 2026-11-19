@@ -12,25 +12,17 @@ struct TimedUnblockLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TimedUnblockActivityAttributes.self) { context in
             atEnd(context) { finished in
-                HStack(spacing: 12) {
-                    leadingInfo(context, finished: finished)
-                    Spacer(minLength: 8)
-                    trailingAccessory(context, finished: finished)
-                }
-                .padding(16)
+                infoAndAccessory(context, finished: finished)
+                    .padding(16)
             }
             .activitySystemActionForegroundColor(.orange)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.bottom) {
                     atEnd(context) { finished in
-                        HStack(spacing: 12) {
-                            leadingInfo(context, finished: finished)
-                            Spacer(minLength: 8)
-                            trailingAccessory(context, finished: finished)
-                        }
-                        .padding(.horizontal, 4)
-                        .padding(.bottom, 6)
+                        infoAndAccessory(context, finished: finished)
+                            .padding(.horizontal, 4)
+                            .padding(.bottom, 6)
                     }
                 }
             } compactLeading: {
@@ -50,6 +42,23 @@ struct TimedUnblockLiveActivity: Widget {
                 leadingIcon(context)
             }
             .keylineTint(.orange)
+        }
+    }
+
+    private func infoAndAccessory(
+        _ context: ActivityViewContext<TimedUnblockActivityAttributes>,
+        finished: Bool
+    ) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                leadingInfo(context, finished: finished)
+                Spacer(minLength: 8)
+                trailingAccessory(context, finished: finished)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                leadingInfo(context, finished: finished)
+                trailingAccessory(context, finished: finished)
+            }
         }
     }
 
@@ -93,13 +102,22 @@ struct TimedUnblockLiveActivity: Widget {
             }
             .buttonStyle(.plain)
         } else {
-            timerText(context)
+            Text(verbatim: timerPlaceholder(context))
+                .hidden()
+                .overlay(alignment: .trailing) { timerText(context) }
                 .font(.system(.title2, design: .rounded).monospacedDigit())
                 .fontWeight(.semibold)
                 .foregroundStyle(.orange)
                 .lineLimit(1)
-                .minimumScaleFactor(0.5)
         }
+    }
+
+    private func timerPlaceholder(_ context: ActivityViewContext<TimedUnblockActivityAttributes>) -> String {
+        let total = context.state.endDate.timeIntervalSince(context.attributes.startDate)
+        if total >= 10 * 3600 {
+            return "00:00:00"
+        }
+        return total >= 3600 ? "0:00:00" : "00:00"
     }
 
     private func iconBadge(systemName: String) -> some View {
