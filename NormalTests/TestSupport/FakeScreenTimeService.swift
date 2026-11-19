@@ -1,7 +1,8 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import Observation
+
+@testable import Normal
 
 @MainActor
 @Observable

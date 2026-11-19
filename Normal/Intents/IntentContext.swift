@@ -47,7 +47,7 @@ struct IntentContext {
 
     func mainSelection(settings: Settings) throws -> SelectedApps {
         guard let mainSelection = try context.fetch(FetchDescriptor<SelectedApps>()).first,
-              mainSelection.hasItemsToBlock(customDomainsEnabled: settings.enableCustomDomains)
+            mainSelection.hasItemsToBlock(customDomainsEnabled: settings.enableCustomDomains)
         else { throw BlockIntentError.noAppsSelected }
         return mainSelection
     }

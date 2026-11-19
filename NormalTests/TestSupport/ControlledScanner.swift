@@ -1,4 +1,5 @@
 import Foundation
+
 @testable import Normal
 
 final class ControlledScanner: CancellableKeyScanning {

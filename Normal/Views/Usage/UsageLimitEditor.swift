@@ -10,13 +10,13 @@ enum UsageLimitTarget: Identifiable {
 
     var id: String {
         switch self {
-        case let .existing(limit): limit.id.uuidString
+        case .existing(let limit): limit.id.uuidString
         case .new: "new"
         }
     }
 
     var limit: UsageLimit? {
-        if case let .existing(limit) = self {
+        if case .existing(let limit) = self {
             return limit
         }
         return nil
@@ -89,7 +89,8 @@ struct UsageLimitEditor: View {
     }
 
     private var duplicates: FamilyActivitySelection {
-        let others = limits
+        let others =
+            limits
             .filter { $0.id != existing?.id }
             .reduce(FamilyActivitySelection()) { $0.union($1.selection) }
         let added = existing.map { selection.subtracting($0.selection) } ?? selection
@@ -151,7 +152,9 @@ struct UsageLimitEditor: View {
 
     private var appsSection: some View {
         Section {
-            Button { screenTimeService.ifAuthorized { isPickingApps = true } } label: {
+            Button {
+                screenTimeService.ifAuthorized { isPickingApps = true }
+            } label: {
                 CountChevronRow(title: "Select Apps", count: selection.count)
             }
             .accessibilityIdentifier("usage.selectApps")
@@ -206,7 +209,8 @@ struct UsageLimitEditor: View {
 
     private var explanation: LocalizedStringKey {
         let reset = usageLimitService.nextReset().formatted(date: .omitted, time: .shortened)
-        return "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even if unblocked with a key. Time already used today counts; if you're already past it, the limit starts at the next reset."
+        return
+            "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even if unblocked with a key. Time already used today counts; if you're already past it, the limit starts at the next reset."
     }
 
     private func lockNotice(at now: Date) -> (text: Text, color: Color)? {
@@ -216,10 +220,16 @@ struct UsageLimitEditor: View {
         switch existing.lockState(now: now) {
         case .unlocked:
             return nil
-        case let .grace(until):
-            return (Text("You can raise, delete, or remove apps from this limit for another \(UsageLockDeadline.countdown(to: until, now: now))."), .blue)
-        case let .locked(until):
-            return (Text("You can lower this limit or add apps anytime. Raising it, removing apps, or deleting it is available again \(UsageLockDeadline.phrase(until: until, now: now))."), .orange)
+        case .grace(let until):
+            return (
+                Text("You can raise, delete, or remove apps from this limit for another \(UsageLockDeadline.countdown(to: until, now: now))."), .blue
+            )
+        case .locked(let until):
+            return (
+                Text(
+                    "You can lower this limit or add apps anytime. Raising it, removing apps, or deleting it is available again \(UsageLockDeadline.phrase(until: until, now: now))."
+                ), .orange
+            )
         }
     }
 
@@ -233,13 +243,15 @@ struct UsageLimitEditor: View {
 
     private func deleteSection(now: Date) -> some View {
         Section {
-            Button(role: .destructive) { showDeleteConfirmation = true } label: {
+            Button(role: .destructive) {
+                showDeleteConfirmation = true
+            } label: {
                 Text("Delete Limit").frame(maxWidth: .infinity)
             }
             .disabled(!deleteDecision(at: now).isAllowed)
             .accessibilityIdentifier("usage.delete")
         } footer: {
-            if case let .locked(until) = deleteDecision(at: now) {
+            if case .locked(let until) = deleteDecision(at: now) {
                 Text("Deleting a limit loosens it. You can delete it \(UsageLockDeadline.phrase(until: until, now: now)).")
             }
         }
@@ -248,7 +260,7 @@ struct UsageLimitEditor: View {
     // MARK: - Actions
 
     private func save() {
-        guard case let .allowed(allowance) = decision(at: .now) else { return }
+        guard case .allowed(let allowance) = decision(at: .now) else { return }
 
         var updated = limits
         if let existing {

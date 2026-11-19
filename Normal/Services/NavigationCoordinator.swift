@@ -50,12 +50,12 @@ final class NavigationCoordinator {
 
     func handle(url: URL) {
         guard url.scheme == WidgetDeepLink.scheme,
-              let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         else { return }
 
         let items = components.queryItems ?? []
         guard let groupValue = items.first(where: { $0.name == WidgetDeepLink.groupQueryItem })?.value,
-              let groupID = UUID(uuidString: groupValue)
+            let groupID = UUID(uuidString: groupValue)
         else { return }
 
         switch url.host {

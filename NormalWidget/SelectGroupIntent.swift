@@ -28,7 +28,8 @@ struct SelectGroupIntent: WidgetConfigurationIntent {
         if let unblockDuration {
             return unblockDuration.request
         }
-        return duration
+        return
+            duration
             .flatMap { TimedUnblockDuration(validating: $0.rawValue) }
             .map(UnlockDurationRequest.fixed) ?? .useDefault
     }

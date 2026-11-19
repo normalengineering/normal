@@ -12,6 +12,6 @@ struct AdultContentToggleView: View {
             onEnable: { screenTimeService.blockAdultContent() },
             onDisable: { screenTimeService.allowAdultContent($0) }
         )
-            .accessibilityIdentifier("settings.blockAdultContentToggle")
+        .accessibilityIdentifier("settings.blockAdultContentToggle")
     }
 }

@@ -3,7 +3,7 @@ import ManagedSettings
 
 extension ShieldSettings.ActivityCategoryPolicy<Application>? {
     var tokenSet: Set<ActivityCategoryToken> {
-        guard case let .specific(tokens, _) = self else { return [] }
+        guard case .specific(let tokens, _) = self else { return [] }
         return tokens
     }
 

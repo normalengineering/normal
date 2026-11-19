@@ -1,8 +1,9 @@
 import FamilyControls
 import Foundation
 import ManagedSettings
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct ShieldReconcilerTests {
     private final class RecordingShields: ShieldApplying, @unchecked Sendable {
@@ -153,7 +154,7 @@ struct ShieldReconcilerTests {
         shields.readDelay = 0.01
 
         await withTaskGroup(of: Void.self) { group in
-            for id in UInt8(1) ... 8 {
+            for id in UInt8(1)...8 {
                 group.addTask {
                     ShieldReconciler.reconcile(sharedStore: store, shields: shields, monitoredActivities: [], lockURL: lockURL) {
                         $0.block(TokenFixtures.selection(apps: [id]), customDomains: [], at: .now)
@@ -164,6 +165,6 @@ struct ShieldReconcilerTests {
 
         #expect(shields.applyCount == 8)
         #expect(shields.maxInFlight == 1)
-        #expect(shields.current.applications == Set((UInt8(1) ... 8).map(TokenFixtures.app)))
+        #expect(shields.current.applications == Set((UInt8(1)...8).map(TokenFixtures.app)))
     }
 }

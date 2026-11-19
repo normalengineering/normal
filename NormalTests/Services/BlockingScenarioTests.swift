@@ -2,8 +2,9 @@ import DeviceActivity
 import FamilyControls
 import Foundation
 import ManagedSettings
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct BlockingScenarioTests {
@@ -34,7 +35,7 @@ struct BlockingScenarioTests {
         h.blockAll()
         h.unblockGroupPermanently(h.group([3]))
 
-        for hour in 9 ... 20 {
+        for hour in 9...20 {
             h.wake(at: h.at(hour))
             #expect(h.blocked == h.apps(1, 2))
         }
@@ -252,7 +253,7 @@ struct BlockingScenarioTests {
     @Test func weekdayFilterIsRespected() throws {
         let h = BlockingHarness()
         let weekday = Calendar.current.component(.weekday, from: h.day)
-        let otherDays = Set(1 ... 7).subtracting([weekday])
+        let otherDays = Set(1...7).subtracting([weekday])
         try h.addSchedule([1], from: (9, 0), minutes: 60, block: true, weekdays: otherDays)
 
         h.wake(at: h.at(9, 30))
@@ -304,7 +305,7 @@ struct BlockingScenarioTests {
 
     @Test func timedUnblockAllAtTheActivityLimitWithoutAHeartbeatStaysBlocked() throws {
         let h = BlockingHarness()
-        for minute in 0 ..< 20 {
+        for minute in 0..<20 {
             try h.addSchedule([4], from: (20, minute), minutes: 60, block: true)
         }
         let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
@@ -567,7 +568,7 @@ struct BlockingScenarioTests {
         )
         let lunch = BlockSchedule(
             name: "Lunch", selection: TokenFixtures.selection(apps: [], categories: [1], webDomains: [3]),
-            startHour: 12, startMinute: 0, durationMinutes: 60, weekdays: Set(1 ... 7),
+            startHour: 12, startMinute: 0, durationMinutes: 60, weekdays: Set(1...7),
             shouldBlock: false, isTimed: true, isEnabled: true
         )
         try h.scheduleService.syncAndPersist(lunch, allSchedules: [lunch], screenTimeService: h.screenTime)
@@ -581,20 +582,20 @@ struct BlockingScenarioTests {
     }
 
     @Test func backToBackBlockSchedulesHandOverAtTheSameMinute() throws {
-        let h = BlockingHarness(mainApps: Array(1 ... 10), startingAt: 20)
+        let h = BlockingHarness(mainApps: Array(1...10), startingAt: 20)
         let weekday = { Calendar.current.component(.weekday, from: h.at(12, dayOffset: $0)) }
-        try h.addSchedule(Array(1 ... 10), from: (21, 0), minutes: 480, block: true, weekdays: [weekday(0), weekday(1)])
-        try h.addSchedule(Array(3 ... 10), from: (5, 0), minutes: 720, block: true, weekdays: [weekday(1)])
+        try h.addSchedule(Array(1...10), from: (21, 0), minutes: 480, block: true, weekdays: [weekday(0), weekday(1)])
+        try h.addSchedule(Array(3...10), from: (5, 0), minutes: 720, block: true, weekdays: [weekday(1)])
 
         h.wake(at: h.at(21, 30))
-        #expect(h.blocked == Set((1 ... 10).map(TokenFixtures.app)))
+        #expect(h.blocked == Set((1...10).map(TokenFixtures.app)))
         h.wake(at: h.at(5, 0, dayOffset: 1))
-        #expect(h.blocked == Set((3 ... 10).map(TokenFixtures.app)))
+        #expect(h.blocked == Set((3...10).map(TokenFixtures.app)))
         h.wake(at: h.at(12, 44, dayOffset: 1))
-        #expect(h.blocked == Set((3 ... 10).map(TokenFixtures.app)))
+        #expect(h.blocked == Set((3...10).map(TokenFixtures.app)))
         h.wake(at: h.at(17, 30, dayOffset: 1))
         #expect(h.blocked.isEmpty)
         h.wake(at: h.at(21, 30, dayOffset: 1))
-        #expect(h.blocked == Set((1 ... 10).map(TokenFixtures.app)))
+        #expect(h.blocked == Set((1...10).map(TokenFixtures.app)))
     }
 }

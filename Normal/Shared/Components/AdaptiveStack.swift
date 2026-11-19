@@ -9,7 +9,8 @@ struct AdaptiveStack<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
+        let layout =
+            dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: horizontalAlignment, spacing: spacing))
             : AnyLayout(HStackLayout(alignment: verticalAlignment, spacing: spacing))
         layout { content }

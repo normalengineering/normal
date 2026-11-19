@@ -135,7 +135,7 @@ final class LocationService: NSObject, LocationProviding {
     }
 
     private func flushLocation(_ result: Result<CLLocation, Error>) {
-        if case let .success(location) = result {
+        if case .success(let location) = result {
             lastFix = (location, .now)
         }
         let pending = locationContinuations

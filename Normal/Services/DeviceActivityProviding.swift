@@ -41,7 +41,8 @@ extension DeviceActivityProviding {
     func syncHeartbeat(sharedStore: any SharedStoreProviding, at date: Date) {
         let name = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
         let monitored = monitoredActivityNames
-        let needed = sharedStore.loadSchedules().contains { $0.isEffectivelyEnabled(monitoredActivities: monitored) }
+        let needed =
+            sharedStore.loadSchedules().contains { $0.isEffectivelyEnabled(monitoredActivities: monitored) }
             || sharedStore.loadTimedUnblocks().contains { $0.endDate > date }
         let heartbeat = DeviceActivityScheduleFactory.heartbeat()
         let current = registeredSchedule(for: name)

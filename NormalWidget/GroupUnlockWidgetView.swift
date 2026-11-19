@@ -78,7 +78,7 @@ struct GroupUnlockWidgetView: View {
                 if let end = entry.countdownEnd {
                     HStack(spacing: 4) {
                         Image(systemName: "timer")
-                        Text(timerInterval: entry.date ... end, countsDown: true)
+                        Text(timerInterval: entry.date...end, countsDown: true)
                             .monospacedDigit()
                     }
                     .font(.caption.weight(.medium))

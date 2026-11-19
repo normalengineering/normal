@@ -1,8 +1,9 @@
 import DeviceActivity
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct TimedUnblockServiceTests {
@@ -32,10 +33,11 @@ struct TimedUnblockServiceTests {
         )
 
         #expect(screenTime.reconcileCallCount == 1)
-        #expect(activity.startCalls.map(\.name.rawValue) == [
-            SharedConstants.mainTimedUnblockActivityName,
-            SharedConstants.reblockHeartbeatActivityName,
-        ])
+        #expect(
+            activity.startCalls.map(\.name.rawValue) == [
+                SharedConstants.mainTimedUnblockActivityName,
+                SharedConstants.reblockHeartbeatActivityName,
+            ])
         #expect(store.timedUnblocks.count == 1)
         #expect(service.isMainUnblockActive)
     }
@@ -53,10 +55,11 @@ struct TimedUnblockServiceTests {
         )
 
         #expect(screenTime.reconcileCallCount == 1)
-        #expect(activity.startCalls.map(\.name.rawValue) == [
-            SharedConstants.groupTimedUnblockActivityName(for: groupId),
-            SharedConstants.reblockHeartbeatActivityName,
-        ])
+        #expect(
+            activity.startCalls.map(\.name.rawValue) == [
+                SharedConstants.groupTimedUnblockActivityName(for: groupId),
+                SharedConstants.reblockHeartbeatActivityName,
+            ])
         #expect(store.timedUnblocks.count == 1)
         #expect(service.isGroupUnblockActive(groupId: groupId))
     }
@@ -202,7 +205,7 @@ struct TimedUnblockServiceTests {
                 endDate: .now.addingTimeInterval(600),
                 activityName: SharedConstants.mainTimedUnblockActivityName,
                 isGroupUnblock: false
-            ),
+            )
         ]
         service.reconcile(screenTimeService: FakeScreenTimeService())
 
@@ -402,13 +405,15 @@ struct TimedUnblockServiceTests {
 
     @Test func reconcileRegistersHeartbeatWhileUnblocksArePending() throws {
         let (service, activity, store) = makeService()
-        store.timedUnblocks = try [TimedUnblockDTO(
-            id: TimedUnblockService.mainID,
-            selectionData: FamilyActivitySelection().toData(),
-            endDate: .now.addingTimeInterval(.hours(1)),
-            activityName: SharedConstants.mainTimedUnblockActivityName,
-            isGroupUnblock: false
-        )]
+        store.timedUnblocks = try [
+            TimedUnblockDTO(
+                id: TimedUnblockService.mainID,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: .now.addingTimeInterval(.hours(1)),
+                activityName: SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: false
+            )
+        ]
 
         service.reconcile(screenTimeService: FakeScreenTimeService())
 
@@ -436,13 +441,15 @@ struct TimedUnblockServiceTests {
     @Test func reconcileDropsExpiredGroupAndReconciles() throws {
         let store = FakeSharedStore()
         let groupId = UUID()
-        store.timedUnblocks = try [TimedUnblockDTO(
-            id: groupId.uuidString,
-            selectionData: FamilyActivitySelection().toData(),
-            endDate: Date.now.addingTimeInterval(-.minutes(1)),
-            activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
-            isGroupUnblock: true
-        )]
+        store.timedUnblocks = try [
+            TimedUnblockDTO(
+                id: groupId.uuidString,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: Date.now.addingTimeInterval(-.minutes(1)),
+                activityName: SharedConstants.groupTimedUnblockActivityName(for: groupId),
+                isGroupUnblock: true
+            )
+        ]
         let screenTime = FakeScreenTimeService()
 
         let service = TimedUnblockService(
@@ -493,13 +500,15 @@ struct TimedUnblockServiceTests {
 
     @Test func reconcileLeavesActiveUnblockArmedWithoutReblocking() throws {
         let store = FakeSharedStore()
-        store.timedUnblocks = try [TimedUnblockDTO(
-            id: TimedUnblockService.mainID,
-            selectionData: FamilyActivitySelection().toData(),
-            endDate: Date.now.addingTimeInterval(.minutes(30)),
-            activityName: SharedConstants.mainTimedUnblockActivityName,
-            isGroupUnblock: false
-        )]
+        store.timedUnblocks = try [
+            TimedUnblockDTO(
+                id: TimedUnblockService.mainID,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: Date.now.addingTimeInterval(.minutes(30)),
+                activityName: SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: false
+            )
+        ]
         let screenTime = FakeScreenTimeService()
 
         let service = TimedUnblockService(
@@ -752,9 +761,10 @@ struct DeviceActivityScheduleFactoryTests {
     }()
 
     private func date(hour: Int, minute: Int, second: Int = 0) -> Date {
-        Self.utc.date(from: DateComponents(
-            year: 2026, month: 6, day: 1, hour: hour, minute: minute, second: second
-        ))!
+        Self.utc.date(
+            from: DateComponents(
+                year: 2026, month: 6, day: 1, hour: hour, minute: minute, second: second
+            ))!
     }
 
     private func intervalSeconds(_ schedule: DeviceActivitySchedule) -> TimeInterval {

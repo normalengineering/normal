@@ -1,8 +1,9 @@
 import DeviceActivity
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct BlockActionsTests {
@@ -173,7 +174,8 @@ struct BlockActionsTests {
             timedUnblockService: timedUnblock ?? makeTimedUnblock(),
             scheduleService: makeSchedule(),
             usageLimitService: usageLimit
-                ?? UsageLimitService(activityCenter: activity, sharedStore: store, ledger: InMemoryUsageLimitLedger(), limitShield: InMemoryDailyLimitShield())
+                ?? UsageLimitService(
+                    activityCenter: activity, sharedStore: store, ledger: InMemoryUsageLimitLedger(), limitShield: InMemoryDailyLimitShield())
         )
     }
 

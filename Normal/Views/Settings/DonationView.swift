@@ -18,8 +18,10 @@ struct DonationView: View {
                         .foregroundStyle(.pink)
                     Text("Support Normal")
                         .font(.title2.bold())
-                    Text("Normal is free and open-source, and always will be. No paywalls, subscriptions, ads or data-collection. If you would like to support Normal, donations are greatly appreciated.")
-                        .foregroundStyle(.secondary)
+                    Text(
+                        "Normal is free and open-source, and always will be. No paywalls, subscriptions, ads or data-collection. If you would like to support Normal, donations are greatly appreciated."
+                    )
+                    .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, DS.Spacing.sm)
             }
@@ -109,7 +111,7 @@ struct DonationView: View {
                 .font(.headline)
                 .monospacedDigit()
                 .redacted(reason: .placeholder)
-        case let .available(displayPrice):
+        case .available(let displayPrice):
             Text(displayPrice)
                 .font(.headline)
                 .monospacedDigit()
@@ -124,7 +126,7 @@ struct DonationView: View {
         let cadence = option.cadence == .monthly ? "per month" : "one-time"
         switch state {
         case .loading: return "Loading price, \(cadence)"
-        case let .available(displayPrice): return "\(displayPrice) \(cadence)"
+        case .available(let displayPrice): return "\(displayPrice) \(cadence)"
         case .unavailable: return "Currently unavailable, \(cadence)"
         }
     }

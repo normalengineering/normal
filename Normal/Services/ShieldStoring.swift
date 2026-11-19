@@ -36,7 +36,8 @@ extension ShieldPlan {
         guard let selection else { return .none }
         let targetDomains = Set((domains ?? []).compactMap(DomainNormalizer.normalize))
 
-        let disjoint = selection.applicationTokens.isDisjoint(with: applications)
+        let disjoint =
+            selection.applicationTokens.isDisjoint(with: applications)
             && selection.webDomainTokens.isDisjoint(with: webDomains)
             && selection.categoryTokens.isDisjoint(with: categories)
             && targetDomains.isDisjoint(with: customDomains)
@@ -44,7 +45,8 @@ extension ShieldPlan {
             return .none
         }
 
-        let subset = selection.applicationTokens.isSubset(of: applications)
+        let subset =
+            selection.applicationTokens.isSubset(of: applications)
             && selection.webDomainTokens.isSubset(of: webDomains)
             && selection.categoryTokens.isSubset(of: categories)
             && targetDomains.isSubset(of: customDomains)
@@ -53,9 +55,9 @@ extension ShieldPlan {
 
     func isShielded(_ token: SelectedTokenKind) -> Bool {
         switch token {
-        case let .application(t): applications.contains(t)
-        case let .webDomain(t): webDomains.contains(t)
-        case let .category(t): categories.contains(t)
+        case .application(let t): applications.contains(t)
+        case .webDomain(let t): webDomains.contains(t)
+        case .category(let t): categories.contains(t)
         }
     }
 }

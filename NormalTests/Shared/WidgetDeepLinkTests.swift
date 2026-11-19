@@ -1,13 +1,15 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct WidgetDeepLinkTests {
     private func queryItems(_ url: URL) -> [String: String] {
         let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-        return Dictionary(uniqueKeysWithValues: items.compactMap { item in
-            item.value.map { (item.name, $0) }
-        })
+        return Dictionary(
+            uniqueKeysWithValues: items.compactMap { item in
+                item.value.map { (item.name, $0) }
+            })
     }
 
     @Test func buildsSchemeAndHost() {

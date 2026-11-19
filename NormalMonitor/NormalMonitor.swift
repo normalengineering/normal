@@ -50,12 +50,14 @@ final class NormalMonitor: DeviceActivityMonitor {
     private func reconcile(_ callback: String, activity: String) {
         let now = Date.now
         let before = store.currentShields()
-        guard let plan = ShieldReconciler.reconcile(
-            sharedStore: sharedStore,
-            shields: store,
-            monitoredActivities: Set(DeviceActivityCenter().activities.map(\.rawValue)),
-            at: now
-        ) else { return }
+        guard
+            let plan = ShieldReconciler.reconcile(
+                sharedStore: sharedStore,
+                shields: store,
+                monitoredActivities: Set(DeviceActivityCenter().activities.map(\.rawValue)),
+                at: now
+            )
+        else { return }
         CallbackLog.record(
             "monitor \(callback) \(label(for: activity)): "
                 + "[shields \(summary(before)) -> \(summary(plan))]"
@@ -67,12 +69,12 @@ final class NormalMonitor: DeviceActivityMonitor {
         minutes: (UsageLimitDTO) -> Int
     ) -> UsageLimitDTO? {
         guard !sharedStore.isUsageDayOverridden(),
-              let id = SharedConstants.usageLimitID(fromEventName: eventName),
-              let limit = sharedStore.loadUsageLimits().first(where: { $0.id == id })
+            let id = SharedConstants.usageLimitID(fromEventName: eventName),
+            let limit = sharedStore.loadUsageLimits().first(where: { $0.id == id })
         else { return nil }
 
         if let start = sharedStore.loadUsageLimitsIntervalStart(),
-           Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds
+            Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds
         {
             return nil
         }

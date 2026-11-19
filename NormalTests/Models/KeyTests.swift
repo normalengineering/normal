@@ -1,6 +1,7 @@
 import CoreLocation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct KeyTests {
     @Test func storesNameAndType() {
@@ -224,10 +225,11 @@ struct KeyTests {
         let groupA = UUID()
         #expect(!Key.hasGlobalKey(in: []))
         #expect(!Key.hasGlobalKey(in: [Key(name: "g", type: .qr, rawValue: "a", groupID: groupA)]))
-        #expect(Key.hasGlobalKey(in: [
-            Key(name: "global", type: .qr, rawValue: "b"),
-            Key(name: "g", type: .qr, rawValue: "a", groupID: groupA),
-        ]))
+        #expect(
+            Key.hasGlobalKey(in: [
+                Key(name: "global", type: .qr, rawValue: "b"),
+                Key(name: "g", type: .qr, rawValue: "a", groupID: groupA),
+            ]))
     }
 
     @Test func groupKeyMatchesOnlyWithinItsScope() {

@@ -18,7 +18,7 @@ enum UnblockAlert {
 
     var message: Text {
         switch self {
-        case let .failed(error):
+        case .failed(let error):
             Text(error.localizedDescription)
         case .mayEndLate:
             Text("iOS only tracks 20 schedules and timers at once, so this unblock may end up to 30 minutes late.")

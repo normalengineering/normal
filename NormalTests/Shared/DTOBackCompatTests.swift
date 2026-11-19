@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct DTOBackCompatTests {
     /// Mirrors the pre-customDomains shape of TimedUnblockDTO.

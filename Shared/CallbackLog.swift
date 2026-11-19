@@ -22,7 +22,7 @@ nonisolated enum CallbackLog {
 
     static func read() -> [String] {
         guard let fileURL,
-              let text = try? String(contentsOf: fileURL, encoding: .utf8)
+            let text = try? String(contentsOf: fileURL, encoding: .utf8)
         else { return [] }
         return text.split(separator: "\n").map(String.init)
     }

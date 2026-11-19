@@ -107,15 +107,16 @@ struct CustomDomainsEditor: View {
         switch CustomDomains.evaluateAdd(input, existing: domains, otherItemCount: otherItemCount) {
         case .invalid:
             show(.error("Enter a valid domain like example.com."))
-        case let .duplicate(domain):
+        case .duplicate(let domain):
             show(.error("\(domain) already added"))
             input = ""
-        case let .added(domain, overLimit):
+        case .added(let domain, let overLimit):
             withAnimation(.snappy(duration: 0.2)) { domains.append(domain) }
             input = ""
-            show(overLimit
-                ? .warning("\(ScreenTimeLimits.maxBlockedItems)+ items can't be blocked at once and may cause issues")
-                : nil)
+            show(
+                overLimit
+                    ? .warning("\(ScreenTimeLimits.maxBlockedItems)+ items can't be blocked at once and may cause issues")
+                    : nil)
         }
     }
 

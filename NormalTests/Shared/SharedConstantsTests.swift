@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct SharedConstantsTests {
     @Test func appGroupIDIsStable() {

@@ -8,11 +8,12 @@ struct LocationKeyMapPreview: View {
         if let coordinate = key.coordinate, let radius = key.radiusMeters {
             let kind = key.radiusKind ?? .unblock
             Map(
-                initialPosition: .region(MKCoordinateRegion(
-                    center: coordinate,
-                    latitudinalMeters: radius * 4,
-                    longitudinalMeters: radius * 4
-                )),
+                initialPosition: .region(
+                    MKCoordinateRegion(
+                        center: coordinate,
+                        latitudinalMeters: radius * 4,
+                        longitudinalMeters: radius * 4
+                    )),
                 interactionModes: []
             ) {
                 MapCircle(center: coordinate, radius: radius)

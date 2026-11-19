@@ -1,6 +1,7 @@
 import ActivityKit
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct LiveActivityPlanTests {
     @Test func startsActivitiesForNewlyActiveUnblocks() {
@@ -25,9 +26,9 @@ struct LiveActivityPlanTests {
 
     @Test func mixedStartUpdateEnd() {
         let plan = LiveActivityPlan(activeIDs: ["main", "g2"], runningIDs: ["main", "g1"])
-        #expect(plan.toStart == ["g2"]) // newly active
-        #expect(plan.toUpdate == ["main"]) // still active
-        #expect(plan.toEnd == ["g1"]) // expired/cancelled
+        #expect(plan.toStart == ["g2"])  // newly active
+        #expect(plan.toUpdate == ["main"])  // still active
+        #expect(plan.toEnd == ["g1"])  // expired/cancelled
     }
 
     @Test func secondGroupStartsWhileFirstKeepsRunning() {

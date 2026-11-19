@@ -33,15 +33,18 @@ extension FamilyActivitySelection {
 
     static func selectedTokenCounts(apps: Int, websites: Int, categories: Int) -> String {
         let parts: [String] = [
-            pluralized(count: apps,
-                       singular: String(localized: "1 App"),
-                       plural: String(localized: "\(apps) Apps")),
-            pluralized(count: websites,
-                       singular: String(localized: "1 Website"),
-                       plural: String(localized: "\(websites) Websites")),
-            pluralized(count: categories,
-                       singular: String(localized: "1 Category"),
-                       plural: String(localized: "\(categories) Categories")),
+            pluralized(
+                count: apps,
+                singular: String(localized: "1 App"),
+                plural: String(localized: "\(apps) Apps")),
+            pluralized(
+                count: websites,
+                singular: String(localized: "1 Website"),
+                plural: String(localized: "\(websites) Websites")),
+            pluralized(
+                count: categories,
+                singular: String(localized: "1 Category"),
+                plural: String(localized: "\(categories) Categories")),
         ].compactMap(\.self)
 
         if parts.isEmpty {
@@ -85,13 +88,16 @@ enum SelectedTokenKind: Hashable {
     nonisolated init?(_ hashable: AnyHashable) {
         let base = hashable.base
         if let token = base as? ApplicationToken {
-            self = .application(token); return
+            self = .application(token)
+            return
         }
         if let token = base as? WebDomainToken {
-            self = .webDomain(token); return
+            self = .webDomain(token)
+            return
         }
         if let token = base as? ActivityCategoryToken {
-            self = .category(token); return
+            self = .category(token)
+            return
         }
         return nil
     }

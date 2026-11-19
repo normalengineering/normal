@@ -16,7 +16,7 @@ struct TimedUnblockBannerView: View {
                             .foregroundStyle(.orange)
                         VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
                             Text("Timed Unblock Active").font(.headline)
-                            Text(timerInterval: .now ... endDate, countsDown: true)
+                            Text(timerInterval: .now...endDate, countsDown: true)
                                 .font(.subheadline.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }

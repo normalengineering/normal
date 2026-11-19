@@ -1,5 +1,6 @@
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct CustomDomainsTests {
     // MARK: - subset
@@ -51,14 +52,14 @@ struct CustomDomainsTests {
 
     @Test func evaluateAddFlagsOverLimitAtTheCap() {
         // 40 other items + 9 existing + this one = 50 → at the cap.
-        let existing = (0 ..< 9).map { "d\($0).com" }
+        let existing = (0..<9).map { "d\($0).com" }
         let result = CustomDomains.evaluateAdd("new.com", existing: existing, otherItemCount: 40)
         #expect(result == .added("new.com", overLimit: true))
     }
 
     @Test func evaluateAddNotOverLimitOneBelowTheCap() {
         // 40 other + 8 existing + this one = 49 → under the cap.
-        let existing = (0 ..< 8).map { "d\($0).com" }
+        let existing = (0..<8).map { "d\($0).com" }
         let result = CustomDomains.evaluateAdd("new.com", existing: existing, otherItemCount: 40)
         #expect(result == .added("new.com", overLimit: false))
     }

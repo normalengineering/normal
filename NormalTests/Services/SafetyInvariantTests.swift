@@ -1,7 +1,8 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct SafetyInvariantTests {
@@ -19,7 +20,7 @@ struct SafetyInvariantTests {
     }
 
     @Test func manyRandomKeysNeverFalseMatchOrFailToMatch() {
-        for _ in 0 ..< 200 {
+        for _ in 0..<200 {
             let value = UUID().uuidString + String(UInt64.random(in: .min ... .max))
             let key = Key(name: "k", type: .qr, rawValue: value)
             #expect(key.matches(unhashedId: value))
@@ -29,7 +30,7 @@ struct SafetyInvariantTests {
 
     @Test func hashAndSaltFormatIsLowercaseHexWithFixedLength() {
         let hexOnly = CharacterSet(charactersIn: "0123456789abcdef")
-        for _ in 0 ..< 50 {
+        for _ in 0..<50 {
             let key = Key(name: "k", type: .nfc, rawValue: UUID().uuidString)
             #expect(key.hashedValue.count == 64)
             #expect(key.salt.count == 32)

@@ -1,8 +1,9 @@
 import FamilyControls
 import Foundation
-@testable import Normal
 import SwiftData
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct CustomDomainMigrationTests {

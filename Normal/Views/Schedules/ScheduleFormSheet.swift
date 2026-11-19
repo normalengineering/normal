@@ -80,7 +80,7 @@ struct ScheduleFormSheet: View {
         self.existing = existing
         _name = State(initialValue: existing?.name ?? "")
         _selection = State(initialValue: existing?.selection ?? FamilyActivitySelection())
-        _selectedWeekdays = State(initialValue: existing?.weekdays ?? Set(2 ... 6))
+        _selectedWeekdays = State(initialValue: existing?.weekdays ?? Set(2...6))
         _shouldBlock = State(initialValue: existing?.shouldBlock ?? false)
         _isTimed = State(initialValue: existing?.isTimed ?? true)
         _isEnabled = State(initialValue: existing?.isEnabled ?? false)
@@ -160,7 +160,9 @@ struct ScheduleFormSheet: View {
 
     private var deleteSection: some View {
         Section {
-            Button(role: .destructive) { showDeleteConfirmation = true } label: {
+            Button(role: .destructive) {
+                showDeleteConfirmation = true
+            } label: {
                 Text("Delete Schedule")
                     .frame(maxWidth: .infinity)
             }

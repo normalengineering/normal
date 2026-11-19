@@ -159,7 +159,8 @@ final class TimedUnblockService {
         guard let endDate = activeUnblocks[Self.mainID] else { return }
         let activityName = SharedConstants.mainTimedUnblockActivityName
         let existing = sharedStore.findTimedUnblock(activityName: activityName)
-        let previous = existing.flatMap { try? FamilyActivitySelection.fromData($0.selectionData) }
+        let previous =
+            existing.flatMap { try? FamilyActivitySelection.fromData($0.selectionData) }
             ?? FamilyActivitySelection()
         screenTimeService.updateMainList(
             from: previous,

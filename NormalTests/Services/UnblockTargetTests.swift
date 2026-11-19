@@ -1,6 +1,7 @@
 import FamilyControls
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct UnblockTargetTests {

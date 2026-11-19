@@ -318,7 +318,7 @@ final class BlockingUITests: XCTestCase {
 
         let strip = app.descendants(matching: .any)["schedule.weekdayStrip"]
         require(strip, "The days should switch to the week strip instead of breaking words")
-        let weekdays = Calendar.current.weekdaySymbols[1 ... 5]
+        let weekdays = Calendar.current.weekdaySymbols[1...5]
         XCTAssertEqual(strip.label, weekdays.formatted(.list(type: .and)))
         XCTAssertFalse(app.descendants(matching: .any)["schedule.weekdayChips"].exists)
     }

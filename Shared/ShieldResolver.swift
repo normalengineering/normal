@@ -148,9 +148,10 @@ nonisolated enum ShieldResolver {
         at date: Date,
         calendar: Calendar = .current
     ) -> ShieldPlan {
-        let claims = enabledSchedules.compactMap {
-            claim(for: $0, migratedAt: manual.migratedAt, at: date, calendar: calendar)
-        }
+        let claims =
+            enabledSchedules.compactMap {
+                claim(for: $0, migratedAt: manual.migratedAt, at: date, calendar: calendar)
+            }
             + timedUnblocks.compactMap { claim(for: $0, at: date) }
 
         var plan = ShieldPlan()
@@ -242,13 +243,14 @@ nonisolated enum ShieldResolver {
         at date: Date,
         calendar: Calendar
     ) -> Claim? {
-        let start = schedule.isTimed
+        let start =
+            schedule.isTimed
             ? schedule.activeWindowStart(at: date, calendar: calendar)
             : schedule.latestStart(atOrBefore: date, calendar: calendar)
         let activation = schedule.activatedAt ?? (schedule.isTimed ? nil : migratedAt) ?? .distantPast
         guard let start,
-              schedule.isTimed || start.addingTimeInterval(TimeInterval(schedule.durationMinutes * 60)) > activation,
-              let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
+            schedule.isTimed || start.addingTimeInterval(TimeInterval(schedule.durationMinutes * 60)) > activation,
+            let selection = try? FamilyActivitySelection.fromData(schedule.selectionData)
         else { return nil }
         return Claim(
             date: max(start, activation),
@@ -262,7 +264,7 @@ nonisolated enum ShieldResolver {
 
     private static func claim(for unblock: TimedUnblockDTO, at date: Date) -> Claim? {
         guard unblock.endDate > date,
-              let selection = try? FamilyActivitySelection.fromData(unblock.selectionData)
+            let selection = try? FamilyActivitySelection.fromData(unblock.selectionData)
         else { return nil }
         return Claim(
             date: startDate(of: unblock),
@@ -300,9 +302,9 @@ nonisolated enum ShieldResolver {
 nonisolated extension ScheduleDTO {
     func latestStart(atOrBefore date: Date, calendar: Calendar = .current) -> Date? {
         let startOfToday = calendar.startOfDay(for: date)
-        for dayOffset in 0 ... 7 {
+        for dayOffset in 0...7 {
             guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: startOfToday),
-                  let start = calendar.date(bySettingHour: startHour, minute: startMinute, second: 0, of: day)
+                let start = calendar.date(bySettingHour: startHour, minute: startMinute, second: 0, of: day)
             else { continue }
             if start <= date, weekdays.contains(calendar.component(.weekday, from: start)) {
                 return start

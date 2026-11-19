@@ -22,9 +22,9 @@ struct SelectAppForGroupRowView<T: Hashable>: View {
     @ViewBuilder
     private var tokenLabel: some View {
         switch SelectedTokenKind(token as AnyHashable) {
-        case let .application(token): Label(token)
-        case let .webDomain(token): Label(token)
-        case let .category(token): Label(token)
+        case .application(let token): Label(token)
+        case .webDomain(let token): Label(token)
+        case .category(let token): Label(token)
         case nil: EmptyView()
         }
     }

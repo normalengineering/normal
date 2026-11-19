@@ -1,4 +1,5 @@
 import AVFoundation
+
 @testable import Normal
 
 final class FakeCameraAuthorizer: CameraAuthorizing {

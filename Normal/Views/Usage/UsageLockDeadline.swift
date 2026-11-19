@@ -17,7 +17,7 @@ enum UsageLockDeadline {
     }
 
     static func countdown(to until: Date, now: Date) -> Text {
-        Text(timerInterval: now ... max(now, until), countsDown: true)
+        Text(timerInterval: now...max(now, until), countsDown: true)
             .monospacedDigit()
     }
 }

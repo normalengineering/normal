@@ -1,6 +1,7 @@
 import ManagedSettings
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct WebFilterTests {
     private func domains(_ strings: String...) -> Set<WebDomain> {

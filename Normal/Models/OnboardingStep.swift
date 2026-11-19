@@ -50,7 +50,7 @@ enum OnboardingStep: String, CaseIterable, Sendable {
 
     func next() -> OnboardingStep {
         guard let index = Self.allCases.firstIndex(of: self),
-              index + 1 < Self.allCases.count
+            index + 1 < Self.allCases.count
         else { return .complete }
         return Self.allCases[index + 1]
     }

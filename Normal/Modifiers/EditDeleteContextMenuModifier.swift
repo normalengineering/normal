@@ -37,12 +37,13 @@ extension View {
         onDuplicate: (() -> Void)? = nil,
         onDelete: @escaping () -> Void
     ) -> some View {
-        modifier(EditDeleteContextMenuModifier(
-            onEdit: onEdit,
-            onDuplicate: onDuplicate,
-            onDelete: onDelete,
-            isDisabled: isDisabled,
-            isDuplicateDisabled: isDuplicateDisabled
-        ))
+        modifier(
+            EditDeleteContextMenuModifier(
+                onEdit: onEdit,
+                onDuplicate: onDuplicate,
+                onDelete: onDelete,
+                isDisabled: isDisabled,
+                isDuplicateDisabled: isDuplicateDisabled
+            ))
     }
 }

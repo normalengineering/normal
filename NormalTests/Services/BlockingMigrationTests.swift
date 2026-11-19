@@ -1,8 +1,9 @@
 import FamilyControls
 import Foundation
 import ManagedSettings
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct BlockingMigrationTests {
@@ -30,7 +31,7 @@ struct BlockingMigrationTests {
             startHour: start.0,
             startMinute: start.1,
             durationMinutes: minutes,
-            weekdays: Set(1 ... 7),
+            weekdays: Set(1...7),
             shouldBlock: block,
             isTimed: timed
         )
@@ -48,14 +49,15 @@ struct BlockingMigrationTests {
         endDate: Date,
         preventsAppDelete: Bool? = nil
     ) throws {
-        try h.store.timedUnblocks.append(TimedUnblockDTO(
-            id: group ? UUID().uuidString : TimedUnblockService.mainID,
-            selectionData: TokenFixtures.selection(apps: apps).toData(),
-            endDate: endDate,
-            activityName: group ? "timedUnblock_group" : SharedConstants.mainTimedUnblockActivityName,
-            isGroupUnblock: group,
-            blockAllPreventsAppDelete: preventsAppDelete
-        ))
+        try h.store.timedUnblocks.append(
+            TimedUnblockDTO(
+                id: group ? UUID().uuidString : TimedUnblockService.mainID,
+                selectionData: TokenFixtures.selection(apps: apps).toData(),
+                endDate: endDate,
+                activityName: group ? "timedUnblock_group" : SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: group,
+                blockAllPreventsAppDelete: preventsAppDelete
+            ))
     }
 
     @Test func existingShieldsCarryOverUnchangedWhenNoWindowIsOpen() {
@@ -182,7 +184,7 @@ struct BlockingMigrationTests {
         legacyShields(h, apps: [2, 3])
         let mail = BlockSchedule(
             name: "Mail", selection: TokenFixtures.selection(apps: [1]),
-            startHour: 12, startMinute: 0, durationMinutes: 180, weekdays: Set(1 ... 7),
+            startHour: 12, startMinute: 0, durationMinutes: 180, weekdays: Set(1...7),
             shouldBlock: false, isTimed: true, isEnabled: true
         )
         h.store.schedules = [try #require(mail.toDTO())].map {
@@ -287,9 +289,10 @@ struct BlockingMigrationTests {
     @Test func manualRecordDoesNotDependOnDictionaryEncoding() throws {
         var state = ManualBlockState()
         state.blockAll(TokenFixtures.selection(apps: [1, 2]), customDomains: ["a.com"], at: Date(timeIntervalSince1970: 50))
-        let plist = try PropertyListSerialization.propertyList(
-            from: PropertyListEncoder().encode(state), format: nil
-        ) as? [String: Any]
+        let plist =
+            try PropertyListSerialization.propertyList(
+                from: PropertyListEncoder().encode(state), format: nil
+            ) as? [String: Any]
         let applications = plist?["applications"] as? [String: Any]
 
         #expect(applications?["entries"] is [[String: Any]])
@@ -316,11 +319,12 @@ struct BlockingMigrationTests {
     @Test func unreadableScheduleSelectionIsSkippedDuringMigration() {
         let h = BlockingHarness()
         legacyShields(h, apps: [2])
-        h.store.schedules.append(ScheduleDTO(
-            id: UUID(), name: "Corrupt", selectionData: Data("garbage".utf8),
-            startHour: 12, startMinute: 0, durationMinutes: 60, weekdays: Set(1 ... 7),
-            shouldBlock: false, isTimed: true, isEnabled: true
-        ))
+        h.store.schedules.append(
+            ScheduleDTO(
+                id: UUID(), name: "Corrupt", selectionData: Data("garbage".utf8),
+                startHour: 12, startMinute: 0, durationMinutes: 60, weekdays: Set(1...7),
+                shouldBlock: false, isTimed: true, isEnabled: true
+            ))
 
         h.wake(at: h.at(12, 30))
 
@@ -357,7 +361,7 @@ struct BlockingMigrationTests {
         let defaults = try #require(UserDefaults(suiteName: "v15-\(UUID().uuidString)"))
         let mail = try Version15ScheduleDTO(
             id: UUID(), name: "Mail", selectionData: TokenFixtures.selection(apps: [1]).toData(),
-            startHour: 12, startMinute: 0, durationMinutes: 180, weekdays: Set(1 ... 7),
+            startHour: 12, startMinute: 0, durationMinutes: 180, weekdays: Set(1...7),
             shouldBlock: false, isTimed: true, encodedCustomDomains: nil
         )
         defaults.set(try PropertyListEncoder().encode([mail]), forKey: SharedConstants.DefaultsKey.schedules)

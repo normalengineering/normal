@@ -33,6 +33,8 @@ Folders are synchronized groups. Target membership comes from exception lists in
 - Don't change `CURRENT_PROJECT_VERSION`. Version changes only touch `MARKETING_VERSION`.
 
 ## Code
+- Format before committing: `xcrun swift-format format -i -r -p .` (config in `.swift-format`).
+  CI fails on any formatting difference.
 - User-facing text lives in `Normal/Resources/Localizable.xcstrings` (English only).
   Xcode generates it, so don't edit it by hand. After changing text, sync it and commit
   the result. This adds new strings and removes unused ones; Xcode adds the comments

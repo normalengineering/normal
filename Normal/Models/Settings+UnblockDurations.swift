@@ -22,8 +22,8 @@ extension Settings {
     var defaultDuration: TimedUnblockDuration? {
         get {
             guard let seconds = defaultUnblockSeconds ?? defaultUnblockDuration?.rawValue,
-                  let duration = TimedUnblockDuration(validating: seconds),
-                  unblockDurations.contains(duration)
+                let duration = TimedUnblockDuration(validating: seconds),
+                unblockDurations.contains(duration)
             else { return nil }
             return duration
         }
@@ -35,7 +35,7 @@ extension Settings {
 
     func unblockLength(for request: UnlockDurationRequest, group: AppGroup?) -> UnblockLength? {
         switch request {
-        case let .fixed(duration): .timed(duration)
+        case .fixed(let duration): .timed(duration)
         case .permanent: .permanent
         case .useDefault: defaultDuration(for: group).map(UnblockLength.timed)
         case .ask: nil

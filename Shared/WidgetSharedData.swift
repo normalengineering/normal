@@ -26,7 +26,7 @@ nonisolated enum WidgetGroupState: Equatable, Sendable {
     }
 
     var countdownEnd: Date? {
-        if case let .unblocked(until) = self {
+        if case .unblocked(let until) = self {
             until
         } else {
             nil

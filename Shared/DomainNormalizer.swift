@@ -47,9 +47,9 @@ nonisolated enum DomainNormalizer {
         let allowed = Set("abcdefghijklmnopqrstuvwxyz0123456789-")
         for label in labels {
             guard !label.isEmpty,
-                  !label.hasPrefix("-"),
-                  !label.hasSuffix("-"),
-                  label.allSatisfy({ allowed.contains($0) })
+                !label.hasPrefix("-"),
+                !label.hasSuffix("-"),
+                label.allSatisfy({ allowed.contains($0) })
             else { return false }
         }
 

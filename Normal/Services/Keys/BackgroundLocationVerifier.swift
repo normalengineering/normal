@@ -39,7 +39,7 @@ struct BackgroundLocationVerifier {
                 switch zones.fit(fix) {
                 case .satisfied:
                     return .verified
-                case let .unsatisfied(margin):
+                case .unsatisfied(let margin):
                     if Self.isOutOfReach(margin, within: clock.now.duration(to: end)) {
                         return .outOfRange
                     }

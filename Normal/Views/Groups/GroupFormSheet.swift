@@ -53,7 +53,7 @@ struct GroupFormSheet: View {
     private var durationSelection: Binding<DefaultOverride<TimedUnblockDuration>> {
         Binding(
             get: {
-                if case let .value(duration) = durationOverride, !durations.contains(duration) {
+                if case .value(let duration) = durationOverride, !durations.contains(duration) {
                     return .none
                 }
                 return durationOverride
@@ -65,7 +65,7 @@ struct GroupFormSheet: View {
     private var keySelection: Binding<DefaultOverride<KeyType>> {
         Binding(
             get: {
-                if case let .value(keyType) = keyOverride, !groupKeyTypes.contains(keyType) {
+                if case .value(let keyType) = keyOverride, !groupKeyTypes.contains(keyType) {
                     return .none
                 }
                 return keyOverride
@@ -152,7 +152,9 @@ struct GroupFormSheet: View {
 
                 if !isNew, !isReadOnly {
                     Section {
-                        Button(role: .destructive) { showDeleteConfirmation = true } label: {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
                             Text("Delete Group")
                                 .frame(maxWidth: .infinity)
                         }
@@ -272,7 +274,7 @@ struct GroupFormSheet: View {
         switch choice {
         case .appDefault: String(localized: "App Default")
         case .none: String(localized: "None")
-        case let .value(chosen): value(chosen)
+        case .value(let chosen): value(chosen)
         }
     }
 
@@ -283,7 +285,9 @@ struct GroupFormSheet: View {
             }
             .onDelete(perform: groupKeyDeleteAction)
             if !isReadOnly {
-                Button { showAddKey = true } label: {
+                Button {
+                    showAddKey = true
+                } label: {
                     Label("Add Key", systemImage: "plus")
                 }
             }

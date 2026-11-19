@@ -1,8 +1,9 @@
 import DeviceActivity
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct UsageLimitServiceTests {

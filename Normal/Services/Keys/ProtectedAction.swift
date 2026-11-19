@@ -13,9 +13,9 @@ enum ProtectedAction {
 
     func run(with proof: KeyProof?) {
         switch self {
-        case let .tighten(action):
+        case .tighten(let action):
             action()
-        case let .weaken(action):
+        case .weaken(let action):
             if let proof {
                 action(proof)
             }

@@ -17,7 +17,7 @@ final class DonationService {
     init() {
         updatesTask = Task {
             for await update in Transaction.updates {
-                guard case let .verified(transaction) = update else { continue }
+                guard case .verified(let transaction) = update else { continue }
                 await transaction.finish()
             }
         }
@@ -69,8 +69,8 @@ final class DonationService {
         do {
             let result = try await product.purchase()
             switch result {
-            case let .success(verification):
-                if case let .verified(transaction) = verification {
+            case .success(let verification):
+                if case .verified(let transaction) = verification {
                     await transaction.finish()
                     showThankYou = true
                 }

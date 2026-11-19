@@ -41,7 +41,7 @@ enum BlockActions {
     ) throws -> UnblockTiming {
         let timing: UnblockTiming
         switch length {
-        case let .timed(duration):
+        case .timed(let duration):
             timing = try timedUnblockService.start(
                 grant,
                 duration: duration,

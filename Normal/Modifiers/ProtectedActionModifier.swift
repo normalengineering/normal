@@ -28,12 +28,13 @@ extension View {
         keyGroupID: UUID? = nil,
         requestID: UUID? = nil
     ) -> some View {
-        modifier(ProtectedActionModifier(
-            action: action,
-            defaultKeyType: defaultKeyType,
-            requestedKeyType: requestedKeyType,
-            keyGroupID: keyGroupID,
-            requestID: requestID
-        ))
+        modifier(
+            ProtectedActionModifier(
+                action: action,
+                defaultKeyType: defaultKeyType,
+                requestedKeyType: requestedKeyType,
+                keyGroupID: keyGroupID,
+                requestID: requestID
+            ))
     }
 }

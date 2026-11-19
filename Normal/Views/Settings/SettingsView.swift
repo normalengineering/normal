@@ -46,12 +46,16 @@ struct SettingsView: View {
                     Button("Unblock All Apps", role: .destructive, action: performEmergencyUnblock)
                     Button("Cancel", role: .cancel) {}
                 } message: {
-                    Text("This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining.")
+                    Text(
+                        "This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining."
+                    )
                 }
                 .alert("All Apps Unblocked", isPresented: $showSuccessAlert) {
                     Button("OK", role: .cancel) {}
                 } message: {
-                    Text("All app blocks have been removed. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining.")
+                    Text(
+                        "All app blocks have been removed. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining."
+                    )
                 }
         }
     }

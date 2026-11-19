@@ -39,7 +39,7 @@ struct ScheduleCardView: View {
             return true
         }
         if allSettings.first?.enableCustomDomains ?? false,
-           CustomDomains.needsResync(schedule.customDomains, main: main.customDomains)
+            CustomDomains.needsResync(schedule.customDomains, main: main.customDomains)
         {
             return true
         }

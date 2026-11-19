@@ -158,7 +158,7 @@ struct TimedUnblockLiveActivity: Widget {
     private func range(
         _ context: ActivityViewContext<TimedUnblockActivityAttributes>
     ) -> ClosedRange<Date> {
-        context.attributes.startDate ... context.state.endDate
+        context.attributes.startDate...context.state.endDate
     }
 
     private func isFinished(

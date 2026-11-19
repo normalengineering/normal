@@ -7,14 +7,14 @@ struct WeekdayStrip: View {
     private var accessibilityDays: String {
         let names = Calendar.current.weekdaySymbols
         return weekdays.sorted()
-            .filter { (1 ... 7).contains($0) }
+            .filter { (1...7).contains($0) }
             .map { names[$0 - 1] }
             .formatted(.list(type: .and))
     }
 
     var body: some View {
         HStack(spacing: DS.Spacing.xs) {
-            ForEach(1 ... 7, id: \.self) { day in
+            ForEach(1...7, id: \.self) { day in
                 let isOn = weekdays.contains(day)
                 Text(Calendar.current.veryShortWeekdaySymbols[day - 1])
                     .font(.caption2.weight(.medium))

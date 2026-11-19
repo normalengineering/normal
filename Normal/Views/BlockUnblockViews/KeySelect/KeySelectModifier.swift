@@ -141,7 +141,7 @@ struct KeySelectModifier: ViewModifier {
     }
 
     private var missingKey: KeyCheckFlow.MissingKey? {
-        if case let .missingKey(missingKey) = flow.stage {
+        if case .missingKey(let missingKey) = flow.stage {
             return missingKey
         }
         return nil
@@ -206,12 +206,13 @@ extension View {
         keyGroupID: UUID? = nil,
         requestID: UUID? = nil
     ) -> some View {
-        modifier(KeySelectModifier(
-            action: action,
-            defaultKeyType: defaultKeyType,
-            requestedKeyType: requestedKeyType,
-            keyGroupID: keyGroupID,
-            requestID: requestID
-        ))
+        modifier(
+            KeySelectModifier(
+                action: action,
+                defaultKeyType: defaultKeyType,
+                requestedKeyType: requestedKeyType,
+                keyGroupID: keyGroupID,
+                requestID: requestID
+            ))
     }
 }

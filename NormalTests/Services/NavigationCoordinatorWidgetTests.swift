@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct NavigationCoordinatorWidgetTests {
@@ -55,8 +56,9 @@ struct NavigationCoordinatorWidgetTests {
         let id = UUID()
         try c.handle(url: #require(URL(string: "normal://unlock?group=\(id.uuidString)&duration=\(value)")))
 
-        #expect(c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .ask, keyType: nil)),
-                "An invalid duration shows the sheet rather than guessing")
+        #expect(
+            c.pendingAction?.action == .unblock(UnblockRequest(groupID: id, duration: .ask, keyType: nil)),
+            "An invalid duration shows the sheet rather than guessing")
     }
 
     @Test func handleParsesBlock() {

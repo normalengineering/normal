@@ -1,8 +1,9 @@
 import DeviceActivity
 import FamilyControls
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct ScheduleServiceTests {
@@ -162,8 +163,9 @@ struct ScheduleServiceTests {
         service.registerAll([enabled, disabled], screenTimeService: screenTime)
 
         #expect(store.schedules.count == 2)
-        #expect(activity.startCalls.map(\.name.rawValue).filter { $0.hasPrefix("schedule_") }
-            == [SharedConstants.scheduleActivityName(for: enabled.id)])
+        #expect(
+            activity.startCalls.map(\.name.rawValue).filter { $0.hasPrefix("schedule_") }
+                == [SharedConstants.scheduleActivityName(for: enabled.id)])
         #expect(screenTime.reconcileCallCount == 1)
     }
 
@@ -247,13 +249,15 @@ struct ScheduleServiceTests {
 
     @Test func heartbeatStaysWhileATimedUnblockIsActiveEvenWithoutSchedules() throws {
         let (service, activity, store) = makeService()
-        store.timedUnblocks = try [TimedUnblockDTO(
-            id: TimedUnblockService.mainID,
-            selectionData: FamilyActivitySelection().toData(),
-            endDate: Date(timeIntervalSinceReferenceDate: 800_000_000).addingTimeInterval(3600),
-            activityName: SharedConstants.mainTimedUnblockActivityName,
-            isGroupUnblock: false
-        )]
+        store.timedUnblocks = try [
+            TimedUnblockDTO(
+                id: TimedUnblockService.mainID,
+                selectionData: FamilyActivitySelection().toData(),
+                endDate: Date(timeIntervalSinceReferenceDate: 800_000_000).addingTimeInterval(3600),
+                activityName: SharedConstants.mainTimedUnblockActivityName,
+                isGroupUnblock: false
+            )
+        ]
 
         service.registerAll([], screenTimeService: FakeScreenTimeService())
 
@@ -289,9 +293,11 @@ struct ScheduleServiceTests {
             repeats: true
         )
         #expect(registered.hasSameWindow(as: desired))
-        #expect(!registered.hasSameWindow(as: DeviceActivitySchedule(
-            intervalStart: desired.intervalStart, intervalEnd: desired.intervalEnd, repeats: false
-        )))
+        #expect(
+            !registered.hasSameWindow(
+                as: DeviceActivitySchedule(
+                    intervalStart: desired.intervalStart, intervalEnd: desired.intervalEnd, repeats: false
+                )))
     }
 
     @Test func disableAllTogglesEverySchedulePersistsAndReconciles() {
@@ -323,10 +329,10 @@ struct ScheduleServiceTests {
         components.month = 6
         components.hour = hour
         components.minute = minute
-        for day in 1 ... 7 {
+        for day in 1...7 {
             components.day = day
             if let candidate = Self.utc.date(from: components),
-               Self.utc.component(.weekday, from: candidate) == weekday
+                Self.utc.component(.weekday, from: candidate) == weekday
             {
                 return candidate
             }
@@ -371,14 +377,18 @@ struct ScheduleServiceTests {
     @Test func isActiveHandlesMidnightWrap() {
         // Wed 23:00 for 3h → ends Thu 02:00.
         let s = schedule(startHour: 23, durationMinutes: 180, weekdays: [4])
-        #expect(s.isActive(at: date(weekday: 4, hour: 23, minute: 30), calendar: Self.utc),
-                "Active late on the start day")
-        #expect(s.isActive(at: date(weekday: 5, hour: 1, minute: 0), calendar: Self.utc),
-                "Active early on the next day")
-        #expect(!s.isActive(at: date(weekday: 5, hour: 3, minute: 0), calendar: Self.utc),
-                "Inactive after the wrapped end")
-        #expect(!s.isActive(at: date(weekday: 4, hour: 22, minute: 0), calendar: Self.utc),
-                "Inactive before the start")
+        #expect(
+            s.isActive(at: date(weekday: 4, hour: 23, minute: 30), calendar: Self.utc),
+            "Active late on the start day")
+        #expect(
+            s.isActive(at: date(weekday: 5, hour: 1, minute: 0), calendar: Self.utc),
+            "Active early on the next day")
+        #expect(
+            !s.isActive(at: date(weekday: 5, hour: 3, minute: 0), calendar: Self.utc),
+            "Inactive after the wrapped end")
+        #expect(
+            !s.isActive(at: date(weekday: 4, hour: 22, minute: 0), calendar: Self.utc),
+            "Inactive before the start")
     }
 
     @Test func mirrorCustomDomainsEnabledWritesFlag() {

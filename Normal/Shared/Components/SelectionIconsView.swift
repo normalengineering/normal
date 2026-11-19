@@ -20,11 +20,11 @@ struct SelectionIconsView: View {
         ForEach(shown, id: \.self) { item in
             Group {
                 switch item {
-                case let .token(token):
+                case .token(let token):
                     if let kind = SelectedTokenKind(token) {
                         SelectionTokenLabel(kind: kind)
                     }
-                case let .domain(domain):
+                case .domain(let domain):
                     Image(systemName: "globe")
                         .foregroundStyle(.blue.opacity(0.45))
                         .overlay {

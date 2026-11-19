@@ -23,7 +23,9 @@ struct KeysView: View {
                 .settingsToolbar()
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button { isShowingSheet.toggle() } label: {
+                        Button {
+                            isShowingSheet.toggle()
+                        } label: {
                             Label("Add Key", systemImage: "plus")
                         }
                         .accessibilityIdentifier("keys.addButton")
@@ -41,9 +43,11 @@ struct KeysView: View {
             if keys.isEmpty {
                 KeysEmptyStateView { isShowingSheet = true }
             } else {
-                ReorderableListView(items: keys, rowContent: { key in
-                    KeyListCardView(key: key)
-                }, onMove: move, footer: { groupKeysRow })
+                ReorderableListView(
+                    items: keys,
+                    rowContent: { key in
+                        KeyListCardView(key: key)
+                    }, onMove: move, footer: { groupKeysRow })
             }
         }
         .bottomFooter {
@@ -63,12 +67,13 @@ struct KeysView: View {
             groupKeysLink
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(
-                    top: DS.Spacing.sm - 2,
-                    leading: DS.Spacing.lg,
-                    bottom: DS.Spacing.sm - 2,
-                    trailing: DS.Spacing.lg
-                ))
+                .listRowInsets(
+                    EdgeInsets(
+                        top: DS.Spacing.sm - 2,
+                        leading: DS.Spacing.lg,
+                        bottom: DS.Spacing.sm - 2,
+                        trailing: DS.Spacing.lg
+                    ))
         }
     }
 

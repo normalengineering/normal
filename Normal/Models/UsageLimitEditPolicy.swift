@@ -16,7 +16,7 @@ nonisolated enum UsageLimitEdit: Equatable, Sendable {
     var isLoosening: Bool {
         switch self {
         case .create: false
-        case let .adjust(from, to, dropsCoverage): to > from || dropsCoverage
+        case .adjust(let from, let to, let dropsCoverage): to > from || dropsCoverage
         case .delete, .changeReset: true
         }
     }
@@ -48,7 +48,7 @@ nonisolated enum UsageLimitLockState: Equatable, Sendable {
     case locked(until: Date)
 
     var lockedUntil: Date? {
-        if case let .locked(until) = self {
+        if case .locked(let until) = self {
             return until
         }
         return nil
@@ -88,7 +88,7 @@ nonisolated enum UsageLimitEditPolicy {
         switch lockState(anchor: anchor, now: now) {
         case .unlocked: return .allowed(.cooldownElapsed)
         case .grace: return .allowed(.grace)
-        case let .locked(until): return .locked(until: until)
+        case .locked(let until): return .locked(until: until)
         }
     }
 

@@ -47,33 +47,36 @@ struct GroupsView: View {
         if appGroups.isEmpty {
             emptyState
         } else {
-            ReorderableListView(items: appGroups, rowContent: { group in
-                GroupListCardView(
-                    appGroup: group,
-                    authAction: $authAction,
-                    pendingGroupID: $pendingGroupID,
-                    durationGrant: $durationGrant,
-                    unblockAlert: $unblockAlert
-                )
-            }, onMove: move)
-                .bottomFooter {
-                    if isBlocked {
-                        FooterMessage(text: BlockedMessage.groups)
-                    }
+            ReorderableListView(
+                items: appGroups,
+                rowContent: { group in
+                    GroupListCardView(
+                        appGroup: group,
+                        authAction: $authAction,
+                        pendingGroupID: $pendingGroupID,
+                        durationGrant: $durationGrant,
+                        unblockAlert: $unblockAlert
+                    )
+                }, onMove: move
+            )
+            .bottomFooter {
+                if isBlocked {
+                    FooterMessage(text: BlockedMessage.groups)
                 }
-                // Host the key prompt on the stable list, scoped to whichever card
-                // triggered it, instead of on the card row.
-                .protectedAction(
-                    $authAction,
-                    defaultKeyType: allSettings.unwrapped.defaultKeyType(
-                        for: appGroups.first { $0.id == pendingGroupID }
-                    ),
-                    keyGroupID: pendingGroupID
-                )
-                .sheet(item: $durationGrant) { grant in
-                    UnblockDurationSheet(grant: grant) { unblockAlert = UnblockAlert($0) }
-                }
-                .unblockAlert($unblockAlert)
+            }
+            // Host the key prompt on the stable list, scoped to whichever card
+            // triggered it, instead of on the card row.
+            .protectedAction(
+                $authAction,
+                defaultKeyType: allSettings.unwrapped.defaultKeyType(
+                    for: appGroups.first { $0.id == pendingGroupID }
+                ),
+                keyGroupID: pendingGroupID
+            )
+            .sheet(item: $durationGrant) { grant in
+                UnblockDurationSheet(grant: grant) { unblockAlert = UnblockAlert($0) }
+            }
+            .unblockAlert($unblockAlert)
         }
     }
 

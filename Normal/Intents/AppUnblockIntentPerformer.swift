@@ -42,16 +42,16 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         let settings: Settings
         let target: UnblockTarget
         switch try readiness(for: request) {
-        case let .settled(outcome):
+        case .settled(let outcome):
             return outcome
-        case let .ready(readySettings, readyTarget):
+        case .ready(let readySettings, let readyTarget):
             settings = readySettings
             target = readyTarget
         }
 
         let keys = try Key.scoped(intents.keys(), toGroup: request.groupID)
         guard keyType(for: request, keys: keys, settings: settings, group: target.group) == .location,
-              settings.unblockLength(for: request.duration, group: target.group) != nil
+            settings.unblockLength(for: request.duration, group: target.group) != nil
         else { return .continueInApp(.checkKey) }
         let radiusKind = Key.existingLocationKind(in: keys) ?? .unblock
 
@@ -74,27 +74,28 @@ final class AppUnblockIntentPerformer: UnblockIntentPerforming {
         }
 
         switch try readiness(for: request) {
-        case let .settled(outcome):
+        case .settled(let outcome):
             return outcome
-        case let .ready(settings, target):
+        case .ready(let settings, let target):
             guard let length = settings.unblockLength(for: request.duration, group: target.group),
-                  let grant = UnblockGrant(target, proof: proof)
+                let grant = UnblockGrant(target, proof: proof)
             else { return .continueInApp(.checkKey) }
             return try start(grant, for: length, settings: settings)
         }
     }
 
     func continueInApp(_ request: UnblockRequest) {
-        unlockInbox.post(UnblockRequest(
-            groupID: request.groupID,
-            duration: request.duration,
-            keyType: keyType(
-                for: request,
-                keys: Key.scoped((try? intents.keys()) ?? [], toGroup: request.groupID),
-                settings: intents.settings(),
-                group: request.groupID.flatMap { try? intents.group(id: $0) }
-            )
-        ))
+        unlockInbox.post(
+            UnblockRequest(
+                groupID: request.groupID,
+                duration: request.duration,
+                keyType: keyType(
+                    for: request,
+                    keys: Key.scoped((try? intents.keys()) ?? [], toGroup: request.groupID),
+                    settings: intents.settings(),
+                    group: request.groupID.flatMap { try? intents.group(id: $0) }
+                )
+            ))
     }
 
     private enum Readiness {

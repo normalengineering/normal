@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import SwiftData
+
+@testable import Normal
 
 @MainActor
 enum InMemoryModelContainer {

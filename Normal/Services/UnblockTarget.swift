@@ -8,19 +8,19 @@ enum UnblockTarget: Identifiable {
     var id: String {
         switch self {
         case .all: "all"
-        case let .group(group): group.id.uuidString
+        case .group(let group): group.id.uuidString
         }
     }
 
     var group: AppGroup? {
-        if case let .group(group) = self {
+        if case .group(let group) = self {
             return group
         }
         return nil
     }
 
     var groupID: UUID? {
-        if case let .group(group) = self {
+        if case .group(let group) = self {
             return group.id
         }
         return nil
@@ -29,14 +29,14 @@ enum UnblockTarget: Identifiable {
     var name: String {
         switch self {
         case .all: String(localized: "All Apps")
-        case let .group(group): group.name
+        case .group(let group): group.name
         }
     }
 
     var selection: FamilyActivitySelection {
         switch self {
-        case let .all(mainSelection): mainSelection.selection
-        case let .group(group): group.selection
+        case .all(let mainSelection): mainSelection.selection
+        case .group(let group): group.selection
         }
     }
 
@@ -44,7 +44,7 @@ enum UnblockTarget: Identifiable {
         switch self {
         case .all:
             status.canUnblockAll(timedUnblockActive: timedUnblockService.isMainUnblockActive)
-        case let .group(group):
+        case .group(let group):
             status.canUnblockGroup(timedUnblockActive: timedUnblockService.isGroupUnblockActive(groupId: group.id))
         }
     }
@@ -52,8 +52,8 @@ enum UnblockTarget: Identifiable {
     func customDomains(settings: Settings) -> [String] {
         guard settings.enableCustomDomains else { return [] }
         return switch self {
-        case let .all(mainSelection): mainSelection.customDomains
-        case let .group(group): group.customDomains
+        case .all(let mainSelection): mainSelection.customDomains
+        case .group(let group): group.customDomains
         }
     }
 }
@@ -68,14 +68,14 @@ extension TimedUnblockService {
     ) throws -> UnblockTiming {
         let target = grant.target
         switch target {
-        case let .all(mainSelection):
+        case .all(let mainSelection):
             return try startMain(
                 duration: duration,
                 mainSelection: mainSelection,
                 settings: settings,
                 screenTimeService: screenTimeService
             )
-        case let .group(group):
+        case .group(let group):
             return try startGroup(
                 duration: duration,
                 groupId: group.id,

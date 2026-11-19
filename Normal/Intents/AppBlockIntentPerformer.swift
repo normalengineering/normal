@@ -33,7 +33,8 @@ final class AppBlockIntentPerformer: BlockIntentPerforming {
         logger.info("Block intent: all")
         let settings = try intents.validatedSettings(requiringKey: true)
         let mainSelection = try intents.mainSelection(settings: settings)
-        let wasAlreadyBlocked = intents.screenTimeService.blockStatus(of: .all(mainSelection), settings: settings) == .all
+        let wasAlreadyBlocked =
+            intents.screenTimeService.blockStatus(of: .all(mainSelection), settings: settings) == .all
             && intents.timedUnblockService.activeUnblocks.isEmpty
 
         BlockActions.blockAll(
@@ -50,7 +51,8 @@ final class AppBlockIntentPerformer: BlockIntentPerforming {
         logger.info("Block intent: group")
         let settings = try intents.validatedSettings(requiringKey: true, groupID: id)
         let group = try intents.group(id: id)
-        let wasAlreadyBlocked = intents.screenTimeService.blockStatus(of: .group(group), settings: settings) == .all
+        let wasAlreadyBlocked =
+            intents.screenTimeService.blockStatus(of: .group(group), settings: settings) == .all
             && !intents.timedUnblockService.isGroupUnblockActive(groupId: id)
 
         BlockActions.blockGroup(

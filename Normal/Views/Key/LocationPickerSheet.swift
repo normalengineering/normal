@@ -87,10 +87,11 @@ struct LocationPickerSheet: View {
     private func centerOnCurrent() {
         guard let currentLocation else { return }
         pin = currentLocation.coordinate
-        position = .region(LocationCamera.focusRegion(
-            around: currentLocation.coordinate,
-            radiusMeters: radiusMeters
-        ))
+        position = .region(
+            LocationCamera.focusRegion(
+                around: currentLocation.coordinate,
+                radiusMeters: radiusMeters
+            ))
     }
 
     @MainActor

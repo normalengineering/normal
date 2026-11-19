@@ -11,8 +11,10 @@ enum LocationCamera {
     }
 
     static func boundingRegion(user: CLLocationCoordinate2D, keys: [Key]) -> MKCoordinateRegion {
-        var minLat = user.latitude, maxLat = user.latitude
-        var minLon = user.longitude, maxLon = user.longitude
+        var minLat = user.latitude
+        var maxLat = user.latitude
+        var minLon = user.longitude
+        var maxLon = user.longitude
         for key in keys {
             guard let center = key.coordinate, let radius = key.radiusMeters else { continue }
             let latPad = radius / 111_000

@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 @MainActor
 struct KeyCheckFlowTests {
@@ -40,14 +41,18 @@ struct KeyCheckFlowTests {
 
     private func start(_ request: KeyCheckFlow.Request, allowBypass: Bool = false) {
         let counter = counter
-        let action: ProtectedAction = allowBypass
+        let action: ProtectedAction =
+            allowBypass
             ? .tighten { counter.runs += 1 }
-            : .weaken { counter.proofs.append($0); counter.runs += 1 }
+            : .weaken {
+                counter.proofs.append($0)
+                counter.runs += 1
+            }
         flow.start(request, action: action)
     }
 
     private func waitUntil(_ condition: () -> Bool) async {
-        for _ in 0 ..< 10000 where !condition() {
+        for _ in 0..<10000 where !condition() {
             await Task.yield()
         }
         #expect(condition())
@@ -266,7 +271,7 @@ struct KeyCheckFlowTests {
         flow.choose(.qr)
         #expect(flow.stage == .scanningQR)
         #expect(flow.sheetScreen == .qrScanner)
-        for _ in 0 ..< 100 {
+        for _ in 0..<100 {
             await Task.yield()
         }
         #expect(qr.scanCount == 0)
@@ -340,7 +345,7 @@ struct KeyCheckFlowTests {
 
         flow.choose(.nfc)
         await waitUntil { nfc.isScanning }
-        for _ in 0 ..< 100 {
+        for _ in 0..<100 {
             await Task.yield()
         }
         #expect(flow.stage == .scanningNFC)
@@ -383,7 +388,7 @@ struct KeyCheckFlowTests {
         #expect(!nfc.isScanning)
 
         nfc.present("tag")
-        for _ in 0 ..< 100 {
+        for _ in 0..<100 {
             await Task.yield()
         }
 

@@ -64,7 +64,7 @@ final class NormalUITests: XCTestCase {
         require(skipPermission, "Permission step should offer Skip")
         skipPermission.tap()
 
-        for _ in 0 ..< 5 {
+        for _ in 0..<5 {
             let next = app.buttons["Next"]
             require(next, "Each tab walkthrough step should offer Next")
             next.tap()
@@ -350,7 +350,7 @@ final class NormalUITests: XCTestCase {
         var opened = Set<String>()
         var cutOff = Set<String>()
         var previousPage: [String] = []
-        for _ in 0 ..< 300 {
+        for _ in 0..<300 {
             let headers = app.buttons.matching(identifier: "expandableSection").allElementsBoundByIndex
             if let next = headers.first(where: { $0.isHittable && !opened.contains($0.label) }) {
                 opened.insert(next.label)

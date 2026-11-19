@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct UsageDTOTests {
     private func calendar(_ zone: String) -> Calendar {
@@ -77,7 +78,8 @@ struct UsageDTOTests {
 
     @Test func recordedStateReadsBackWithinTheSameDay() {
         let noon = date("2026-03-14T12:00:00-04:00")
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
 
@@ -86,7 +88,8 @@ struct UsageDTOTests {
 
     @Test func statesOnlyEverAdvanceWithinADay() {
         let noon = date("2026-03-14T12:00:00-04:00")
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
 
@@ -102,7 +105,8 @@ struct UsageDTOTests {
 
     @Test func aRecordExpiresOnceTheNextDayHasActuallyArrived() {
         let noon = date("2026-03-14T12:00:00-04:00")
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
 
@@ -116,7 +120,8 @@ struct UsageDTOTests {
     /// passed, so the spent allowance stands.
     @Test func windingTheClockBackDoesNotRefundTheDay() {
         let noon = date("2026-03-14T12:00:00-04:00")
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
 
@@ -131,7 +136,8 @@ struct UsageDTOTests {
         let other = UUID()
         let nextDay = date("2026-03-15T09:00:00-04:00")
 
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
             .recording(.reached, for: other, on: nextDay, period: nyPeriod)
@@ -143,7 +149,8 @@ struct UsageDTOTests {
     @Test func clearingDropsOneRecordAndLeavesTheRest() {
         let noon = date("2026-03-14T12:00:00-04:00")
         let other = UUID()
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
             .recording(.reached, for: other, on: noon, period: nyPeriod)
@@ -166,7 +173,8 @@ struct UsageDTOTests {
 
     @Test func overridingClearsEveryRecordAndFlagsTheDay() {
         let noon = date("2026-03-14T12:00:00-04:00")
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
             .overriding(on: noon, period: nyPeriod)
@@ -224,7 +232,8 @@ struct UsageDTOTests {
 
     @Test func movingTheResetLaterKeepsASpentRecordUntilTheNewReset() {
         let noon = date("2026-03-14T12:00:00-04:00")
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .recording(.reached, for: id, on: noon, period: nyPeriod)
         let later = newYorkPeriod(resetAt: 4)
@@ -236,7 +245,8 @@ struct UsageDTOTests {
     @Test func movingTheResetEarlierReleasesASpentRecordAtTheNewReset() {
         let noon = date("2026-03-14T12:00:00-04:00")
         let later = newYorkPeriod(resetAt: 4)
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: later)
             .recording(.reached, for: id, on: noon, period: later)
             .moving(from: later, to: nyPeriod, on: noon + .hours(1))
@@ -248,7 +258,8 @@ struct UsageDTOTests {
     @Test func movingTheResetPastTheCurrentTimeReleasesASpentRecordAtTheNewReset() {
         let spentAt = date("2026-03-14T15:00:00-04:00")
         let later = newYorkPeriod(resetAt: 16)
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: spentAt, period: nyPeriod)
             .recording(.reached, for: id, on: spentAt, period: nyPeriod)
             .moving(from: nyPeriod, to: later, on: date("2026-03-14T15:30:00-04:00"))
@@ -261,7 +272,8 @@ struct UsageDTOTests {
         let yesterday = date("2026-03-13T12:00:00-04:00")
         let now = date("2026-03-14T15:30:00-04:00")
         let later = newYorkPeriod(resetAt: 16)
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: yesterday, period: nyPeriod)
             .recording(.reached, for: id, on: yesterday, period: nyPeriod)
             .moving(from: nyPeriod, to: later, on: now)
@@ -272,7 +284,8 @@ struct UsageDTOTests {
     @Test func movingTheResetKeepsTheOverride() {
         let noon = date("2026-03-14T12:00:00-04:00")
         let later = newYorkPeriod(resetAt: 16)
-        let state = UsageDayStateDTO
+        let state =
+            UsageDayStateDTO
             .fresh(on: noon, period: nyPeriod)
             .overriding(on: noon, period: nyPeriod)
             .moving(from: nyPeriod, to: later, on: noon)

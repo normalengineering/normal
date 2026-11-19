@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct SettingsTests {
     @Test func freshSettingsStartsWithAllUnblocksAvailable() {
@@ -24,7 +25,7 @@ struct SettingsTests {
 
     @Test func availableNeverNegative() {
         let s = Settings()
-        for _ in 0 ..< (Settings.maxEmergencyUnblocks + 5) {
+        for _ in 0..<(Settings.maxEmergencyUnblocks + 5) {
             s.recordEmergencyUnblock()
         }
         #expect(s.emergencyUnblocksAvailable == 0)

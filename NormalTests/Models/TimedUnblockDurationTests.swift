@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct TimedUnblockDurationTests {
     @Test(arguments: [900, 1200, 5700, 86100])

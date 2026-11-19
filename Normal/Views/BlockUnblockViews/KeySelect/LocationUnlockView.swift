@@ -178,9 +178,9 @@ struct LocationUnlockView: View {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
-    func opaqueNavigationBarBeforeLiquidGlass() -> some View {
+    fileprivate func opaqueNavigationBarBeforeLiquidGlass() -> some View {
         if #available(iOS 26.0, *) {
             self
         } else {

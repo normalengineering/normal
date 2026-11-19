@@ -27,13 +27,14 @@ final class AppGroup: Identifiable {
     var durationOverride: DefaultOverride<TimedUnblockDuration> {
         get {
             guard overridesDefaultDuration else { return .appDefault }
-            return defaultUnblockSeconds
+            return
+                defaultUnblockSeconds
                 .flatMap(TimedUnblockDuration.init(validating:))
                 .map(DefaultOverride.value) ?? .none
         }
         set {
             overridesDefaultDuration = newValue != .appDefault
-            if case let .value(duration) = newValue {
+            if case .value(let duration) = newValue {
                 defaultUnblockSeconds = duration.seconds
             } else {
                 defaultUnblockSeconds = nil
@@ -48,7 +49,7 @@ final class AppGroup: Identifiable {
         }
         set {
             overridesDefaultKey = newValue != .appDefault
-            if case let .value(keyType) = newValue {
+            if case .value(let keyType) = newValue {
                 defaultKeyType = keyType
             } else {
                 defaultKeyType = nil

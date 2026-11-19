@@ -100,7 +100,7 @@ final class KeyCheckFlow {
         ) {
         case .showNoKeysAlert:
             stage = .missingKey(request.keys.isEmpty ? .noKeyToUnblock : .unsupportedOnDevice)
-        case let .autoSelect(keyType):
+        case .autoSelect(let keyType):
             begin(keyType, fromPicker: false)
         case .showSheet:
             sheetScreen = .picker

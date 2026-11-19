@@ -1,6 +1,7 @@
 import Foundation
-@testable import Normal
 import Testing
+
+@testable import Normal
 
 struct WidgetGroupStateTests {
     private let now = Date(timeIntervalSinceReferenceDate: 1_000_000)
@@ -22,8 +23,9 @@ struct WidgetGroupStateTests {
     }
 
     @Test func noTimedUnblockUsesMirroredShieldState() {
-        #expect(WidgetGroupState.resolve(timedUnblockEnd: nil, blockStatus: .unblocked, now: now)
-            == .unblocked(until: nil))
+        #expect(
+            WidgetGroupState.resolve(timedUnblockEnd: nil, blockStatus: .unblocked, now: now)
+                == .unblocked(until: nil))
         #expect(WidgetGroupState.resolve(timedUnblockEnd: nil, blockStatus: .blocked, now: now) == .blocked)
     }
 

@@ -30,7 +30,9 @@ struct UsageView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { editing = .new } label: {
+                Button {
+                    editing = .new
+                } label: {
                     Label("Add Limit", systemImage: "plus")
                 }
                 .accessibilityIdentifier("usage.addLimit")
@@ -55,7 +57,9 @@ struct UsageView: View {
         let states = usageLimitService.states(for: limits)
         return Section {
             ForEach(limits) { limit in
-                Button { editing = .existing(limit) } label: {
+                Button {
+                    editing = .existing(limit)
+                } label: {
                     UsageLimitRow(limit: limit, state: states[limit.id] ?? .under, now: now)
                 }
                 .tint(.primary)
@@ -75,7 +79,7 @@ struct UsageView: View {
                     LabeledContent("Resets At") {
                         Text(usageLimitService.nextReset(), style: .time)
                     }
-                    if !limits.isEmpty, case let .grace(until) = usageLimitService.resetLockState(now: now) {
+                    if !limits.isEmpty, case .grace(let until) = usageLimitService.resetLockState(now: now) {
                         UsageGraceCountdown(until: until, now: now)
                             .accessibilityIdentifier("usage.resetGraceCountdown")
                     }
@@ -129,9 +133,9 @@ struct UsageResetTimeView: View {
         switch usageLimitService.resetLockState(now: now) {
         case .unlocked:
             return nil
-        case let .grace(until):
+        case .grace(let until):
             return Text("You can change the reset time for another \(UsageLockDeadline.countdown(to: until, now: now)).")
-        case let .locked(until):
+        case .locked(let until):
             return Text("You can change the reset time again \(UsageLockDeadline.phrase(until: until, now: now)).")
         }
     }
@@ -161,7 +165,9 @@ struct UsageResetTimeView: View {
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("usage.resetPicker")
             } footer: {
-                Text("Every limit's time resets at this time each day. While you have limits, it can be changed once every 7 days, with 10 minutes to adjust after each change.")
+                Text(
+                    "Every limit's time resets at this time each day. While you have limits, it can be changed once every 7 days, with 10 minutes to adjust after each change."
+                )
             }
         }
         .toolbar {
@@ -175,7 +181,7 @@ struct UsageResetTimeView: View {
     }
 
     private func save() {
-        guard case let .allowed(allowance) = decision(at: .now) else { return }
+        guard case .allowed(let allowance) = decision(at: .now) else { return }
         usageLimitService.commitResetChange(allowance)
         settings.dailyLimitResetMinutes = newMinutes
         usageLimitService.registerAll(limits, config: settings.usageLimitConfig)
