@@ -65,6 +65,7 @@ struct GeneralSettingsView: View {
                     Text(duration.label).tag(TimedUnblockDuration?.some(duration))
                 }
             }
+            .adaptivePickerStyle()
 
             Picker(
                 "Default Key",
@@ -83,6 +84,7 @@ struct GeneralSettingsView: View {
                     Label(type.label, systemImage: type.icon).tag(KeyType?.some(type))
                 }
             }
+            .adaptivePickerStyle()
 
             if availableKeyTypes.contains(.location) {
                 BackgroundLocationRow()
@@ -132,6 +134,7 @@ struct GeneralSettingsView: View {
                     Text(tab.label).tag(tab)
                 }
             }
+            .adaptivePickerStyle()
 
             Toggle(
                 "Hide Donate Button",

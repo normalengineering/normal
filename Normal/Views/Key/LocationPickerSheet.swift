@@ -7,6 +7,7 @@ struct LocationPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(LocationService.self) private var locationService
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var keys: [Key]
 
     let kind: LocationRadiusKind
@@ -41,13 +42,12 @@ struct LocationPickerSheet: View {
                     onInspect: { inspectedKey = $0 }
                 )
 
-                LocationRadiusControls(
-                    kind: kind,
-                    radiusMeters: $radiusMeters,
-                    canUseCurrentLocation: currentLocation != nil,
-                    hint: hint,
-                    onUseCurrentLocation: centerOnCurrent
-                )
+                if dynamicTypeSize.isAccessibilitySize {
+                    ScrollView { radiusControls }
+                        .scrollBounceBehavior(.basedOnSize)
+                } else {
+                    radiusControls
+                }
             }
             .navigationTitle("Set Location")
             .navigationBarTitleDisplayMode(.inline)
@@ -69,10 +69,19 @@ struct LocationPickerSheet: View {
                     canDelete: Key.canDelete(key, in: keys),
                     onDelete: { delete(key) }
                 )
-                .presentationDetents([.height(280)])
             }
             .task(initialResolve)
         }
+    }
+
+    private var radiusControls: some View {
+        LocationRadiusControls(
+            kind: kind,
+            radiusMeters: $radiusMeters,
+            canUseCurrentLocation: currentLocation != nil,
+            hint: hint,
+            onUseCurrentLocation: centerOnCurrent
+        )
     }
 
     private var hint: String {

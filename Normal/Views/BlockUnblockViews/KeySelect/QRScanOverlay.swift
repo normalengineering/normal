@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct QRScanOverlay: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let scanResult: QRService.ScanResult
 
     @State private var scanLineDown = false
@@ -36,7 +38,7 @@ struct QRScanOverlay: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, DS.Spacing.lg)
                             .padding(.vertical, DS.Spacing.sm)
-                            .background(.black.opacity(0.4), in: Capsule())
+                            .background(.black.opacity(0.4), in: hintShape)
                             .position(
                                 x: metrics.center.x,
                                 y: metrics.center.y + metrics.side / 2 + DS.Spacing.xxl + DS.Spacing.xl
@@ -73,6 +75,10 @@ struct QRScanOverlay: View {
                     )
             }
         }
+    }
+
+    private var hintShape: AnyShape {
+        dynamicTypeSize.isAccessibilitySize ? AnyShape(RoundedRectangle(cornerRadius: DS.Radius.md)) : AnyShape(Capsule())
     }
 }
 

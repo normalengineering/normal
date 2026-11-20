@@ -5,7 +5,11 @@ struct DonationView: View {
     @Environment(DonationService.self) private var donationService
     @State private var cadence: DonationCadence = .oneTime
 
-    private let columns = [GridItem(.adaptive(minimum: 86), spacing: DS.Spacing.md)]
+    @ScaledMetric(relativeTo: .headline) private var minimumCellWidth: CGFloat = 86
+
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: minimumCellWidth), spacing: DS.Spacing.md)]
+    }
 
     var body: some View {
         @Bindable var donationService = donationService

@@ -232,6 +232,7 @@ struct GroupFormSheet: View {
                     }
                 }
             }
+            .adaptivePickerStyle()
             .accessibilityIdentifier("groupForm.defaultDuration")
 
             Group {
@@ -247,6 +248,7 @@ struct GroupFormSheet: View {
                     }
                 }
             }
+            .adaptivePickerStyle()
             .accessibilityIdentifier("groupForm.defaultKey")
         }
     }

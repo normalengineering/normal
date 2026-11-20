@@ -112,28 +112,44 @@ struct ScheduleCardView: View {
         )
     }
 
+    @ViewBuilder
     private var header: some View {
-        HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center) {
+        if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                titleRow
-                AdaptiveStack(spacing: DS.Spacing.sm - 2) {
-                    InlineIconText(
-                        systemImage: schedule.shouldBlock ? "lock.fill" : "lock.open.fill",
-                        text: schedule.shouldBlock ? "Block" : "Unblock",
-                        tint: .blue
-                    )
-                    if !dynamicTypeSize.isAccessibilitySize {
-                        Text("\u{00B7}").foregroundStyle(.secondary)
-                    }
-                    InlineIconText(
-                        systemImage: schedule.isTimed ? "hourglass" : "infinity",
-                        text: schedule.isTimed ? "Timed" : "Permanent",
-                        tint: .secondary
-                    )
+                HStack(alignment: .top) {
+                    titleRow
+                    Spacer()
+                    enabledToggle
                 }
+                modeRow
             }
-            Spacer()
-            enabledToggle
+        } else {
+            HStack {
+                VStack(alignment: .leading, spacing: DS.Spacing.xs) {
+                    titleRow
+                    modeRow
+                }
+                Spacer()
+                enabledToggle
+            }
+        }
+    }
+
+    private var modeRow: some View {
+        AdaptiveStack(spacing: DS.Spacing.sm - 2) {
+            InlineIconText(
+                systemImage: schedule.shouldBlock ? "lock.fill" : "lock.open.fill",
+                text: schedule.shouldBlock ? "Block" : "Unblock",
+                tint: .blue
+            )
+            if !dynamicTypeSize.isAccessibilitySize {
+                Text("\u{00B7}").foregroundStyle(.secondary)
+            }
+            InlineIconText(
+                systemImage: schedule.isTimed ? "hourglass" : "infinity",
+                text: schedule.isTimed ? "Timed" : "Permanent",
+                tint: .secondary
+            )
         }
     }
 

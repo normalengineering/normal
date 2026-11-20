@@ -3,6 +3,8 @@ import MapKit
 import SwiftUI
 
 struct LocationPickerMapView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let kind: LocationRadiusKind
     let zones: [Key]
     @Binding var pin: CLLocationCoordinate2D?
@@ -61,7 +63,7 @@ struct LocationPickerMapView: View {
                 .font(.subheadline.weight(.medium))
                 .padding(.horizontal, DS.Spacing.lg)
                 .padding(.vertical, DS.Spacing.sm)
-                .background(.regularMaterial, in: Capsule())
+                .background(.regularMaterial, in: hintShape)
                 .padding(.top, DS.Spacing.md)
                 .allowsHitTesting(false)
                 .transition(.opacity)
@@ -96,4 +98,9 @@ struct LocationPickerMapView: View {
             withAnimation(.easeOut(duration: 0.2)) { pin = coordinate }
         }
     }
+
+    private var hintShape: AnyShape {
+        dynamicTypeSize.isAccessibilitySize ? AnyShape(RoundedRectangle(cornerRadius: DS.Radius.md)) : AnyShape(Capsule())
+    }
+
 }

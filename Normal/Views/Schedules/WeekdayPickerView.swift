@@ -20,6 +20,7 @@ struct WeekdayPickerView: View {
             }
         }
         .padding(.vertical, DS.Spacing.xs)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
 
     private func toggle(_ day: Int) {

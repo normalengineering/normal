@@ -324,6 +324,23 @@ final class BlockingUITests: XCTestCase {
         XCTAssertLessThanOrEqual(row.frame.maxX, app.windows.firstMatch.frame.maxX, "The row should fit on screen")
     }
 
+    func testBlockWithoutKeyIsUsableAtTheLargestTextSize() {
+        let app = launch(["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        app.buttons["home.blockAll"].tap()
+
+        let bypass = app.buttons["keySelect.blockWithoutKey"]
+        require(bypass, "Choose Key should offer Block Without Key")
+        bypass.tap()
+
+        let confirm = app.buttons["keySelect.confirmBlockWithoutKey"]
+        require(confirm, "The Block Without Key confirmation should show")
+        for _ in 0..<4 where !confirm.isHittable { app.swipeUp() }
+        XCTAssertTrue(confirm.isHittable, "Block Without Key should be reachable at the largest text size")
+        confirm.tap()
+
+        require(app.buttons["home.unblockAll"], "Blocking without a key should block")
+    }
+
     func testScheduleCardShowsDayChipsWhenTheyFit() {
         let app = launch(["-uiTestSeedSchedule"])
         app.mainTab("Schedules").tap()

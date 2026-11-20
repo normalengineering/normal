@@ -5,13 +5,14 @@ struct SummaryRow: View {
     let tint: Color
     let title: Text
     let subtitle: Text
+    @ScaledMetric(relativeTo: .title) private var iconWidth = DS.Size.summaryIcon
 
     var body: some View {
         HStack(spacing: DS.Spacing.md) {
             Image(systemName: systemImage)
                 .font(.title)
                 .foregroundStyle(tint)
-                .frame(width: DS.Size.summaryIcon)
+                .frame(width: iconWidth)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading) {

@@ -5,6 +5,7 @@ struct KeySelectModifier: ViewModifier {
     @Environment(QRService.self) private var qrService
     @Environment(LocationService.self) private var locationService
     @Environment(\.navigationCoordinator) private var navigation
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var keys: [Key]
     @Query private var allSettings: [Settings]
 
@@ -128,6 +129,9 @@ struct KeySelectModifier: ViewModifier {
     private var sheetDetent: PresentationDetent {
         if flow.keySheetIsMinimized {
             return Self.minimizedDetent
+        }
+        if dynamicTypeSize.isAccessibilitySize {
+            return .large
         }
         return [.qrScanner, .location].contains(flow.sheetScreen) ? .large : .medium
     }
