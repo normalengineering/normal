@@ -6,15 +6,30 @@ import Testing
 
 @MainActor
 struct ScreenTimeServiceTests {
-    private func makeService() -> (ScreenTimeService, InMemoryShieldStore) {
+    private func makeService(sharedStore: FakeSharedStore = FakeSharedStore()) -> (ScreenTimeService, InMemoryShieldStore) {
         let shields = InMemoryShieldStore(startBlocked: false)
         let service = ScreenTimeService(
             defaults: UserDefaults(suiteName: "screen-time-\(UUID().uuidString)")!,
             shield: shields,
-            sharedStore: FakeSharedStore(),
+            sharedStore: sharedStore,
             activityCenter: FakeDeviceActivityCenter()
         )
         return (service, shields)
+    }
+
+    private func leftoverShields() -> ShieldPlan {
+        var plan = ShieldPlan()
+        plan.formUnion(TokenFixtures.selection(apps: [1, 2], categories: [1], webDomains: [1]), customDomains: ["example.com"])
+        plan.hiddenApplications = [TokenFixtures.app(1), TokenFixtures.app(2)]
+        plan.denyAppRemoval = true
+        return plan
+    }
+
+    private func sharedStoreWithEveryFeatureOn() -> FakeSharedStore {
+        let store = FakeSharedStore()
+        store.setCustomDomainsEnabled(true)
+        store.setHideBlockedAppsEnabled(true)
+        return store
     }
 
     @Test func blockAllWithSettingOnPreventsAppDelete() {
@@ -136,6 +151,39 @@ struct ScreenTimeServiceTests {
         #expect(service.blockStatus(selection: TokenFixtures.selection(apps: [1, 2])) == .some)
         #expect(service.blockStatus(selection: TokenFixtures.selection(apps: [2])) == .none)
         #expect(service.activeShieldCount() == 1)
+    }
+
+    @Test func freshStartClearsWhatAPreviousInstallLeftBlocked() {
+        let (service, shields) = makeService(sharedStore: sharedStoreWithEveryFeatureOn())
+        shields.apply(leftoverShields())
+
+        service.startFresh()
+
+        #expect(shields.currentShields().shieldedCount == 0)
+        #expect(shields.currentShields().hiddenApplications.isEmpty)
+        #expect(!service.isAppDeleteDisabled)
+    }
+
+    @Test func freshStartClearsLeftoversThatComeBackLater() {
+        let (service, shields) = makeService(sharedStore: sharedStoreWithEveryFeatureOn())
+        service.startFresh()
+        shields.apply(leftoverShields())
+
+        service.reconcile()
+
+        #expect(shields.currentShields().shieldedCount == 0)
+        #expect(shields.currentShields().hiddenApplications.isEmpty)
+        #expect(!service.isAppDeleteDisabled)
+    }
+
+    @Test func withoutAFreshStartExistingBlocksAreKept() {
+        let (service, shields) = makeService(sharedStore: sharedStoreWithEveryFeatureOn())
+        shields.apply(leftoverShields())
+
+        service.reconcile()
+
+        #expect(shields.currentShields() == leftoverShields())
+        #expect(service.isAppDeleteDisabled)
     }
 
     @Test func notifyUpdateIncrementsCount() {
