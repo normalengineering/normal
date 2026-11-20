@@ -27,7 +27,8 @@ struct NormalApp: App {
 
         let context = container.mainContext
         let descriptor = FetchDescriptor<Settings>()
-        if (try? context.fetchCount(descriptor)) == 0 {
+        let isFreshInstall = (try? context.fetchCount(descriptor)) == 0
+        if isFreshInstall {
             let settings = Settings()
             settings.hasCompletedOnboarding = UITestSupport.skipOnboarding
             settings.enableCustomDomains = UITestSupport.customDomains || UITestSupport.crowdedSelections
@@ -88,6 +89,9 @@ struct NormalApp: App {
 
         modelContainer = container
         services = AppServices()
+        if isFreshInstall && !configuration.isStoredInMemoryOnly {
+            services.screenTime.startFresh()
+        }
 
         let blockPerformer: any BlockIntentPerforming = AppBlockIntentPerformer(
             container: container,

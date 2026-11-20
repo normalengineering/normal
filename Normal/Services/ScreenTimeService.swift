@@ -187,6 +187,13 @@ final class ScreenTimeService: ScreenTimeProviding {
         reconcile()
     }
 
+    func startFresh() {
+        reconcile { state in
+            state = ManualBlockState()
+            state.setAppDeletionBlocked(false, at: clock())
+        }
+    }
+
     func reconcile() {
         reconcile { _ in }
     }
