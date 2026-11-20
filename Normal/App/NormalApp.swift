@@ -30,7 +30,7 @@ struct NormalApp: App {
         if (try? context.fetchCount(descriptor)) == 0 {
             let settings = Settings()
             settings.hasCompletedOnboarding = UITestSupport.skipOnboarding
-            settings.enableCustomDomains = UITestSupport.customDomains
+            settings.enableCustomDomains = UITestSupport.customDomains || UITestSupport.crowdedSelections
             settings.skipBlockWithoutKeyConfirmation = UITestSupport.skipBypassConfirm
             settings.customUnblockDurationSeconds = UITestSupport.unblockDurationSeconds
             settings.defaultUnblockSeconds = UITestSupport.defaultDurationSeconds
@@ -50,7 +50,8 @@ struct NormalApp: App {
                 let group = AppGroup(
                     id: UITestSupport.seedGroupID,
                     name: "Test Group",
-                    selection: UITestSupport.groupSelection
+                    selection: UITestSupport.groupSelection,
+                    customDomains: UITestSupport.crowdedSelections ? UITestSupport.crowdedDomains : []
                 )
                 context.insert(group)
                 context.insert(Key(name: "Group Key", type: .qr, rawValue: "GROUP-VALUE", groupID: group.id))
@@ -76,8 +77,12 @@ struct NormalApp: App {
                         weekdays: [2, 3, 4, 5, 6],
                         shouldBlock: true,
                         isTimed: false,
-                        isEnabled: true
+                        isEnabled: true,
+                        customDomains: UITestSupport.crowdedSelections ? UITestSupport.crowdedDomains : []
                     ))
+            }
+            if UITestSupport.seedUsageLimit {
+                context.insert(UsageLimit(selection: UITestSupport.usageLimitSelection, minutesPerDay: 45))
             }
         }
 

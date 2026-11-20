@@ -8,9 +8,7 @@ struct UsageLimitRow: View {
     var body: some View {
         HStack(spacing: DS.Spacing.md) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                HStack(spacing: DS.Spacing.sm) {
-                    SelectionIconsView(tokens: limit.selection.allTokens, limit: 5)
-                }
+                SelectionIconRow(tokens: limit.selection.allTokens, maxCount: 5)
                 Text(verbatim: limit.selection.selectedTokenCounts)
                     .font(.caption)
                     .foregroundStyle(.secondary)

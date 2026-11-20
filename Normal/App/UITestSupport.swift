@@ -21,6 +21,15 @@ enum UITestSupport {
 
     static let customDomains = arguments.contains("-uiTestCustomDomains")
 
+    static let crowdedSelections = arguments.contains("-uiTestCrowdedSelections")
+
+    static let seedUsageLimit = arguments.contains("-uiTestSeedUsageLimit")
+
+    static let crowdedDomains = [
+        "apple.com", "bbc.com", "cnn.com", "dropbox.com", "espn.com",
+        "figma.com", "github.com", "hulu.com", "imdb.com",
+    ]
+
     static let websitesOnly = arguments.contains("-uiTestWebsitesOnly")
 
     static let timedUnblockFails = arguments.contains("-uiTestTimedUnblockFails")
@@ -49,7 +58,9 @@ enum UITestSupport {
 
     static let mainSelection = selection(apps: websitesOnly ? [] : [1, 2, 3])
 
-    static let mainCustomDomains = websitesOnly ? ["example.com"] : []
+    static let mainCustomDomains = websitesOnly ? ["example.com"] : (crowdedSelections ? crowdedDomains : [])
+
+    static let usageLimitSelection = selection(apps: [1, 2, 3, 4, 5, 6, 7, 8])
 
     static let groupSelection = selection(apps: [1])
 

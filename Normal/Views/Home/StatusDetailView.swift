@@ -81,7 +81,7 @@ struct StatusDetailView: View {
     private func limitRow(_ limit: UsageLimit, state: UsageLimitState, isOff: Bool, isPaused: Bool) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                SelectionIconsView(tokens: limit.selection.allTokens, limit: 5)
+                SelectionIconRow(tokens: limit.selection.allTokens, maxCount: 5)
                 Text("\(limit.selection.selectedTokenCounts) · \(DurationFormat.compact(minutes: limit.minutesPerDay)) a day")
                     .font(.caption)
                     .foregroundStyle(.secondary)

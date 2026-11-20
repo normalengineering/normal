@@ -181,7 +181,7 @@ struct UsageLimitEditor: View {
 
     private var duplicatesWarning: some View {
         VStack(alignment: .leading, spacing: DS.Spacing.sm) {
-            SelectionIconsView(tokens: duplicates.allTokens, limit: 5)
+            SelectionIconRow(tokens: duplicates.allTokens, maxCount: 5)
             Text("Already in another limit. Remove them here, or change that limit instead.")
                 .foregroundStyle(.red)
         }
