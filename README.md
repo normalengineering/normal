@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/hero.svg" alt="Normal: reclaim your time. Keep your apps blocked." width="100%">
+</p>
+
 # Normal — Screen Time Blocker
 
 A powerful screen time blocker that actually works to reduce your screen time. Open source and privacy-focused. No subscriptions, paywalls, or data collection.
