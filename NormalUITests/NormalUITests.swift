@@ -205,6 +205,24 @@ final class NormalUITests: XCTestCase {
     }
 
     @MainActor
+    func testUpdatingSelectionWarnsThatSchedulesMayBeAffected() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedSchedule"])
+
+        let appSelectTab = app.mainTab("App Select")
+        require(appSelectTab, "App Select tab should be reachable")
+        appSelectTab.tap()
+
+        let update = app.buttons["Update Selected Apps"]
+        require(update, "The seeded main list should offer to update the selection")
+        update.tap()
+
+        let alert = app.alerts["Selection may affect existing schedules"]
+        require(alert, "Updating the selection with a schedule saved should warn about schedules")
+        alert.buttons["Cancel"].tap()
+        XCTAssertTrue(alert.waitForNonExistence(timeout: timeout), "Cancel should dismiss the warning")
+    }
+
+    @MainActor
     func testCustomDomainsEditorHiddenWhenToggleOff() {
         let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
 

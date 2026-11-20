@@ -9,6 +9,7 @@ struct AppSelectView: View {
 
     @Query private var selectedApps: [SelectedApps]
     @Query private var appGroups: [AppGroup]
+    @Query private var schedules: [BlockSchedule]
     @Query private var allSettings: [Settings]
 
     @State private var showSelectionChangeAlert = false
@@ -46,6 +47,10 @@ struct AppSelectView: View {
         } else {
             nil
         }
+    }
+
+    private var selectionChangeWarning: SelectionChangeWarning? {
+        SelectionChangeWarning(hasGroups: !appGroups.isEmpty, hasSchedules: !schedules.isEmpty)
     }
 
     private var buttonTitle: LocalizedStringKey {
@@ -86,15 +91,15 @@ struct AppSelectView: View {
             }
             .navigationTitle("App Select")
             .settingsToolbar()
-            .alert("Selection will affect your groups", isPresented: $showSelectionChangeAlert) {
+            .alert(selectionChangeWarning?.title ?? "", isPresented: $showSelectionChangeAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Continue", role: .destructive) {
                     isFamilyActivityPickerPresented = true
                 }
             } message: {
-                Text(
-                    "Updating your app selection will affect the functionality of your groups. After updating selection please update your groups to ensure consistency."
-                )
+                if let selectionChangeWarning {
+                    Text(selectionChangeWarning.message)
+                }
             }
             .familyActivityPicker(isPresented: $isFamilyActivityPickerPresented, selection: $selection)
             .onAppear {
@@ -110,7 +115,7 @@ struct AppSelectView: View {
 
     private func onUpdateSelectionButton() {
         screenTimeService.ifAuthorized {
-            if appGroups.isEmpty {
+            if selectionChangeWarning == nil {
                 isFamilyActivityPickerPresented = true
             } else {
                 showSelectionChangeAlert = true
@@ -144,5 +149,39 @@ struct AppSelectView: View {
             customDomains: effectiveCustomDomains,
             screenTimeService: screenTimeService
         )
+    }
+}
+
+enum SelectionChangeWarning: Equatable {
+    case groups
+    case schedules
+    case groupsAndSchedules
+
+    init?(hasGroups: Bool, hasSchedules: Bool) {
+        switch (hasGroups, hasSchedules) {
+        case (true, true): self = .groupsAndSchedules
+        case (true, false): self = .groups
+        case (false, true): self = .schedules
+        case (false, false): return nil
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .groups: "Selection may affect existing groups"
+        case .schedules: "Selection may affect existing schedules"
+        case .groupsAndSchedules: "Selection may affect existing groups and schedules"
+        }
+    }
+
+    var message: LocalizedStringKey {
+        switch self {
+        case .groups:
+            "Groups that use apps you remove will need updating. Until then, their cards are locked."
+        case .schedules:
+            "Schedules that use apps you remove will need updating. Until then, their cards are locked."
+        case .groupsAndSchedules:
+            "Groups and schedules that use apps you remove will need updating. Until then, their cards are locked."
+        }
     }
 }
