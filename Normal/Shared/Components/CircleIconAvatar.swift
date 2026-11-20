@@ -4,12 +4,13 @@ struct CircleIconAvatar: View {
     let systemImage: String
     var tint: Color = .accentColor
     var size: CGFloat = DS.Size.avatar
+    @ScaledMetric(relativeTo: .title3) private var scale: CGFloat = 1
 
     var body: some View {
         ZStack {
             Circle()
                 .fill(tint.opacity(DS.Opacity.subtle))
-                .frame(width: size, height: size)
+                .frame(width: size * scale, height: size * scale)
             Image(systemName: systemImage)
                 .font(.title3)
                 .foregroundStyle(tint)

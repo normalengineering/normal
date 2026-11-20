@@ -18,7 +18,7 @@ struct WeekdayStrip: View {
                 let isOn = weekdays.contains(day)
                 Text(Calendar.current.veryShortWeekdaySymbols[day - 1])
                     .font(.caption2.weight(.medium))
-                    .frame(minWidth: chipWidth)
+                    .frame(minWidth: 0, idealWidth: chipWidth, maxWidth: chipWidth)
                     .padding(.vertical, DS.Spacing.xs - 1)
                     .foregroundStyle(isOn ? Color.primary : Color.secondary)
                     .background(isOn ? Color.accentColor.opacity(DS.Opacity.muted) : Color(.tertiarySystemFill))

@@ -6,7 +6,7 @@ struct UsageLimitRow: View {
     let now: Date
 
     var body: some View {
-        HStack(spacing: DS.Spacing.md) {
+        AdaptiveStack(spacing: DS.Spacing.md) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 SelectionIconRow(tokens: limit.selection.allTokens, maxCount: 5)
                 Text(verbatim: limit.selection.selectedTokenCounts)
@@ -18,7 +18,7 @@ struct UsageLimitRow: View {
                         .accessibilityIdentifier("usage.graceCountdown")
                 }
             }
-            Spacer(minLength: DS.Spacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
             Text(DurationFormat.compact(minutes: limit.minutesPerDay))
                 .font(.body.monospacedDigit())
                 .foregroundStyle(.secondary)

@@ -3,6 +3,7 @@ import SwiftUI
 
 struct LocationKeyInfoSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let key: Key
     let currentLocation: CLLocation?
@@ -22,48 +23,51 @@ struct LocationKeyInfoSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.lg) {
-            HStack(spacing: DS.Spacing.md) {
-                CircleIconAvatar(systemImage: key.radiusKind?.icon ?? "location.fill", tint: tint)
-                VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
-                    Text(key.name).font(.headline)
-                    if let kind = key.radiusKind {
-                        Text(kind.label).font(.subheadline).foregroundStyle(tint)
+        ScrollView {
+            VStack(alignment: .leading, spacing: DS.Spacing.lg) {
+                HStack(spacing: DS.Spacing.md) {
+                    CircleIconAvatar(systemImage: key.radiusKind?.icon ?? "location.fill", tint: tint)
+                    VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
+                        Text(key.name).font(.headline)
+                        if let kind = key.radiusKind {
+                            Text(kind.label).font(.subheadline).foregroundStyle(tint)
+                        }
+                    }
+                    Spacer()
+                    CloseButton(placement: .inline) { dismiss() }
+                        .accessibilityIdentifier("locationKeyInfo.close")
+                }
+
+                AdaptiveStack(spacing: DS.Spacing.md) {
+                    if let radius = key.radiusMeters {
+                        infoPill(title: "Radius", value: LocationFormat.distance(meters: radius))
+                    }
+                    if let distanceText {
+                        infoPill(title: "Distance", value: distanceText)
                     }
                 }
-                Spacer()
-                CloseButton(placement: .inline) { dismiss() }
-                    .accessibilityIdentifier("locationKeyInfo.close")
-            }
 
-            HStack(spacing: DS.Spacing.md) {
-                if let radius = key.radiusMeters {
-                    infoPill(title: "Radius", value: LocationFormat.distance(meters: radius))
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Label("Delete Key", systemImage: "trash").frame(maxWidth: .infinity)
                 }
-                if let distanceText {
-                    infoPill(title: "Distance", value: distanceText)
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .controlSize(.large)
+                .disabled(!canDelete)
+
+                if !canDelete {
+                    Text("At least one key must exist. Add another key before deleting this one.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
-
-            Button(role: .destructive) {
-                showDeleteConfirmation = true
-            } label: {
-                Label("Delete Key", systemImage: "trash").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
-            .controlSize(.large)
-            .disabled(!canDelete)
-
-            if !canDelete {
-                Text("At least one key must exist. Add another key before deleting this one.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            .padding(DS.Spacing.xl)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(DS.Spacing.xl)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .presentationDetents([.height(canDelete ? 260 : 300)])
+        .scrollBounceBehavior(.basedOnSize)
+        .presentationDetents(detents)
         .presentationDragIndicator(.visible)
         .deleteConfirmation(
             title: "Delete Key?",
@@ -71,6 +75,10 @@ struct LocationKeyInfoSheet: View {
             isPresented: $showDeleteConfirmation,
             onDelete: onDelete
         )
+    }
+
+    private var detents: Set<PresentationDetent> {
+        dynamicTypeSize.isAccessibilitySize ? [.medium, .large] : [.height(canDelete ? 260 : 300)]
     }
 
     private func infoPill(title: String, value: String) -> some View {

@@ -16,7 +16,6 @@ struct CustomDomainSubsetRow: View {
                     .font(.title2)
                     .foregroundStyle(isOn ? Color.accentColor : Color.secondary.opacity(0.45))
                 Label(domain, systemImage: "globe")
-                    .lineLimit(1)
             }
             .contentShape(.rect)
         }

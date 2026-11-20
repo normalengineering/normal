@@ -4,6 +4,7 @@ import SwiftUI
 
 struct ScheduleFormSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.modelContext) private var modelContext
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(ScreenTimeService.self) private var screenTimeService
@@ -227,11 +228,24 @@ struct ScheduleFormSheet: View {
         }
     }
 
+    @ViewBuilder
+    private func timeRow(_ title: LocalizedStringKey, selection: Binding<Date>) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                Text(title)
+                DatePicker(title, selection: selection, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+            }
+        } else {
+            DatePicker(title, selection: selection, displayedComponents: .hourAndMinute)
+        }
+    }
+
     private var timeSection: some View {
         Section {
-            DatePicker("Starts at", selection: $startTime, displayedComponents: .hourAndMinute)
+            timeRow("Starts at", selection: $startTime)
             if isTimed {
-                DatePicker("Ends at", selection: $endTime, displayedComponents: .hourAndMinute)
+                timeRow("Ends at", selection: $endTime)
             }
         } header: {
             Text("Time")

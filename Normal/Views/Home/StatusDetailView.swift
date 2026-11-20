@@ -79,14 +79,14 @@ struct StatusDetailView: View {
     }
 
     private func limitRow(_ limit: UsageLimit, state: UsageLimitState, isOff: Bool, isPaused: Bool) -> some View {
-        HStack {
+        AdaptiveStack(spacing: DS.Spacing.sm) {
             VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 SelectionIconRow(tokens: limit.selection.allTokens, maxCount: 5)
                 Text("\(limit.selection.selectedTokenCounts) · \(DurationFormat.compact(minutes: limit.minutesPerDay)) a day")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
             if isOff {
                 StatusBadge(title: "Off", systemImage: "exclamationmark.triangle.fill", tint: .red)
             } else if isPaused {
@@ -102,11 +102,10 @@ struct StatusDetailView: View {
         if !customDomains.isEmpty {
             Section("Custom Domains") {
                 ForEach(customDomains, id: \.self) { domain in
-                    HStack {
+                    AdaptiveStack(spacing: DS.Spacing.sm) {
                         Label(domain, systemImage: "globe")
                             .labelStyle(.titleAndIcon)
-                            .lineLimit(1)
-                        Spacer()
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         let status: BlockStatus = overallStatus == .none ? .none : .all
                         StatusBadge(
                             title: LocalizedStringKey(status.shortLabel),
@@ -130,11 +129,10 @@ struct StatusDetailView: View {
 
     private func tokenRow(_ kind: SelectedTokenKind) -> some View {
         let status: BlockStatus = screenTimeService.isShielded(kind) ? .all : .none
-        return HStack {
+        return AdaptiveStack(spacing: DS.Spacing.sm) {
             SelectionTokenLabel(kind: kind)
                 .labelStyle(.titleAndIcon)
-                .lineLimit(1)
-            Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
             StatusBadge(
                 title: LocalizedStringKey(status.shortLabel),
                 systemImage: status.icon,

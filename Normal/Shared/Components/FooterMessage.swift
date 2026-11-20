@@ -7,6 +7,7 @@ struct FooterMessage: View {
         Text(text)
             .font(.footnote)
             .foregroundStyle(.secondary)
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
             .frame(maxWidth: .infinity)
             .padding()
     }
@@ -23,9 +24,9 @@ extension View {
     @ViewBuilder
     func bottomFooter(@ViewBuilder _ footer: () -> some View) -> some View {
         if #available(iOS 26.0, *) {
-            safeAreaBar(edge: .bottom) { footer() }
+            safeAreaBar(edge: .bottom) { footer().background(.bar) }
         } else {
-            safeAreaInset(edge: .bottom) { footer() }
+            safeAreaInset(edge: .bottom) { footer().background(.bar) }
         }
     }
 }

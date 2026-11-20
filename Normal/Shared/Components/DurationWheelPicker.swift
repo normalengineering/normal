@@ -53,6 +53,7 @@ struct DurationWheelPicker: View {
             .accessibilityIdentifier(identifierPrefix.map { "\($0).\(identifier)" } ?? identifier)
             Text(unit)
                 .foregroundStyle(.secondary)
+                .fixedSize()
                 .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity)

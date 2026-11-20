@@ -74,7 +74,6 @@ struct CustomDomainsEditor: View {
             ForEach(domains, id: \.self) { domain in
                 HStack {
                     Label(domain, systemImage: "globe")
-                        .lineLimit(1)
                     if canRemove {
                         Spacer()
                         deleteButton(domain)

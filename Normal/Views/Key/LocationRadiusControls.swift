@@ -14,10 +14,10 @@ struct LocationRadiusControls: View {
         VStack(alignment: .leading, spacing: DS.Spacing.md) {
             legend
 
-            HStack {
+            AdaptiveStack(spacing: DS.Spacing.sm) {
                 Text(radiusLabel)
                     .font(.headline.monospacedDigit())
-                Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 Button(action: onUseCurrentLocation) {
                     Label("My Location", systemImage: "location.fill").font(.subheadline)
                 }
@@ -45,11 +45,11 @@ struct LocationRadiusControls: View {
     }
 
     private var legend: some View {
-        HStack(spacing: DS.Spacing.lg) {
+        AdaptiveStack(spacing: DS.Spacing.lg) {
             legendItem(color: kind.zoneColor, text: kind.zoneLegend, filled: true)
             legendItem(color: kind.fieldColor, text: kind.fieldLegend, filled: false)
-            Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func legendItem(color: Color, text: String, filled: Bool) -> some View {

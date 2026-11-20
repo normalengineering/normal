@@ -19,7 +19,7 @@ struct GroupKeyRow: View {
             HStack {
                 Label {
                     VStack(alignment: .leading, spacing: DS.Spacing.xs - 2) {
-                        Text(key.name).lineLimit(1)
+                        Text(key.name)
                         Text(key.displayTypeLabel)
                             .font(.caption)
                             .foregroundStyle(.secondary)
