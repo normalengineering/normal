@@ -88,6 +88,43 @@ final class RecoveryUITests: XCTestCase {
         require(app.staticTexts["No Keys Yet"], "Go to Keys should open the Keys tab")
     }
 
+    func testBlockingWorksAfterAddingAKeyFromTheAlert() {
+        let app = launch(["-uiTestNoKeys"])
+
+        app.buttons["home.blockAll"].tap()
+        let alert = app.alerts["Add a Key First"]
+        require(alert, "Blocking without a key should explain why")
+        alert.buttons["Go to Keys"].tap()
+
+        let addButton = app.buttons["keys.addButton"]
+        require(addButton, "Go to Keys should open the Keys tab")
+        addButton.tap()
+        let nameField = app.textFields["key.nameField"]
+        require(nameField, "Key name field should appear in the new-key sheet")
+        nameField.tap()
+        nameField.typeText("Test Key")
+        app.buttons["key.scanButton"].tap()
+        require(app.staticTexts["Key Linked"], "Scan should link a key via the stubbed scanner")
+        app.buttons["key.saveButton"].tap()
+        require(app.staticTexts["Test Key"], "Saved key should appear in the keys list")
+
+        app.mainTab("Home").tap()
+        app.buttons["home.blockAll"].tap()
+        require(app.buttons["keySelect.blockWithoutKey"], "Block should open the key sheet once a key exists")
+    }
+
+    func testBlockingAgainAfterNotNowShowsTheAlertAgain() {
+        let app = launch(["-uiTestNoKeys"])
+
+        app.buttons["home.blockAll"].tap()
+        let alert = app.alerts["Add a Key First"]
+        require(alert, "Blocking without a key should explain why")
+        alert.buttons["Not Now"].tap()
+
+        app.buttons["home.blockAll"].tap()
+        require(app.alerts["Add a Key First"], "Tapping Block again should show the alert again")
+    }
+
     func testBlockingAllWithOnlyGroupKeysExplainsWhy() {
         let app = launch(["-uiTestNoKeys", "-uiTestSeedGroupKey"])
 

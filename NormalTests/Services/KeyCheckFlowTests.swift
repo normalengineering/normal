@@ -74,6 +74,16 @@ struct KeyCheckFlowTests {
         #expect(counter.runs == 0)
     }
 
+    @Test func cancellingAgainKeepsTheFinishedRequest() {
+        let request = request([], available: [])
+        start(request, allowBypass: true)
+
+        flow.cancel()
+        flow.cancel()
+
+        #expect(flow.finishedRequestID == request.id)
+    }
+
     @Test func blockingWithNoKeysAsksForOne() {
         start(request([], available: []), allowBypass: true)
 

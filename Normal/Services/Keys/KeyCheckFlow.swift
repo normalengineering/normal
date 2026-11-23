@@ -170,6 +170,7 @@ final class KeyCheckFlow {
     }
 
     func cancel() {
+        guard stage != .idle else { return }
         stopScan()
         finish()
     }
