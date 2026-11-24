@@ -2,11 +2,14 @@ import DeviceActivity
 import FamilyControls
 import Foundation
 import ManagedSettings
+import os
 
 final class NormalMonitor: DeviceActivityMonitor {
     private let sharedStore = SharedStore()
     private let store = ManagedSettingsStore()
     private let limitStore = ManagedSettingsStore(named: .dailyLimits)
+
+    private static let dailyLimitRepairs = OSAllocatedUnfairLock(initialState: 0)
 
     override func intervalDidStart(for activity: DeviceActivityName) {
         if activity.rawValue == SharedConstants.usageLimitsActivityName {
@@ -14,11 +17,15 @@ final class NormalMonitor: DeviceActivityMonitor {
             sharedStore.saveUsageLimitsIntervalStart(.now)
             limitStore.syncDailyLimits(from: sharedStore)
         }
-        reconcile("intervalDidStart", activity: activity.rawValue)
+        let center = DeviceActivityCenter()
+        repairDailyLimits(after: activity, center: center)
+        reconcile("intervalDidStart", activity: activity.rawValue, center: center)
     }
 
     override func intervalDidEnd(for activity: DeviceActivityName) {
-        reconcile("intervalDidEnd", activity: activity.rawValue)
+        let center = DeviceActivityCenter()
+        repairDailyLimits(after: activity, center: center)
+        reconcile("intervalDidEnd", activity: activity.rawValue, center: center)
     }
 
     override func eventDidReachThreshold(
@@ -39,14 +46,29 @@ final class NormalMonitor: DeviceActivityMonitor {
         reconcile("eventWillReachThresholdWarning", activity: event.rawValue)
     }
 
-    private func reconcile(_ callback: String, activity: String) {
+    private func repairDailyLimits(after activity: DeviceActivityName, center: DeviceActivityCenter) {
+        guard activity.rawValue == SharedConstants.reblockHeartbeatActivityName else { return }
+        Self.dailyLimitRepairs.withLock { $0 += 1 }
+        defer { Self.dailyLimitRepairs.withLock { $0 -= 1 } }
+        DailyLimitMonitoring.repairOnHeartbeat(activity, center: center, store: sharedStore)
+    }
+
+    private func reconcile(
+        _ callback: String,
+        activity: String,
+        center: DeviceActivityCenter = DeviceActivityCenter()
+    ) {
+        guard Self.dailyLimitRepairs.withLock({ $0 }) == 0 else {
+            CallbackLog.record("monitor \(callback) \(label(for: activity)): skipped while daily limits are re-registered")
+            return
+        }
         let now = Date.now
         let before = store.currentShields()
         guard
             let plan = ShieldReconciler.reconcile(
                 sharedStore: sharedStore,
                 shields: store,
-                monitoredActivities: Set(DeviceActivityCenter().activities.map(\.rawValue)),
+                monitoredActivities: Set(center.activities.map(\.rawValue)),
                 at: now
             )
         else { return }

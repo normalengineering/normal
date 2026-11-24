@@ -147,7 +147,9 @@ final class TimedUnblockService {
             cancelExpiration(id: key)
         }
         activeUnblocks.removeAll()
-        activityCenter.stopMonitoring(activityNames.map { DeviceActivityName($0) })
+        if !activityNames.isEmpty {
+            activityCenter.stopMonitoring(activityNames.map { DeviceActivityName($0) })
+        }
         syncHeartbeat()
     }
 

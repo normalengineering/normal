@@ -18,6 +18,10 @@ struct UsageLimitServiceTests {
         let store: FakeSharedStore
         let ledger: InMemoryUsageLimitLedger
         let shield: InMemoryDailyLimitShield
+
+        var dailyStarts: [FakeDeviceActivityCenter.StartCall] {
+            center.startCalls.filter { $0.name.rawValue == SharedConstants.usageLimitsActivityName }
+        }
     }
 
     private func makeService(ledgerDate: Date? = nil) -> Harness {
@@ -54,7 +58,7 @@ struct UsageLimitServiceTests {
         let first = try dto(minutes: 60)
         let second = try dto(minutes: 20)
 
-        let specs = UsageLimitService.eventSpecs(for: [first, second], period: config.period, on: day)
+        let specs = DailyLimitMonitoring.eventSpecs(for: [first, second], period: config.period, on: day)
 
         #expect(specs.count == 2)
         #expect(specs.map(\.minutes).sorted() == [20, 60])
@@ -63,7 +67,7 @@ struct UsageLimitServiceTests {
     @Test func eventNamesRoundTripBackToTheirLimit() throws {
         let limit = try dto(minutes: 60)
 
-        let spec = try #require(UsageLimitService.eventSpecs(for: [limit], period: config.period, on: day).first)
+        let spec = try #require(DailyLimitMonitoring.eventSpecs(for: [limit], period: config.period, on: day).first)
 
         #expect(spec.eventName == SharedConstants.usageLimitEventName(for: limit.id))
         #expect(SharedConstants.usageLimitID(fromEventName: spec.eventName) == limit.id)
@@ -73,7 +77,7 @@ struct UsageLimitServiceTests {
     /// armed — otherwise the threshold never fires and the limit looks active
     /// while doing nothing.
     @Test func aLimitWithAnEmptySelectionIsNotArmable() throws {
-        let spec = try #require(try UsageLimitService.eventSpecs(for: [dto(minutes: 60)], period: config.period, on: day).first)
+        let spec = try #require(try DailyLimitMonitoring.eventSpecs(for: [dto(minutes: 60)], period: config.period, on: day).first)
 
         #expect(spec.isArmable == false)
     }
@@ -85,14 +89,14 @@ struct UsageLimitServiceTests {
             minutesPerDay: 60
         )
 
-        #expect(UsageLimitService.eventSpecs(for: [broken], period: config.period, on: day).isEmpty)
+        #expect(DailyLimitMonitoring.eventSpecs(for: [broken], period: config.period, on: day).isEmpty)
     }
 
     @Test func aLimitCreatedTodayCountsOnlyTimeAfterItIsRegistered() throws {
         var limit = try dto(minutes: 60)
         limit.createdAt = day
 
-        let spec = try #require(UsageLimitService.eventSpecs(for: [limit], period: config.period, on: day).first)
+        let spec = try #require(DailyLimitMonitoring.eventSpecs(for: [limit], period: config.period, on: day).first)
 
         #expect(spec.includesPastActivity == false)
         #expect(spec.event.includesPastActivity == false)
@@ -102,14 +106,14 @@ struct UsageLimitServiceTests {
         var limit = try dto(minutes: 60)
         limit.createdAt = day - .days(1)
 
-        let spec = try #require(UsageLimitService.eventSpecs(for: [limit], period: config.period, on: day).first)
+        let spec = try #require(DailyLimitMonitoring.eventSpecs(for: [limit], period: config.period, on: day).first)
 
         #expect(spec.includesPastActivity)
         #expect(spec.event.includesPastActivity)
     }
 
     @Test func aLimitSavedBeforeCreationDatesExistedCountsTheWholeDay() throws {
-        let spec = try #require(try UsageLimitService.eventSpecs(for: [dto(minutes: 60)], period: config.period, on: day).first)
+        let spec = try #require(try DailyLimitMonitoring.eventSpecs(for: [dto(minutes: 60)], period: config.period, on: day).first)
 
         #expect(spec.includesPastActivity)
     }
@@ -121,8 +125,9 @@ struct UsageLimitServiceTests {
         h.service.registerAll([limit], config: config, on: day)
         h.service.registerAll([limit], config: config, on: day + .days(1))
 
-        let flags = h.center.startCalls.compactMap { $0.events.values.first?.includesPastActivity }
+        let flags = h.dailyStarts.compactMap { $0.events.values.first?.includesPastActivity }
         #expect(flags == [false, true])
+        #expect(h.center.events(for: usageActivity).count == 1)
     }
 
     @Test func theEditorSaysWhetherTimeUsedEarlierTodayCounts() {
@@ -138,9 +143,9 @@ struct UsageLimitServiceTests {
     // MARK: - The daily schedule
 
     @Test func aMidnightResetSpansOneCalendarDay() {
-        let schedule = DeviceActivityScheduleFactory.daily(
+        let schedule = DailyLimitMonitoring.daily(
             resetMinutes: 0,
-            warningMinutes: UsageLimitService.warningMinutes
+            warningMinutes: SharedConstants.usageLimitWarningMinutes
         )
 
         #expect(schedule.intervalStart.hour == 0)
@@ -149,11 +154,11 @@ struct UsageLimitServiceTests {
         #expect(schedule.intervalEnd.minute == 59)
         #expect(schedule.intervalEnd.second == 59)
         #expect(schedule.repeats)
-        #expect(schedule.warningTime?.minute == UsageLimitService.warningMinutes)
+        #expect(schedule.warningTime?.minute == SharedConstants.usageLimitWarningMinutes)
     }
 
     @Test func aLaterResetWrapsPastMidnight() {
-        let schedule = DeviceActivityScheduleFactory.daily(resetMinutes: 4 * 60 + 30, warningMinutes: 3)
+        let schedule = DailyLimitMonitoring.daily(resetMinutes: 4 * 60 + 30, warningMinutes: 3)
 
         #expect(schedule.intervalStart.hour == 4)
         #expect(schedule.intervalStart.minute == 30)
@@ -165,13 +170,16 @@ struct UsageLimitServiceTests {
 
     // MARK: - Registration
 
-    @Test func registeringWithNoLimitsStopsTheUsageActivityAndStartsNothing() {
+    @Test func registeringWithNoLimitsStopsTheUsageActivityAndStartsNothing() throws {
         let h = makeService()
+        try h.center.startMonitoring(usageActivity, during: DailyLimitMonitoring.daily(resetMinutes: 0, warningMinutes: 3), events: [:])
+        let starts = h.dailyStarts.count
 
         h.service.registerAll([], config: config, on: day)
 
         #expect(h.store.usageLimits.isEmpty)
-        #expect(h.center.startCalls.isEmpty)
+        #expect(h.dailyStarts.count == starts)
+        #expect(h.center.events(for: usageActivity).isEmpty)
         #expect(h.center.stopCalls == [[usageActivity]])
     }
 
@@ -207,13 +215,180 @@ struct UsageLimitServiceTests {
 
     @Test func reRegisteringAnUnchangedArmedSetDoesNotTouchMonitoring() {
         let h = makeService()
-        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
+        let eventName = DeviceActivityEvent.Name(SharedConstants.usageLimitEventName(for: limit.id))
 
         h.service.registerAll([limit], config: config, on: day)
         h.service.registerAll([limit], config: config, on: day)
 
-        #expect(h.center.startCalls.count == 1)
-        #expect(h.center.stopCalls.count == 1)
+        #expect(h.dailyStarts.count == 1)
+        #expect(h.center.stopCalls.isEmpty)
+        #expect(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+        #expect(h.dailyStarts.last?.events[eventName]?.threshold.minute == 5)
+    }
+
+    @Test func reEncodingAnUnchangedSelectionDoesNotReRegister() throws {
+        let h = makeService()
+        let selection = TokenFixtures.selection(apps: [1, 2, 3])
+        let limit = UsageLimit(selection: selection, minutesPerDay: 30, createdAt: day)
+        h.service.registerAll([limit], config: config, on: day)
+        let stored = try #require(h.store.usageLimits.first)
+        var plist = try #require(
+            PropertyListSerialization.propertyList(from: stored.selectionData, format: nil) as? [String: Any]
+        )
+        let apps = try #require(plist["applicationTokens"] as? [Any])
+        plist["applicationTokens"] = Array(apps.reversed())
+        let reordered = try PropertyListSerialization.data(fromPropertyList: plist, format: .binary, options: 0)
+        try #require(reordered != stored.selectionData)
+        try #require(try FamilyActivitySelection.fromData(reordered) == selection)
+
+        h.store.usageLimits = [
+            UsageLimitDTO(
+                id: stored.id,
+                selectionData: reordered,
+                minutesPerDay: stored.minutesPerDay,
+                createdAt: stored.createdAt
+            )
+        ]
+        try DailyLimitMonitoring.reconcile(center: h.center, store: h.store, on: day + .minutes(10), source: "monitor")
+
+        #expect(h.dailyStarts.count == 1)
+    }
+
+    @Test func aRepairRacingAnEditEndsOnTheEditedLimit() throws {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60, createdAt: day - .days(2))
+        let name = DeviceActivityEvent.Name(SharedConstants.usageLimitEventName(for: limit.id))
+        h.service.registerAll([limit], config: config, on: day)
+        let staleRegistration = try #require(h.store.usageRegistration)
+
+        let other = makeService()
+        let edited = UsageLimit(selection: limit.selection, minutesPerDay: 30, createdAt: day - .days(2))
+        edited.id = limit.id
+        other.service.registerAll([edited], config: config, on: day)
+        let editedRegistration = try #require(other.store.usageRegistration)
+
+        h.center.stopMonitoring([usageActivity])
+        h.store.didSaveRegistration = { saved in
+            guard saved == staleRegistration else { return }
+            h.store.didSaveRegistration = nil
+            h.store.usageLimits = other.store.usageLimits
+            h.store.usageRegistration = editedRegistration
+        }
+        let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
+        DailyLimitMonitoring.repairOnHeartbeat(heartbeat, center: h.center, store: h.store, on: day + .hours(1))
+
+        #expect(h.center.events(for: usageActivity)[name]?.threshold.minute == 30)
+    }
+
+    @Test func restoresAFiveMinuteEventWhenItsActivityIsStillMonitored() throws {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
+        let eventName = DeviceActivityEvent.Name(SharedConstants.usageLimitEventName(for: limit.id))
+        h.service.registerAll([limit], config: config, on: day)
+        let registration = try #require(h.dailyStarts.last)
+        try #require(registration.events[eventName]?.threshold.minute == 5)
+
+        try h.center.startMonitoring(usageActivity, during: registration.schedule, events: [:])
+        try #require(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+        try #require(h.dailyStarts.last?.events.isEmpty == true)
+
+        h.service.registerAll([limit], config: config, on: day)
+
+        #expect(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+        #expect(h.center.events(for: usageActivity)[eventName]?.threshold.minute == 5)
+    }
+
+    @Test(arguments: [true, false])
+    func heartbeatRepairsTheFiveMinuteLimitWhileNormalIsClosed(wholeActivityLost: Bool) throws {
+        let h = makeService()
+        let midnight = Calendar.current.startOfDay(for: day)
+        let yesterday = midnight - .hours(12)
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: midnight - .days(2))
+        h.service.registerAll([limit], config: config, on: yesterday)
+        let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
+        try #require(h.center.monitoredActivityNames.contains(heartbeat.rawValue))
+        let original = try #require(h.dailyStarts.last)
+        let name = try #require(original.events.keys.first)
+        if wholeActivityLost {
+            h.center.stopMonitoring([usageActivity])
+        } else {
+            try h.center.startMonitoring(usageActivity, during: original.schedule, events: [:])
+        }
+
+        let evening = midnight + .hours(22) + .minutes(30)
+        DailyLimitMonitoring.repairOnHeartbeat(heartbeat, center: h.center, store: h.store, on: evening)
+        let repaired = try #require(h.center.events(for: usageActivity)[name])
+        #expect(repaired.threshold.minute == 5)
+        #expect(repaired.includesPastActivity)
+        h.store.saveUsageLimitsIntervalStart(evening)
+        h.store.enforceUsageThreshold(eventName: name.rawValue, on: evening + 2, apply: h.shield.apply)
+        #expect(h.shield.shieldedLimitIDs == [limit.id])
+        #expect(h.store.usageState(for: limit.id, on: evening + .minutes(26)) == .reached)
+    }
+
+    @Test func syncHeartbeatKeepsRecoveryAliveWhenIOSDropsDailyLimitsAndStopsWhenRemoved() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day)
+        let heartbeat = SharedConstants.reblockHeartbeatActivityName
+        h.service.registerAll([limit], config: config, on: day)
+        #expect(h.center.monitoredActivityNames.contains(heartbeat))
+
+        h.center.stopMonitoring([usageActivity])
+        h.center.syncHeartbeat(sharedStore: h.store, at: day)
+        #expect(h.center.monitoredActivityNames.contains(heartbeat))
+
+        h.service.registerAll([], config: config, on: day)
+        #expect(!h.center.monitoredActivityNames.contains(heartbeat))
+    }
+
+    @Test func aHeartbeatThatReadsNoLimitsLeavesThemRunning() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(2))
+        h.service.registerAll([limit], config: config, on: day)
+        let starts = h.dailyStarts.count
+
+        h.store.usageLimits = []
+        let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
+        DailyLimitMonitoring.repairOnHeartbeat(heartbeat, center: h.center, store: h.store, on: day + .hours(1))
+
+        #expect(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+        #expect(h.dailyStarts.count == starts)
+    }
+
+    @Test func onlyTheHeartbeatRepairsDailyLimits() throws {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(2))
+        h.service.registerAll([limit], config: config, on: day)
+        let registration = try #require(h.dailyStarts.last)
+        try h.center.startMonitoring(usageActivity, during: registration.schedule, events: [:])
+        let starts = h.dailyStarts.count
+
+        DailyLimitMonitoring.repairOnHeartbeat(usageActivity, center: h.center, store: h.store, on: day + .hours(1))
+
+        #expect(h.dailyStarts.count == starts)
+    }
+
+    @Test func deletingALimitDuringHeartbeatRepairDoesNotRestoreIt() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day)
+        h.service.registerAll([limit], config: config, on: day)
+        h.center.stopMonitoring([usageActivity])
+        h.center.didStart = { _ in h.store.saveUsageLimits([]) }
+        let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
+        DailyLimitMonitoring.repairOnHeartbeat(heartbeat, center: h.center, store: h.store, on: day)
+        #expect(!h.center.monitoredActivityNames.contains(usageActivity.rawValue))
+        #expect(h.center.events(for: usageActivity).isEmpty)
+        h.center.didStart = nil
+    }
+
+    @Test func fiveMinuteLimitGetsTheLastSlotBeforeItsRecoveryHeartbeat() {
+        let h = makeService()
+        h.center.activityLimit = 1
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day)
+        h.service.registerAll([limit], config: config, on: day)
+        #expect(h.center.monitoredActivityNames == [usageActivity.rawValue])
+        #expect(h.service.registrationFailure == nil)
     }
 
     @Test(arguments: [UsageLimitState.warning, .reached])
@@ -222,7 +397,7 @@ struct UsageLimitServiceTests {
         let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
         let restarted = Calendar.current.startOfDay(for: day) + .hours(22)
         h.service.registerAll([limit], config: config, on: restarted)
-        let event = try #require(h.center.startCalls.last?.events.first)
+        let event = try #require(h.dailyStarts.last?.events.first)
         try #require(event.value.includesPastActivity)
         h.store.saveUsageLimitsIntervalStart(restarted)
 
@@ -361,7 +536,7 @@ struct UsageLimitServiceTests {
 
         h.service.registerAll([limit], config: config, on: day)
 
-        #expect(h.center.startCalls.count == 2)
+        #expect(h.dailyStarts.count == 2)
         #expect(h.center.monitoredActivityNames.contains(usageActivity.rawValue))
     }
 
@@ -439,39 +614,64 @@ struct UsageLimitServiceTests {
 
     @Test func changingALimitReRegisters() {
         let h = makeService()
-        let limit = UsageLimit(minutesPerDay: 60)
-
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60, createdAt: day)
+        let name = DeviceActivityEvent.Name(SharedConstants.usageLimitEventName(for: limit.id))
         h.service.registerAll([limit], config: config, on: day)
-        let stopsAfterFirst = h.center.stopCalls.count
-
         limit.minutesPerDay = 30
         h.service.registerAll([limit], config: config, on: day)
 
-        #expect(h.center.stopCalls.count > stopsAfterFirst)
+        #expect(h.center.events(for: usageActivity)[name]?.threshold.minute == 30)
+        #expect(h.dailyStarts.count == 2)
     }
 
     @Test func changingTheResetTimeReRegisters() {
         let h = makeService()
-        let limit = UsageLimit(minutesPerDay: 60)
-
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60, createdAt: day)
         h.service.registerAll([limit], config: config, on: day)
-        let stopsAfterFirst = h.center.stopCalls.count
-
         h.service.registerAll([limit], config: UsageLimitConfig(resetMinutes: 240), on: day)
 
-        #expect(h.center.stopCalls.count > stopsAfterFirst)
+        #expect(h.center.registeredSchedule(for: usageActivity)?.intervalStart.hour == 4)
+        #expect(h.dailyStarts.count == 2)
     }
 
-    @Test func aNewDayReRegisters() {
+    @Test func anEstablishedLimitRetainsItsEventAcrossResets() {
         let h = makeService()
-        let limit = UsageLimit(minutesPerDay: 60)
-
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
         h.service.registerAll([limit], config: config, on: day)
-        let stopsAfterFirst = h.center.stopCalls.count
-
         h.service.registerAll([limit], config: config, on: day + .days(1))
 
-        #expect(h.center.stopCalls.count > stopsAfterFirst)
+        #expect(h.dailyStarts.count == 1)
+        #expect(h.center.stopCalls.isEmpty)
+    }
+
+    @Test func changingWhatALimitWatchesReRegisters() {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
+        let name = DeviceActivityEvent.Name(SharedConstants.usageLimitEventName(for: limit.id))
+        h.service.registerAll([limit], config: config, on: day)
+
+        limit.selection = TokenFixtures.selection(apps: [2])
+        h.service.registerAll([limit], config: config, on: day)
+
+        #expect(h.dailyStarts.count == 2)
+        #expect(h.center.events(for: usageActivity)[name]?.applications == limit.selection.applicationTokens)
+    }
+
+    @Test func tokensReissuedByIOSDoNotReRegisterAFirstDayLimitOnEveryHeartbeat() {
+        let h = makeService()
+        let created = Calendar.current.startOfDay(for: day) + .hours(9)
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60, createdAt: created)
+        h.service.registerAll([limit], config: config, on: created)
+        h.center.reissuedApplications = TokenFixtures.selection(apps: [200]).applicationTokens
+        let heartbeat = DeviceActivityName(SharedConstants.reblockHeartbeatActivityName)
+
+        for half in 1...6 {
+            DailyLimitMonitoring.repairOnHeartbeat(heartbeat, center: h.center, store: h.store, on: created + .minutes(30 * half))
+        }
+        h.service.registerAll([limit], config: config, on: created + .hours(3))
+
+        #expect(h.dailyStarts.count == 1)
+        #expect(h.dailyStarts.last?.events.values.first?.includesPastActivity == false)
     }
 
     /// Re-registering must never hand back an allowance already spent.

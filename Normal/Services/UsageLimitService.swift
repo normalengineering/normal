@@ -20,9 +20,6 @@ final class UsageLimitService {
 
     private(set) var registrationFailure: UsageLimitRegistrationFailure?
 
-    /// Minutes of usage before a limit is hit that `eventWillReachThresholdWarning` fires.
-    static let warningMinutes = SharedConstants.usageLimitWarningMinutes
-
     private let logger = Logger(subsystem: "com.normalengineering.normal", category: "UsageLimits")
 
     init(
@@ -59,107 +56,15 @@ final class UsageLimitService {
         sharedStore.saveUsageLimitConfig(config)
         syncShields(on: date)
 
-        let specs = Self.eventSpecs(for: dtos, period: config.period, on: date).filter(\.isArmable)
-        let fingerprint = Self.fingerprint(for: dtos, period: config.period, on: date)
-        let activityName = DeviceActivityName(SharedConstants.usageLimitsActivityName)
-        let isMonitored = activityCenter.monitoredActivityNames.contains(activityName.rawValue)
-        if fingerprint == sharedStore.loadUsageRegistration() {
-            guard !specs.isEmpty, !isMonitored else { return }
-            CallbackLog.record("app usage limits: iOS no longer lists the activity, registering again")
-        }
-
-        activityCenter.stopMonitoring([activityName])
-        sharedStore.saveUsageRegistration(nil)
-
-        guard !specs.isEmpty else {
-            sharedStore.saveUsageRegistration(fingerprint)
-            registrationFailure = nil
-            notifyUpdate()
-            return
-        }
-
         do {
-            sharedStore.saveUsageLimitsRegisteredAt(date)
-            try activityCenter.startMonitoring(
-                activityName,
-                during: DeviceActivityScheduleFactory.daily(
-                    resetMinutes: config.period.resetMinutes,
-                    warningMinutes: Self.warningMinutes
-                ),
-                events: specs.reduce(into: [:]) { $0[$1.name] = $1.event }
-            )
-            sharedStore.saveUsageRegistration(fingerprint)
+            try DailyLimitMonitoring.reconcile(center: activityCenter, store: sharedStore, on: date, source: "app")
             registrationFailure = nil
-            CallbackLog.record("app usage limits: registered \(specs.map { "\($0.minutes) min" }.joined(separator: ", "))")
         } catch {
-            // Every limit shares one activity, so a throw here disables all of
-            // them. Leave the fingerprint cleared so the next launch retries.
             registrationFailure = UsageLimitRegistrationFailure(error)
             logger.error("Usage limit monitoring failed: \(error.localizedDescription, privacy: .public)")
-            CallbackLog.record("app usage limits: startMonitoring failed: \(error)")
         }
+        activityCenter.syncHeartbeat(sharedStore: sharedStore, at: date)
         notifyUpdate()
-    }
-
-    /// One threshold event per limit that still has something to watch.
-    ///
-    /// Split out from the `DeviceActivityEvent` construction so the naming and
-    /// filtering rules are checkable without real `ManagedSettings` tokens.
-    struct EventSpec: Equatable {
-        let id: UUID
-        let eventName: String
-        let minutes: Int
-        let selection: FamilyActivitySelection
-        let includesPastActivity: Bool
-
-        var name: DeviceActivityEvent.Name {
-            DeviceActivityEvent.Name(eventName)
-        }
-
-        /// A selection with no tokens has nothing to meter. Registering it
-        /// would leave a limit that looks armed but can never fire.
-        var isArmable: Bool {
-            !selection.isEmpty
-        }
-
-        var event: DeviceActivityEvent {
-            DeviceActivityEvent(
-                applications: selection.applicationTokens,
-                categories: selection.categoryTokens,
-                webDomains: selection.webDomainTokens,
-                threshold: DateComponents(minute: minutes),
-                // A limit counts from when it's created on its first day. After
-                // that it counts the whole interval, so re-registering mid-day
-                // cannot refund an allowance.
-                includesPastActivity: includesPastActivity
-            )
-        }
-    }
-
-    /// Drops only limits whose selection cannot be decoded; whether a spec is
-    /// worth arming is `EventSpec.isArmable`, kept separate so the naming and
-    /// threshold rules stay checkable without real `ManagedSettings` tokens.
-    static func eventSpecs(for dtos: [UsageLimitDTO], period: UsagePeriod, on date: Date) -> [EventSpec] {
-        dtos.compactMap { dto in
-            guard let selection = try? FamilyActivitySelection.fromData(dto.selectionData)
-            else { return nil }
-            return EventSpec(
-                id: dto.id,
-                eventName: SharedConstants.usageLimitEventName(for: dto.id),
-                minutes: dto.minutesPerDay,
-                selection: selection,
-                includesPastActivity: period.countsPastActivity(createdAt: dto.createdAt, on: date)
-            )
-        }
-    }
-
-    static func fingerprint(for dtos: [UsageLimitDTO], period: UsagePeriod, on date: Date) -> String {
-        let body =
-            dtos
-            .map { "\($0.id.uuidString):\($0.minutesPerDay):\($0.selectionData.stableChecksum)" }
-            .sorted()
-            .joined(separator: "|")
-        return "\(period.key(for: date))@\(period.resetMinutes)#\(body)"
     }
 
     // MARK: - Today's state

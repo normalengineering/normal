@@ -30,7 +30,7 @@ nonisolated enum UsageLimitState: String, Codable, Sendable, CaseIterable, Compa
 /// other shared DTOs — optional storage with a defaulting accessor — so a
 /// payload written by an older build still decodes instead of throwing and
 /// taking every limit down with it.
-nonisolated struct UsageLimitDTO: Codable, Sendable, Identifiable {
+nonisolated struct UsageLimitDTO: Codable, Sendable, Identifiable, Equatable {
     let id: UUID
     let selectionData: Data
     let minutesPerDay: Int
