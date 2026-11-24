@@ -93,8 +93,10 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
         usageDayState
     }
 
+    var didSaveRegistration: ((String?) -> Void)?
     func saveUsageRegistration(_ fingerprint: String?) {
         usageRegistration = fingerprint
+        didSaveRegistration?(fingerprint)
     }
 
     func loadUsageRegistration() -> String? {

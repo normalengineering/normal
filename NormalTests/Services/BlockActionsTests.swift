@@ -236,16 +236,19 @@ struct BlockActionsTests {
             ledger: InMemoryUsageLimitLedger(),
             limitShield: shield
         )
-        let limit = UsageLimit(minutesPerDay: 30)
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5)
         usageLimit.registerAll([limit], config: UsageLimitConfig())
         store.recordUsageState(.reached, for: limit.id)
         usageLimit.registerAll([limit], config: UsageLimitConfig())
         #expect(shield.shieldedLimitIDs == [limit.id])
 
+        let monitor = SharedConstants.usageLimitsActivityName
+        #expect(activity.monitoredActivityNames.contains(monitor))
         emergencyUnblock(usageLimit: usageLimit)
 
         #expect(shield.shieldedLimitIDs.isEmpty)
         #expect(usageLimit.isDayOverridden())
+        #expect(activity.monitoredActivityNames.contains(monitor))
     }
 
     // MARK: - validate

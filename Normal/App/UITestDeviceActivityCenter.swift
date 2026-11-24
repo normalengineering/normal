@@ -9,6 +9,12 @@ final class UITestDeviceActivityCenter: DeviceActivityProviding {
         Set(schedules.keys)
     }
 
+    private var registeredEvents: [DeviceActivityName: [DeviceActivityEvent.Name: DeviceActivityEvent]] = [:]
+
+    func events(for activity: DeviceActivityName) -> [DeviceActivityEvent.Name: DeviceActivityEvent] {
+        registeredEvents[activity] ?? [:]
+    }
+
     func startMonitoring(
         _ activityName: DeviceActivityName,
         during schedule: DeviceActivitySchedule,
@@ -23,13 +29,20 @@ final class UITestDeviceActivityCenter: DeviceActivityProviding {
             }
         }
         schedules[activityName.rawValue] = schedule
+        registeredEvents[activityName] = events
         if activityName.rawValue == SharedConstants.usageLimitsActivityName {
             onUsageLimitsStarted?(events)
         }
     }
 
     func stopMonitoring(_ activityNames: [DeviceActivityName]) {
+        if activityNames.isEmpty {
+            schedules.removeAll()
+            registeredEvents.removeAll()
+            return
+        }
         for name in activityNames {
+            registeredEvents.removeValue(forKey: name)
             schedules.removeValue(forKey: name.rawValue)
         }
     }
