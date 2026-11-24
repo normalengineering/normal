@@ -3,6 +3,7 @@ import Foundation
 
 final class UITestDeviceActivityCenter: DeviceActivityProviding {
     private var schedules: [String: DeviceActivitySchedule] = [:]
+    var onUsageLimitsStarted: (([DeviceActivityEvent.Name: DeviceActivityEvent]) -> Void)?
 
     var monitoredActivityNames: Set<String> {
         Set(schedules.keys)
@@ -11,7 +12,7 @@ final class UITestDeviceActivityCenter: DeviceActivityProviding {
     func startMonitoring(
         _ activityName: DeviceActivityName,
         during schedule: DeviceActivitySchedule,
-        events _: [DeviceActivityEvent.Name: DeviceActivityEvent]
+        events: [DeviceActivityEvent.Name: DeviceActivityEvent]
     ) throws {
         if activityName.rawValue.hasPrefix("timedUnblock_") {
             if UITestSupport.timedUnblockFails {
@@ -22,6 +23,9 @@ final class UITestDeviceActivityCenter: DeviceActivityProviding {
             }
         }
         schedules[activityName.rawValue] = schedule
+        if activityName.rawValue == SharedConstants.usageLimitsActivityName {
+            onUsageLimitsStarted?(events)
+        }
     }
 
     func stopMonitoring(_ activityNames: [DeviceActivityName]) {

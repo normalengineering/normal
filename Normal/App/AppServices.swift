@@ -1,3 +1,4 @@
+import DeviceActivity
 import Foundation
 
 @MainActor
@@ -17,6 +18,18 @@ final class AppServices {
                 defaults: UserDefaults(suiteName: "uitest-\(UUID().uuidString)")
             )
             store.setCustomDomainsEnabled(UITestSupport.customDomains)
+            if let usedMinutes = UITestSupport.usageMinutesToday {
+                center.onUsageLimitsStarted = { events in
+                    for (name, event) in events
+                    where event.includesPastActivity
+                        && (event.threshold.hour ?? 0) * 60 + (event.threshold.minute ?? 0) <= usedMinutes
+                    {
+                        if let id = SharedConstants.usageLimitID(fromEventName: name.rawValue) {
+                            store.recordUsageState(.reached, for: id)
+                        }
+                    }
+                }
+            }
             let screenTime = ScreenTimeService(sharedStore: store, activityCenter: center)
             self.screenTime = screenTime
             timedUnblock = TimedUnblockService(

@@ -85,6 +85,14 @@ struct NormalApp: App {
             if UITestSupport.seedUsageLimit {
                 context.insert(UsageLimit(selection: UITestSupport.usageLimitSelection, minutesPerDay: 45))
             }
+            if UITestSupport.seedOlderUsageLimit {
+                context.insert(
+                    UsageLimit(
+                        selection: UITestSupport.usageLimitSelection,
+                        minutesPerDay: 45,
+                        createdAt: .now - .days(10)
+                    ))
+            }
         }
 
         modelContainer = container

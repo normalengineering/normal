@@ -19,6 +19,7 @@ nonisolated enum SharedConstants {
         static let usageDayState = "usageDayState_v1"
         static let usageRegistration = "usageRegistration_v1"
         static let usageLimitsIntervalStart = "usageLimitsIntervalStart_v1"
+        static let usageLimitsRegisteredAt = "usageLimitsRegisteredAt_v1"
         static let usageLimitConfig = "usageLimitConfig_v1"
         static let manualBlockState = "manualBlockState_v1"
     }

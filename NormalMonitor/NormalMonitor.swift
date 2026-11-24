@@ -8,8 +8,6 @@ final class NormalMonitor: DeviceActivityMonitor {
     private let store = ManagedSettingsStore()
     private let limitStore = ManagedSettingsStore(named: .dailyLimits)
 
-    private static let thresholdGraceSeconds: TimeInterval = 10
-
     override func intervalDidStart(for activity: DeviceActivityName) {
         if activity.rawValue == SharedConstants.usageLimitsActivityName {
             sharedStore.resetUsageDayIfStale()
@@ -27,11 +25,7 @@ final class NormalMonitor: DeviceActivityMonitor {
         _ event: DeviceActivityEvent.Name,
         activity _: DeviceActivityName
     ) {
-        if let limit = credibleUsageLimit(eventName: event.rawValue, minutes: \.minutesPerDay) {
-            sharedStore.recordUsageState(.reached, for: limit.id)
-            limitStore.syncDailyLimits(from: sharedStore)
-            CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: reached")
-        }
+        sharedStore.enforceUsageThreshold(eventName: event.rawValue, apply: limitStore.applyDailyLimits)
         reconcile("eventDidReachThreshold", activity: event.rawValue)
     }
 
@@ -39,11 +33,7 @@ final class NormalMonitor: DeviceActivityMonitor {
         _ event: DeviceActivityEvent.Name,
         activity _: DeviceActivityName
     ) {
-        if let limit = credibleUsageLimit(
-            eventName: event.rawValue,
-            minutes: { $0.minutesPerDay - SharedConstants.usageLimitWarningMinutes }
-        ) {
-            sharedStore.recordUsageState(.warning, for: limit.id)
+        if let limit = sharedStore.recordUsageCallback(.warning, eventName: event.rawValue) {
             CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: warning")
         }
         reconcile("eventWillReachThresholdWarning", activity: event.rawValue)
@@ -64,31 +54,6 @@ final class NormalMonitor: DeviceActivityMonitor {
             "monitor \(callback) \(label(for: activity)): "
                 + "[shields \(summary(before)) -> \(summary(plan))]"
         )
-    }
-
-    private func credibleUsageLimit(
-        eventName: String,
-        minutes: (UsageLimitDTO) -> Int
-    ) -> UsageLimitDTO? {
-        guard !sharedStore.isUsageDayOverridden(),
-            let id = SharedConstants.usageLimitID(fromEventName: eventName),
-            let limit = sharedStore.loadUsageLimits().first(where: { $0.id == id })
-        else { return nil }
-
-        if let start = sharedStore.loadUsageLimitsIntervalStart(),
-            Date.now.timeIntervalSince(start) < Self.thresholdGraceSeconds
-        {
-            CallbackLog.record(
-                "monitor usage limit \(limit.minutesPerDay) min: dropped, "
-                    + "\(Date.now.timeIntervalSince(start).formatted(.number.precision(.fractionLength(1)))) s after the interval started"
-            )
-            return nil
-        }
-        guard sharedStore.usagePeriod.couldHaveMetered(minutes: minutes(limit), by: .now) else {
-            CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: dropped, too soon after the reset")
-            return nil
-        }
-        return limit
     }
 
     private func summary(_ plan: ShieldPlan) -> String {

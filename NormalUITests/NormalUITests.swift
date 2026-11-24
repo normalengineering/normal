@@ -347,6 +347,48 @@ final class NormalUITests: XCTestCase {
         XCTAssertFalse(resetSave.isEnabled, "An unchanged reset time can't be saved")
     }
 
+    func testRaisingASpentLimitAboveTodaysUseLiftsIt() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedOlderUsageLimit", "-uiTestUsageMinutesToday", "46"])
+        openSpentLimit(app)
+
+        let counts = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Time already used today counts.")).firstMatch
+        require(counts, "An older limit should say time used earlier today counts")
+
+        raiseLimit(app, toMinutes: "50")
+        require(app.staticTexts["Available"], "Raising a spent limit above today's use should lift it")
+        XCTAssertFalse(app.staticTexts["Limit Reached"].exists, "The raised limit should no longer show as reached")
+    }
+
+    func testRaisingASpentLimitThatTodaysUseStillPassesKeepsItBlocked() {
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedOlderUsageLimit", "-uiTestUsageMinutesToday", "60"])
+        openSpentLimit(app)
+
+        raiseLimit(app, toMinutes: "50")
+        require(app.staticTexts["Limit Reached"], "A raised limit that today's use already passes should stay blocked")
+        XCTAssertFalse(app.staticTexts["Available"].exists, "The catch-up while saving should not be cleared")
+    }
+
+    private func openSpentLimit(_ app: XCUIApplication) {
+        let settings = app.buttons["nav.settings"]
+        require(settings, "Settings button should exist")
+        settings.tap()
+        let link = app.buttons["settings.maxDailyLimitsLink"]
+        require(link, "Settings should show the Max Daily Limits row")
+        link.tap()
+        let reached = app.staticTexts["Limit Reached"]
+        require(reached, "The older limit should be spent for today")
+        reached.tap()
+    }
+
+    private func raiseLimit(_ app: XCUIApplication, toMinutes minutes: String) {
+        let wheel = app.pickerWheels.element(boundBy: 1)
+        require(wheel, "The editor should show the minutes wheel")
+        wheel.adjust(toPickerWheelValue: minutes)
+        let update = app.buttons["usage.save"]
+        requireEnabled(update, "Raising an unlocked limit should be allowed")
+        update.tap()
+    }
+
     @MainActor
     func testFAQAnswersAreNotCutOff() throws {
         try requireFAQIsNotCutOff([])

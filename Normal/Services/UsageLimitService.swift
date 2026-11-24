@@ -79,6 +79,7 @@ final class UsageLimitService {
         }
 
         do {
+            sharedStore.saveUsageLimitsRegisteredAt(date)
             try activityCenter.startMonitoring(
                 activityName,
                 during: DeviceActivityScheduleFactory.daily(

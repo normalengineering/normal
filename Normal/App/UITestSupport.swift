@@ -25,6 +25,10 @@ enum UITestSupport {
 
     static let seedUsageLimit = arguments.contains("-uiTestSeedUsageLimit")
 
+    static let seedOlderUsageLimit = arguments.contains("-uiTestSeedOlderUsageLimit")
+
+    static let usageMinutesToday: Int? = value(after: "-uiTestUsageMinutesToday").flatMap(Int.init)
+
     static let crowdedDomains = [
         "apple.com", "bbc.com", "cnn.com", "dropbox.com", "espn.com",
         "figma.com", "github.com", "hulu.com", "imdb.com",

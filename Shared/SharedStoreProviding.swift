@@ -24,6 +24,8 @@ nonisolated protocol SharedStoreProviding: Sendable {
     func loadUsageRegistration() -> String?
     func saveUsageLimitsIntervalStart(_ date: Date)
     func loadUsageLimitsIntervalStart() -> Date?
+    func saveUsageLimitsRegisteredAt(_ date: Date)
+    func loadUsageLimitsRegisteredAt() -> Date?
     func saveUsageLimitConfig(_ config: UsageLimitConfig)
     func loadUsageLimitConfig() -> UsageLimitConfig
     func saveManualBlockState(_ state: ManualBlockState)

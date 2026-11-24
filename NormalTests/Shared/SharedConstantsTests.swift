@@ -35,6 +35,7 @@ struct SharedConstantsTests {
         #expect(SharedConstants.DefaultsKey.usageDayState == "usageDayState_v1")
         #expect(SharedConstants.DefaultsKey.usageRegistration == "usageRegistration_v1")
         #expect(SharedConstants.DefaultsKey.usageLimitsIntervalStart == "usageLimitsIntervalStart_v1")
+        #expect(SharedConstants.DefaultsKey.usageLimitsRegisteredAt == "usageLimitsRegisteredAt_v1")
         #expect(SharedConstants.DefaultsKey.usageLimitConfig == "usageLimitConfig_v1")
     }
 
