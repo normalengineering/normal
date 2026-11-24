@@ -216,6 +216,143 @@ struct UsageLimitServiceTests {
         #expect(h.center.stopCalls.count == 1)
     }
 
+    @Test(arguments: [UsageLimitState.warning, .reached])
+    func acceptsAnImmediateCallbackForAnExistingDailyLimit(_ state: UsageLimitState) throws {
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
+        let restarted = Calendar.current.startOfDay(for: day) + .hours(22)
+        h.service.registerAll([limit], config: config, on: restarted)
+        let event = try #require(h.center.startCalls.last?.events.first)
+        try #require(event.value.includesPastActivity)
+        h.store.saveUsageLimitsIntervalStart(restarted)
+
+        let delivered = restarted + 0.049
+        if state == .reached {
+            h.store.enforceUsageThreshold(eventName: event.key.rawValue, on: delivered, apply: h.shield.apply)
+        } else {
+            _ = h.store.recordUsageCallback(state, eventName: event.key.rawValue, on: delivered)
+        }
+
+        #expect(h.service.state(for: limit, on: delivered) == state)
+        #expect(h.shield.shieldedLimitIDs == (state == .reached ? [limit.id] : []))
+    }
+
+    @Test(arguments: [UsageLimitState.warning, .reached])
+    func rejectsSpuriousCallbacksAfterCreationOrReset(_ state: UsageLimitState) {
+        let midnight = Calendar.current.startOfDay(for: day)
+        let created = midnight + .hours(10)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 30, createdAt: created)
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        let tomorrow = config.period.nextReset(after: created)
+
+        for start in [created, tomorrow] {
+            h.service.registerAll([limit], config: config, on: start)
+            h.store.resetUsageDayIfStale(on: start)
+            let delivered = start + 15
+            #expect(h.store.recordUsageCallback(state, eventName: event, on: delivered) == nil)
+            #expect(h.service.state(for: limit, on: delivered) == .under)
+            #expect(h.store.reachedUsageLimits(on: delivered).isEmpty)
+        }
+    }
+
+    @Test func acceptsADayOneThresholdWithinMeteringJitter() {
+        let midnight = Calendar.current.startOfDay(for: day)
+        let created = midnight + .hours(10)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: created)
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        h.service.registerAll([limit], config: config, on: created)
+        h.store.saveUsageLimitsIntervalStart(created)
+
+        let delivered = created + .minutes(5) - 1
+        h.store.enforceUsageThreshold(eventName: event, on: delivered, apply: h.shield.apply)
+
+        #expect(h.service.state(for: limit, on: delivered) == .reached)
+        #expect(h.shield.shieldedLimitIDs == [limit.id])
+    }
+
+    @Test func rejectsADayOneFalseFireRightAfterMidDayReRegistration() {
+        let midnight = Calendar.current.startOfDay(for: day)
+        let created = midnight + .hours(10)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: created)
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        h.service.registerAll([limit], config: config, on: created)
+
+        let reRegistered = created + .minutes(15)
+        h.center.stopMonitoring([usageActivity])
+        h.service.registerAll([limit], config: config, on: reRegistered)
+        h.store.saveUsageLimitsIntervalStart(reRegistered)
+        h.store.enforceUsageThreshold(eventName: event, on: reRegistered + 0.05, apply: h.shield.apply)
+
+        #expect(h.service.state(for: limit, on: reRegistered + 0.05) == .under)
+        #expect(h.shield.shieldedLimitIDs.isEmpty)
+    }
+
+    @Test func acceptsNonMidnightResetDayTwoHourlyBucketCallback() {
+        let resetConfig = UsageLimitConfig(resetMinutes: 4 * 60 + 30)
+        let midnight = Calendar.current.startOfDay(for: day)
+        let created = midnight + .hours(4) + .minutes(25)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 30, createdAt: created)
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        let afterReset = midnight + .hours(4) + .minutes(40)
+        h.service.registerAll([limit], config: resetConfig, on: afterReset)
+
+        h.store.enforceUsageThreshold(eventName: event, on: afterReset, apply: h.shield.apply)
+
+        #expect(h.service.state(for: limit, on: afterReset) == .reached)
+        #expect(h.shield.shieldedLimitIDs == [limit.id])
+    }
+
+    @Test func rejectsAFalseFireWhenNormalRegistersAtTheReset() {
+        let resetConfig = UsageLimitConfig(resetMinutes: 4 * 60 + 30)
+        let midnight = Calendar.current.startOfDay(for: day)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 30, createdAt: day - .days(10))
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        let reset = midnight + .hours(4) + .minutes(30)
+
+        h.service.registerAll([limit], config: resetConfig, on: reset + 2)
+        h.store.resetUsageDayIfStale(on: reset + 2)
+        h.store.saveUsageLimitsIntervalStart(reset + 2.1)
+        h.store.enforceUsageThreshold(eventName: event, on: reset + 3, apply: h.shield.apply)
+
+        #expect(h.service.state(for: limit, on: reset + 3) == .under)
+        #expect(h.shield.shieldedLimitIDs.isEmpty)
+    }
+
+    @Test func rejectsAFalseFireWhenMonitoringRestartsWithoutNormalRegistering() {
+        let midnight = Calendar.current.startOfDay(for: day)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 30, createdAt: day - .days(10))
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        h.service.registerAll([limit], config: config, on: midnight + .hours(9))
+
+        let restarted = midnight + .hours(15)
+        h.store.saveUsageLimitsIntervalStart(restarted)
+        h.store.enforceUsageThreshold(eventName: event, on: restarted + 0.1, apply: h.shield.apply)
+
+        #expect(h.service.state(for: limit, on: restarted + 0.1) == .under)
+        #expect(h.shield.shieldedLimitIDs.isEmpty)
+    }
+
+    @Test func ignoresCallbacksDuringEmergencyOverride() {
+        let midnight = Calendar.current.startOfDay(for: day)
+        let now = midnight + .hours(12)
+        let h = makeService()
+        let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 5, createdAt: day - .days(1))
+        let event = SharedConstants.usageLimitEventName(for: limit.id)
+        h.service.registerAll([limit], config: config, on: now)
+        h.service.overrideToday(on: now)
+
+        h.store.enforceUsageThreshold(eventName: event, on: now + 1, apply: h.shield.apply)
+
+        #expect(h.service.state(for: limit, on: now + 1) == .under)
+        #expect(h.shield.shieldedLimitIDs.isEmpty)
+    }
+
     @Test func anUnchangedSetIsRegisteredAgainWhenIOSNoLongerListsIt() {
         let h = makeService()
         let limit = UsageLimit(selection: TokenFixtures.selection(apps: [1]), minutesPerDay: 60)

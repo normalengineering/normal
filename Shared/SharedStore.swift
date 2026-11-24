@@ -126,6 +126,15 @@ struct SharedStore: SharedStoreProviding, Sendable {
         return value == 0 ? nil : Date(timeIntervalSinceReferenceDate: value)
     }
 
+    func saveUsageLimitsRegisteredAt(_ date: Date) {
+        defaults.set(date.timeIntervalSinceReferenceDate, forKey: SharedConstants.DefaultsKey.usageLimitsRegisteredAt)
+    }
+
+    func loadUsageLimitsRegisteredAt() -> Date? {
+        let value = defaults.double(forKey: SharedConstants.DefaultsKey.usageLimitsRegisteredAt)
+        return value == 0 ? nil : Date(timeIntervalSinceReferenceDate: value)
+    }
+
     func saveUsageLimitConfig(_ config: UsageLimitConfig) {
         let data = try? PropertyListEncoder().encode(config)
         defaults.set(data, forKey: SharedConstants.DefaultsKey.usageLimitConfig)

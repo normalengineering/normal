@@ -214,7 +214,7 @@ struct UsageLimitEditor: View {
                 "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even if unblocked with a key. Today, only time after you save counts."
         }
         return
-            "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even if unblocked with a key. Time already used today counts; if you're already past it, the limit starts at the next reset."
+            "After \(DurationFormat.spelled(minutes: minutes)) of combined use, these stay blocked until \(reset), even if unblocked with a key. Time already used today counts."
     }
 
     private func lockNotice(at now: Date) -> (text: Text, color: Color)? {
@@ -278,10 +278,10 @@ struct UsageLimitEditor: View {
             updated.append(limit)
         }
 
-        usageLimitService.registerAll(updated, config: settings.usageLimitConfig)
         if let existing, allowance != .tightening {
             usageLimitService.clearState(for: existing)
         }
+        usageLimitService.registerAll(updated, config: settings.usageLimitConfig)
         dismiss()
     }
 

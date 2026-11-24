@@ -110,6 +110,15 @@ final class FakeSharedStore: SharedStoreProviding, @unchecked Sendable {
         usageLimitsIntervalStart
     }
 
+    var usageLimitsRegisteredAt: Date?
+    func saveUsageLimitsRegisteredAt(_ date: Date) {
+        usageLimitsRegisteredAt = date
+    }
+
+    func loadUsageLimitsRegisteredAt() -> Date? {
+        usageLimitsRegisteredAt
+    }
+
     var usageLimitConfig = UsageLimitConfig()
     func saveUsageLimitConfig(_ config: UsageLimitConfig) {
         usageLimitConfig = config
