@@ -49,7 +49,7 @@ struct SettingsTests {
         let s = Settings()
         #expect(s.defaultKeyType == nil)
         #expect(s.defaultUnblockDuration == nil)
-        #expect(s.blockAllPreventsAppDelete == true)
+        #expect(s.blockAllPreventsAppDelete == false)
         #expect(s.hasCompletedOnboarding == false)
         #expect(s.defaultTab == nil)
     }

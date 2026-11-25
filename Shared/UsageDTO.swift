@@ -39,11 +39,9 @@ nonisolated struct UsageLimitDTO: Codable, Sendable, Identifiable, Equatable {
 
 nonisolated struct UsageLimitConfig: Codable, Sendable, Equatable {
     var resetMinutes: Int
-    var preventsAppDelete: Bool
 
-    init(resetMinutes: Int = 0, preventsAppDelete: Bool = false) {
+    init(resetMinutes: Int = 0) {
         self.resetMinutes = resetMinutes
-        self.preventsAppDelete = preventsAppDelete
     }
 
     var period: UsagePeriod {
