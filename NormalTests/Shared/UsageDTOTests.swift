@@ -320,7 +320,7 @@ struct UsageDTOTests {
     }
 
     @Test func configSurvivesThePropertyListRoundTrip() throws {
-        let config = UsageLimitConfig(resetMinutes: 270, preventsAppDelete: true)
+        let config = UsageLimitConfig(resetMinutes: 270)
 
         let decoded = try PropertyListDecoder().decode(
             UsageLimitConfig.self,
@@ -364,5 +364,16 @@ struct UsageDTOTests {
         #expect(decoded.isOverridden == false)
         // No stored reset instant means the day boundary alone decides.
         #expect(decoded.isStale(on: date("2026-03-15T09:00:00-04:00"), period: nyPeriod))
+    }
+
+    @Test func configDecodesWhenItStillCarriesPreventsAppDelete() throws {
+        let legacy: [String: Any] = ["resetMinutes": 270, "preventsAppDelete": true]
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: legacy, format: .binary, options: 0
+        )
+
+        let decoded = try PropertyListDecoder().decode(UsageLimitConfig.self, from: data)
+
+        #expect(decoded == UsageLimitConfig(resetMinutes: 270))
     }
 }

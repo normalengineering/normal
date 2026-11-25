@@ -11,7 +11,7 @@ final class Settings {
     var customUnblockDurationSeconds: [Int]?
     var defaultUnblockSeconds: Int?
     var hasCompletedOnboarding: Bool = false
-    var blockAllPreventsAppDelete: Bool = true
+    var blockAllPreventsAppDelete: Bool = false
     var defaultTab: AppTab?
     var hideDonateButton: Bool = false
     var showTimedUnblockLiveActivity: Bool = false
@@ -41,10 +41,7 @@ final class Settings {
     }
 
     var usageLimitConfig: UsageLimitConfig {
-        UsageLimitConfig(
-            resetMinutes: dailyLimitResetMinutes,
-            preventsAppDelete: blockAllPreventsAppDelete
-        )
+        UsageLimitConfig(resetMinutes: dailyLimitResetMinutes)
     }
 }
 

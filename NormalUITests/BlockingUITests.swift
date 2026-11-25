@@ -130,6 +130,7 @@ final class BlockingUITests: XCTestCase {
 
     func testPreventAppDeleteReflectsBlockedState() {
         let app = launch()
+        turnOnPreventAppDeleteOnBlockAll(app)
 
         let toggle = app.switches["home.preventDeleteToggle"]
         require(toggle, "Prevent-delete toggle should be on Home")
@@ -139,12 +140,13 @@ final class BlockingUITests: XCTestCase {
         XCTAssertEqual(
             app.switches["home.preventDeleteToggle"].value as? String,
             "1",
-            "Blocking with the default setting should disable app deletion"
+            "Blocking with the setting on should disable app deletion"
         )
     }
 
     func testTurningOffPreventAppDeleteNeedsAKey() {
         let app = launch()
+        turnOnPreventAppDeleteOnBlockAll(app)
         blockViaBypass(app)
         let toggle = app.switches["home.preventDeleteToggle"]
         requireValue("1", of: toggle, "Blocking should disable app deletion")
@@ -175,6 +177,16 @@ final class BlockingUITests: XCTestCase {
 
     private func tapSwitch(_ toggle: XCUIElement) {
         toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+    }
+
+    private func turnOnPreventAppDeleteOnBlockAll(_ app: XCUIApplication) {
+        app.buttons["nav.settings"].tap()
+        let toggle = app.switches["Prevent App Deletion on Block All"]
+        require(toggle, "Settings should show the Block All app deletion toggle")
+        XCTAssertEqual(toggle.value as? String, "0", "Starts off on a new install")
+        tapSwitch(toggle)
+        requireValue("1", of: toggle, "Tapping should turn the setting on")
+        app.buttons["Close"].tap()
     }
 
     private func requireKeyWithoutBypass(_ app: XCUIApplication) {

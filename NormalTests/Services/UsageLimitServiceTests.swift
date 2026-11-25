@@ -186,7 +186,7 @@ struct UsageLimitServiceTests {
     @Test func registeringMirrorsLimitsAndConfigToTheAppGroup() {
         let h = makeService()
         let limit = UsageLimit(minutesPerDay: 90)
-        let config = UsageLimitConfig(resetMinutes: 240, preventsAppDelete: true)
+        let config = UsageLimitConfig(resetMinutes: 240)
 
         h.service.registerAll([limit], config: config, on: day)
 
@@ -736,30 +736,6 @@ struct UsageLimitServiceTests {
         h.service.registerAll([], config: config, on: day)
 
         #expect(h.shield.shieldedLimitIDs.isEmpty)
-    }
-
-    @Test func aSpentLimitKeepsTheAppUndeletableWhenTheSettingIsOn() {
-        let h = makeService()
-        let limit = UsageLimit(minutesPerDay: 30)
-        let config = UsageLimitConfig(preventsAppDelete: true)
-        h.service.registerAll([limit], config: config, on: day)
-        #expect(h.shield.preventsAppDelete == false)
-
-        h.store.recordUsageState(.reached, for: limit.id, on: day)
-        h.service.registerAll([limit], config: config, on: day)
-
-        #expect(h.shield.preventsAppDelete)
-    }
-
-    @Test func aSpentLimitLeavesTheAppDeletableWhenTheSettingIsOff() {
-        let h = makeService()
-        let limit = UsageLimit(minutesPerDay: 30)
-        h.service.registerAll([limit], config: UsageLimitConfig(preventsAppDelete: false), on: day)
-        h.store.recordUsageState(.reached, for: limit.id, on: day)
-
-        h.service.registerAll([limit], config: UsageLimitConfig(preventsAppDelete: false), on: day)
-
-        #expect(h.shield.preventsAppDelete == false)
     }
 
     @Test func aSpentLimitStaysSpentUntilTheConfiguredReset() {

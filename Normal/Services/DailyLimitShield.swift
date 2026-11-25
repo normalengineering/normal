@@ -2,25 +2,23 @@ import Foundation
 import ManagedSettings
 
 protocol DailyLimitShielding: AnyObject {
-    func apply(_ reached: [UsageLimitDTO], preventsAppDelete: Bool)
+    func apply(_ reached: [UsageLimitDTO])
 }
 
 final class ManagedSettingsDailyLimitShield: DailyLimitShielding {
     private let store = ManagedSettingsStore(named: .dailyLimits)
 
-    func apply(_ reached: [UsageLimitDTO], preventsAppDelete: Bool) {
-        store.applyDailyLimits(reached, preventsAppDelete: preventsAppDelete)
+    func apply(_ reached: [UsageLimitDTO]) {
+        store.applyDailyLimits(reached)
     }
 }
 
 final class InMemoryDailyLimitShield: DailyLimitShielding {
     private(set) var shieldedLimitIDs: [UUID] = []
-    private(set) var preventsAppDelete = false
     private(set) var applyCount = 0
 
-    func apply(_ reached: [UsageLimitDTO], preventsAppDelete: Bool) {
+    func apply(_ reached: [UsageLimitDTO]) {
         shieldedLimitIDs = reached.map(\.id)
-        self.preventsAppDelete = preventsAppDelete && !reached.isEmpty
         applyCount += 1
     }
 }

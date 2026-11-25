@@ -15,7 +15,7 @@ extension ManagedSettingsStore.Name {
 }
 
 extension ManagedSettingsStore {
-    func applyDailyLimits(_ reached: [UsageLimitDTO], preventsAppDelete: Bool) {
+    func applyDailyLimits(_ reached: [UsageLimitDTO]) {
         let selections = reached.compactMap { try? FamilyActivitySelection.fromData($0.selectionData) }
         guard !selections.isEmpty else {
             clearAllSettings()
@@ -23,14 +23,11 @@ extension ManagedSettingsStore {
         }
 
         replaceShields(with: selections.reduce(FamilyActivitySelection()) { $0.union($1) })
-        application.denyAppRemoval = preventsAppDelete ? true : nil
+        application.denyAppRemoval = nil
     }
 
     func syncDailyLimits(from sharedStore: some SharedStoreProviding, on date: Date = .now) {
-        applyDailyLimits(
-            sharedStore.reachedUsageLimits(on: date),
-            preventsAppDelete: sharedStore.loadUsageLimitConfig().preventsAppDelete
-        )
+        applyDailyLimits(sharedStore.reachedUsageLimits(on: date))
     }
 }
 
@@ -38,10 +35,10 @@ extension SharedStoreProviding {
     func enforceUsageThreshold(
         eventName: String,
         on date: Date = .now,
-        apply: ([UsageLimitDTO], Bool) -> Void
+        apply: ([UsageLimitDTO]) -> Void
     ) {
         guard let limit = recordUsageCallback(.reached, eventName: eventName, on: date) else { return }
-        apply(reachedUsageLimits(on: date), loadUsageLimitConfig().preventsAppDelete)
+        apply(reachedUsageLimits(on: date))
         dailyLimitLogger.notice("Daily limit reached and shielded (\(limit.minutesPerDay, privacy: .public) min)")
         CallbackLog.record("monitor usage limit \(limit.minutesPerDay) min: reached")
     }

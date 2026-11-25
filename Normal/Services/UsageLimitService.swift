@@ -119,7 +119,7 @@ final class UsageLimitService {
 
     func overrideToday(on date: Date = .now) {
         sharedStore.overrideUsageDay(on: date)
-        limitShield.apply([], preventsAppDelete: false)
+        limitShield.apply([])
         notifyUpdate()
     }
 
@@ -130,10 +130,7 @@ final class UsageLimitService {
     }
 
     private func syncShields(on date: Date) {
-        limitShield.apply(
-            sharedStore.reachedUsageLimits(on: date),
-            preventsAppDelete: sharedStore.loadUsageLimitConfig().preventsAppDelete
-        )
+        limitShield.apply(sharedStore.reachedUsageLimits(on: date))
     }
 }
 

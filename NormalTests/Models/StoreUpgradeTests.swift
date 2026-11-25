@@ -429,6 +429,7 @@ struct StoreUpgradeTests {
         #expect(settings.defaultDuration?.seconds == 5700)
         #expect(settings.skipBlockWithoutKeyConfirmation)
         #expect(settings.dailyLimitResetMinutes == 240)
+        #expect(settings.blockAllPreventsAppDelete)
 
         let limit = try #require(try container.mainContext.fetch(FetchDescriptor<UsageLimit>()).first)
         #expect(limit.id == limitID)
