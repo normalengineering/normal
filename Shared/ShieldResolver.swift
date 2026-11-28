@@ -50,6 +50,15 @@ nonisolated struct ManualLayer<Token: Hashable & Codable>: Codable, Equatable {
         }
     }
 
+    mutating func setIfNewer(_ tokens: some Sequence<Token>, blocked: Bool, at date: Date) {
+        for token in tokens {
+            let current = entry(for: token)
+            if date > current.date || (date == current.date && blocked) {
+                entries[token] = ManualEntry(isBlocked: blocked, date: date)
+            }
+        }
+    }
+
     mutating func reset(blocking tokens: some Sequence<Token>, at date: Date) {
         baseline = ManualEntry(isBlocked: false, date: date)
         entries = [:]
@@ -86,6 +95,18 @@ nonisolated struct ManualBlockState: Codable, Equatable {
 
     mutating func unblock(_ selection: FamilyActivitySelection, customDomains domains: [String], at date: Date) {
         set(selection, customDomains: domains, blocked: false, at: date)
+    }
+
+    mutating func applyIfNewer(
+        _ selection: FamilyActivitySelection,
+        customDomains domains: [String],
+        blocked: Bool,
+        at date: Date
+    ) {
+        applications.setIfNewer(selection.applicationTokens, blocked: blocked, at: date)
+        webDomains.setIfNewer(selection.webDomainTokens, blocked: blocked, at: date)
+        categories.setIfNewer(selection.categoryTokens, blocked: blocked, at: date)
+        customDomains.setIfNewer(domains.compactMap(DomainNormalizer.normalize), blocked: blocked, at: date)
     }
 
     private mutating func set(
@@ -233,8 +254,25 @@ nonisolated enum ShieldResolver {
         return entry.date > startDate(of: liftingUnblock) ? entry.isBlocked : false
     }
 
-    private static func startDate(of unblock: TimedUnblockDTO) -> Date {
+    static func startDate(of unblock: TimedUnblockDTO) -> Date {
         unblock.startDate ?? unblock.endDate.addingTimeInterval(-maxTimedUnblockDuration)
+    }
+
+    static func materializePermanentSchedule(
+        _ schedule: ScheduleDTO,
+        into manual: inout ManualBlockState,
+        at date: Date,
+        calendar: Calendar = .current
+    ) {
+        guard !schedule.isTimed,
+            let activeClaim = claim(for: schedule, migratedAt: manual.migratedAt, at: date, calendar: calendar)
+        else { return }
+        manual.applyIfNewer(
+            activeClaim.selection,
+            customDomains: Array(activeClaim.customDomains),
+            blocked: activeClaim.isBlocked,
+            at: activeClaim.date
+        )
     }
 
     private static func claim(

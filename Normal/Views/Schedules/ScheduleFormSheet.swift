@@ -12,6 +12,7 @@ struct ScheduleFormSheet: View {
     @Query private var allSchedules: [BlockSchedule]
     @Query private var allSettings: [Settings]
     @Query private var selectedApps: [SelectedApps]
+    @Query private var keys: [Key]
 
     let existing: BlockSchedule?
 
@@ -290,15 +291,29 @@ struct ScheduleFormSheet: View {
         screenTimeService.ifAuthorized { isShowingAppSelect = true }
     }
 
+    private var hasGlobalKey: Bool {
+        Key.hasGlobalKey(in: keys)
+    }
+
+    private var mainSelectionConstraint: SelectionConstraint? {
+        selectedApps.first?.effectiveConstraint(customDomainsEnabled: customDomainsEnabled)
+    }
+
     private func deleteSchedule() {
-        guard let existing else { return }
+        guard let existing, !isBlocked, hasGlobalKey else { return }
         let remaining = allSchedules.filter { $0.id != existing.id }
-        scheduleService.remove(existing, remaining: remaining, screenTimeService: screenTimeService)
+        scheduleService.remove(
+            existing,
+            remaining: remaining,
+            screenTimeService: screenTimeService,
+            constrainedTo: mainSelectionConstraint
+        )
         modelContext.delete(existing)
         dismiss()
     }
 
     private func save() {
+        guard !isBlocked, hasGlobalKey else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         let components = Calendar.current.dateComponents([.hour, .minute], from: startTime)
@@ -340,7 +355,8 @@ struct ScheduleFormSheet: View {
             try scheduleService.syncAndPersist(
                 schedule,
                 allSchedules: allSchedules.contains { $0.id == schedule.id } ? allSchedules : allSchedules + [schedule],
-                screenTimeService: screenTimeService
+                screenTimeService: screenTimeService,
+                constrainedTo: mainSelectionConstraint
             )
             dismiss()
         } catch {

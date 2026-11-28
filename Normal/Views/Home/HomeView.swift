@@ -9,7 +9,6 @@ struct HomeView: View {
     @Environment(\.requestReview) private var requestReview
 
     @Query private var selectedApps: [SelectedApps]
-    @Query private var keys: [Key]
     @Query private var allSettings: [Settings]
 
     @State private var authAction: ProtectedAction?
@@ -22,10 +21,6 @@ struct HomeView: View {
 
     private var settings: Settings {
         allSettings.unwrapped
-    }
-
-    private func customDomains(for selection: SelectedApps) -> [String] {
-        settings.enableCustomDomains ? selection.customDomains : []
     }
 
     var body: some View {
@@ -48,6 +43,27 @@ struct HomeView: View {
                     Section {
                         Text("Please select apps to block in the selection tab.")
                             .foregroundStyle(.secondary)
+                    }
+                    if screenTimeService.activeShieldCount() > 0 {
+                        Section {
+                            Button {
+                                authAction = .weaken { proof in
+                                    BlockActions.unblockOrphanedShields(
+                                        proof: proof,
+                                        settings: settings,
+                                        screenTimeService: screenTimeService,
+                                        timedUnblockService: timedUnblockService
+                                    )
+                                }
+                            } label: {
+                                Label("Unblock All", systemImage: "lock.open.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .accessibilityIdentifier("home.unblockAll")
+                        }
+                    }
+                    if screenTimeService.isAppDeleteDisabled {
+                        AppDeleteToggleView()
                     }
                 }
             }

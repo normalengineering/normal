@@ -3,7 +3,6 @@ import SwiftUI
 
 struct GroupsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
-    @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
     private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
@@ -16,7 +15,7 @@ struct GroupsView: View {
     @State private var unblockAlert: UnblockAlert?
 
     private var hasSelection: Bool {
-        selectedApps.first?.selection.isEmpty == false
+        selectedApps.first?.hasItemsToBlock(customDomainsEnabled: allSettings.unwrapped.enableCustomDomains) == true
     }
 
     private var isBlocked: Bool {
@@ -57,7 +56,8 @@ struct GroupsView: View {
                         durationGrant: $durationGrant,
                         unblockAlert: $unblockAlert
                     )
-                }, onMove: move
+                },
+                onMove: isBlocked ? nil : { move(from: $0, to: $1) }
             )
             .bottomFooter {
                 if isBlocked {
@@ -81,6 +81,7 @@ struct GroupsView: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
+        guard !isBlocked else { return }
         _ = SortIndexing.reorder(appGroups, from: source, to: destination, sortIndex: \.sortIndex)
     }
 
@@ -94,6 +95,7 @@ struct GroupsView: View {
             } actions: {
                 Button("Create Group", action: openSheet)
                     .buttonStyle(.borderedProminent)
+                    .disabled(isBlocked)
             }
         } else {
             ContentUnavailableView {
@@ -105,6 +107,10 @@ struct GroupsView: View {
     }
 
     private func openSheet() {
-        screenTimeService.ifAuthorized { isShowingSheet = true }
+        guard !isBlocked else { return }
+        screenTimeService.ifAuthorized {
+            guard !isBlocked else { return }
+            isShowingSheet = true
+        }
     }
 }

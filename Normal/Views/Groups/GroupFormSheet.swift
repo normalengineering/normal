@@ -300,8 +300,14 @@ struct GroupFormSheet: View {
     }
 
     private func deleteGroup() {
-        guard let existing else { return }
-        existing.deleteCascading(keys: allKeys, from: modelContext)
+        guard let existing, !isReadOnly else { return }
+        BlockActions.deleteGroup(
+            existing,
+            keys: allKeys,
+            from: modelContext,
+            timedUnblockService: timedUnblockService,
+            screenTimeService: screenTimeService
+        )
         dismiss()
     }
 
@@ -326,6 +332,7 @@ struct GroupFormSheet: View {
     }
 
     private func save() {
+        guard !isReadOnly else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
 
@@ -341,7 +348,8 @@ struct GroupFormSheet: View {
             timedUnblockService.updateGroupSelection(
                 groupId: existing.id,
                 selection: selection,
-                customDomains: effectiveCustomDomains
+                customDomains: effectiveCustomDomains,
+                screenTimeService: screenTimeService
             )
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allGroups, sortIndex: \.sortIndex)

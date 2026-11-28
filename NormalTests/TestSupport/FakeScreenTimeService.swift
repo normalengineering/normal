@@ -115,6 +115,18 @@ final class FakeScreenTimeService: ScreenTimeProviding {
         addedBlockedAsOf _: Date
     ) {}
 
+    func unblockRemovedFromMain(
+        from _: FamilyActivitySelection,
+        customDomains _: [String],
+        to _: FamilyActivitySelection,
+        customDomains _: [String],
+        clearAppDeletion _: Bool
+    ) {}
+
+    func clearCustomDomains() {}
+
+    func preservePermanentSchedule(_: ScheduleDTO) {}
+
     func reconcile() {
         reconcileCallCount += 1
     }
