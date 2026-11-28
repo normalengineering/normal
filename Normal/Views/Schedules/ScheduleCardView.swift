@@ -6,6 +6,7 @@ struct ScheduleCardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Query private var allSchedules: [BlockSchedule]
@@ -15,8 +16,12 @@ struct ScheduleCardView: View {
 
     let schedule: BlockSchedule
 
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
+
     private var customDomains: [String] {
-        (allSettings.first?.enableCustomDomains ?? false) ? schedule.customDomains : []
+        settings.enableCustomDomains ? schedule.customDomains : []
     }
 
     @State private var isEditing = false
@@ -25,8 +30,12 @@ struct ScheduleCardView: View {
     @State private var showToggleConfirmation = false
     @State private var error: Error?
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: settings.editProtectionMode,
+            keys: keys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
     }
 
     private var hasGlobalKey: Bool {
@@ -38,7 +47,7 @@ struct ScheduleCardView: View {
         if !schedule.selection.isSubset(of: main.selection) {
             return true
         }
-        if allSettings.first?.enableCustomDomains ?? false,
+        if settings.enableCustomDomains,
             CustomDomains.needsResync(schedule.customDomains, main: main.customDomains)
         {
             return true
@@ -47,7 +56,12 @@ struct ScheduleCardView: View {
     }
 
     private var isLocked: Bool {
-        isBlocked || !hasGlobalKey || needsSync
+        isEditBlocked || !hasGlobalKey || needsSync
+    }
+
+    private var mainSelectionConstraint: (selection: FamilyActivitySelection, customDomains: [String])? {
+        guard let main = selectedApps.first else { return nil }
+        return (selection: main.selection, customDomains: settings.enableCustomDomains ? main.customDomains : [])
     }
 
     var body: some View {
@@ -62,17 +76,17 @@ struct ScheduleCardView: View {
         }
         .opacity((schedule.isEnabled && !isLocked) ? 1 : DS.Opacity.dim)
         .onTapGesture {
-            if needsSync {
+            if needsSync, !isEditBlocked, hasGlobalKey {
                 isReselecting = true
-            } else if !isLocked || isBlocked {
+            } else if !isLocked || isEditBlocked {
                 isEditing = true
             }
         }
         .editDeleteContextMenu(
-            isDisabled: isLocked && !needsSync,
-            isDuplicateDisabled: needsSync,
+            isDisabled: isEditBlocked || !hasGlobalKey,
+            isDuplicateDisabled: needsSync || isEditBlocked || !hasGlobalKey,
             onEdit: {
-                if needsSync {
+                if needsSync, !isEditBlocked, hasGlobalKey {
                     isReselecting = true
                 } else {
                     isEditing = true
@@ -85,7 +99,24 @@ struct ScheduleCardView: View {
             ScheduleFormSheet(existing: schedule)
         }
         .sheet(isPresented: $isReselecting) {
-            SelectAppsForGroupSheet(selection: reselectionBinding, customDomains: reselectionDomainsBinding)
+            SelectAppsForGroupSheet(
+                selection: .constant(schedule.selection),
+                customDomains: .constant(schedule.customDomains)
+            ) { newSelection, newDomains in
+                guard !isEditBlocked, hasGlobalKey else { return }
+                schedule.selection = newSelection
+                schedule.customDomains = newDomains
+                do {
+                    try scheduleService.syncAndPersist(
+                        schedule,
+                        allSchedules: allSchedules,
+                        screenTimeService: screenTimeService,
+                        constrainedTo: mainSelectionConstraint
+                    )
+                } catch {
+                    self.error = error
+                }
+            }
         }
         .alert(
             schedule.isEnabled ? "Disable Schedule?" : "Enable Schedule?",
@@ -103,6 +134,16 @@ struct ScheduleCardView: View {
                     ? "\(schedule.name) will stop running until you re-enable it."
                     : "\(schedule.name) will start running."
             )
+        }
+        .alert(
+            "Schedule Notice",
+            isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })
+        ) {
+            Button("OK", role: .cancel) { error = nil }
+        } message: {
+            if let error {
+                Text(error.localizedDescription)
+            }
         }
         .deleteConfirmation(
             title: "Delete Schedule?",
@@ -230,34 +271,6 @@ struct ScheduleCardView: View {
             .foregroundStyle(.secondary)
     }
 
-    private var reselectionBinding: Binding<FamilyActivitySelection> {
-        Binding(
-            get: { schedule.selection },
-            set: { newValue in
-                schedule.selection = newValue
-                try? scheduleService.syncAndPersist(
-                    schedule,
-                    allSchedules: allSchedules,
-                    screenTimeService: screenTimeService
-                )
-            }
-        )
-    }
-
-    private var reselectionDomainsBinding: Binding<[String]> {
-        Binding(
-            get: { schedule.customDomains },
-            set: { newValue in
-                schedule.customDomains = newValue
-                try? scheduleService.syncAndPersist(
-                    schedule,
-                    allSchedules: allSchedules,
-                    screenTimeService: screenTimeService
-                )
-            }
-        )
-    }
-
     private var enabledBinding: Binding<Bool> {
         Binding(
             get: { schedule.isEnabled },
@@ -266,11 +279,13 @@ struct ScheduleCardView: View {
     }
 
     private func toggleEnabled() {
+        guard !isEditBlocked, hasGlobalKey else { return }
         do {
             try scheduleService.toggleEnabled(
                 schedule,
                 allSchedules: allSchedules,
-                screenTimeService: screenTimeService
+                screenTimeService: screenTimeService,
+                constrainedTo: mainSelectionConstraint
             )
         } catch {
             self.error = error
@@ -278,18 +293,25 @@ struct ScheduleCardView: View {
     }
 
     private func duplicateSchedule() {
+        guard !isEditBlocked, hasGlobalKey, !needsSync else { return }
         let ordered = allSchedules.sorted { $0.sortIndex < $1.sortIndex }
         let copy = schedule.duplicate(named: CopyNaming.name(for: schedule.name, existing: allSchedules.map(\.name)))
         withAnimation {
             modelContext.insert(copy)
             let reordered = SortIndexing.insert(copy, after: schedule, in: ordered, sortIndex: \.sortIndex)
-            scheduleService.syncAllToSharedStore(reordered)
+            scheduleService.syncAllToSharedStore(reordered, constrainedTo: mainSelectionConstraint)
         }
     }
 
     private func deleteSchedule() {
+        guard !isEditBlocked, hasGlobalKey else { return }
         let remaining = allSchedules.filter { $0.id != schedule.id }
-        scheduleService.remove(schedule, remaining: remaining, screenTimeService: screenTimeService)
+        scheduleService.remove(
+            schedule,
+            remaining: remaining,
+            screenTimeService: screenTimeService,
+            constrainedTo: mainSelectionConstraint
+        )
         modelContext.delete(schedule)
     }
 }

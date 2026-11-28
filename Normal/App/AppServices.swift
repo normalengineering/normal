@@ -9,6 +9,7 @@ final class AppServices {
     let appReview: AppReviewService
     let emergencyUnblock: EmergencyUnblockService
     let usageLimit: UsageLimitService
+    let editSession: EditSessionService
     let unlockInbox = UnlockRequestInbox()
 
     init() {
@@ -47,6 +48,9 @@ final class AppServices {
                 sharedStore: store,
                 ledger: InMemoryUsageLimitLedger()
             )
+            editSession = EditSessionService(
+                defaults: UserDefaults(suiteName: "uitest-edit-\(UUID().uuidString)")!
+            )
         } else {
             let screenTime = ScreenTimeService()
             self.screenTime = screenTime
@@ -55,6 +59,7 @@ final class AppServices {
             appReview = AppReviewService()
             emergencyUnblock = EmergencyUnblockService(ledger: KeychainEmergencyUnblockLedger())
             usageLimit = UsageLimitService()
+            editSession = EditSessionService()
         }
     }
 }

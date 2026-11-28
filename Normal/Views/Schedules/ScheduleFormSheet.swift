@@ -8,10 +8,12 @@ struct ScheduleFormSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
 
     @Query private var allSchedules: [BlockSchedule]
     @Query private var allSettings: [Settings]
     @Query private var selectedApps: [SelectedApps]
+    @Query private var keys: [Key]
 
     let existing: BlockSchedule?
 
@@ -33,12 +35,16 @@ struct ScheduleFormSheet: View {
         existing == nil
     }
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: allSettings.unwrapped.editProtectionMode,
+            keys: keys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
     }
 
     private var isReadOnly: Bool {
-        !isNew && isBlocked
+        !isNew && isEditBlocked
     }
 
     private var isDurationTooShort: Bool {
@@ -126,11 +132,7 @@ struct ScheduleFormSheet: View {
             }
             .navigationTitle(isReadOnly ? "Schedule" : (isNew ? "New Schedule" : "Edit Schedule"))
             .navigationBarTitleDisplayMode(.inline)
-            .bottomFooter {
-                if isReadOnly {
-                    FooterMessage(text: BlockedMessage.schedules)
-                }
-            }
+            .editProtectionBar(unblockAllMessage: BlockedMessage.schedules)
             .toolbar {
                 if isReadOnly {
                     ToolbarItem(placement: .confirmationAction) {
@@ -143,7 +145,7 @@ struct ScheduleFormSheet: View {
                     ToolbarItem(placement: .confirmationAction) {
                         Button(isNew ? "Save" : "Update", action: save)
                             .fontWeight(.semibold)
-                            .disabled(!canSave)
+                            .disabled(!canSave || isEditBlocked)
                     }
                 }
             }
@@ -290,15 +292,27 @@ struct ScheduleFormSheet: View {
         screenTimeService.ifAuthorized { isShowingAppSelect = true }
     }
 
+    private var mainSelectionConstraint: (selection: FamilyActivitySelection, customDomains: [String])? {
+        selectedApps.first.map { main in
+            (selection: main.selection, customDomains: customDomainsEnabled ? main.customDomains : [])
+        }
+    }
+
     private func deleteSchedule() {
-        guard let existing else { return }
+        guard let existing, !isEditBlocked else { return }
         let remaining = allSchedules.filter { $0.id != existing.id }
-        scheduleService.remove(existing, remaining: remaining, screenTimeService: screenTimeService)
+        scheduleService.remove(
+            existing,
+            remaining: remaining,
+            screenTimeService: screenTimeService,
+            constrainedTo: mainSelectionConstraint
+        )
         modelContext.delete(existing)
         dismiss()
     }
 
     private func save() {
+        guard !isEditBlocked else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
         let components = Calendar.current.dateComponents([.hour, .minute], from: startTime)
@@ -340,7 +354,8 @@ struct ScheduleFormSheet: View {
             try scheduleService.syncAndPersist(
                 schedule,
                 allSchedules: allSchedules.contains { $0.id == schedule.id } ? allSchedules : allSchedules + [schedule],
-                screenTimeService: screenTimeService
+                screenTimeService: screenTimeService,
+                constrainedTo: mainSelectionConstraint
             )
             dismiss()
         } catch {

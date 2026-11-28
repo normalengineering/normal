@@ -52,5 +52,8 @@ struct SettingsTests {
         #expect(s.blockAllPreventsAppDelete == false)
         #expect(s.hasCompletedOnboarding == false)
         #expect(s.defaultTab == nil)
+        #expect(s.editProtectionMode == .requireKey)
+        #expect(s.editDurationOverride == .appDefault)
+        #expect(s.editKeyOverride == .appDefault)
     }
 }

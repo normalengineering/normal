@@ -117,6 +117,7 @@
 			membershipExceptions = (
 				BlockingUITests.swift,
 				DonationUITests.swift,
+				EditProtectionUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 				RecoveryUITests.swift,
@@ -130,6 +131,7 @@
 			membershipExceptions = (
 				BlockingUITests.swift,
 				DonationUITests.swift,
+				EditProtectionUITests.swift,
 				NormalUITests.swift,
 				NormalUITestsLaunchTests.swift,
 				RecoveryUITests.swift,

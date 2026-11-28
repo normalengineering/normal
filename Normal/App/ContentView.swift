@@ -1,3 +1,4 @@
+import FamilyControls
 import SwiftData
 import SwiftUI
 
@@ -8,10 +9,12 @@ struct ContentView: View {
     @Environment(ScheduleService.self) private var scheduleService
     @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
     @Environment(UsageLimitService.self) private var usageLimitService
+    @Environment(EditSessionService.self) private var editSessionService
     @Environment(\.scenePhase) private var scenePhase
     @Query private var allSettings: [Settings]
     @Query private var schedules: [BlockSchedule]
     @Query private var usageLimits: [UsageLimit]
+    @Query private var selectedApps: [SelectedApps]
 
     @State private var navigationCoordinator = NavigationCoordinator()
 
@@ -44,8 +47,8 @@ struct ContentView: View {
             if newPhase == .active {
                 Task { await screenTimeService.checkAuthorizationStatus() }
                 screenTimeService.notifyUpdate()
+                editSessionService.refresh()
                 timedUnblockService.refresh(screenTimeService: screenTimeService)
-                // The monitor extension may have spent a limit while we were away.
                 usageLimitService.notifyUpdate()
                 reregisterActivities()
             }
@@ -56,8 +59,9 @@ struct ContentView: View {
     private func onAppear() {
         if let settings {
             emergencyUnblockService.reconcile(into: settings)
+            scheduleService.mirrorCustomDomainsEnabled(settings.enableCustomDomains)
         }
-
+        editSessionService.refresh()
         timedUnblockService.reconcile(screenTimeService: screenTimeService)
         if settings?.hasCompletedOnboarding == true {
             onboardingService.isOnboardingActive = false
@@ -73,12 +77,19 @@ struct ContentView: View {
         }
     }
 
-    /// Re-registers every `DeviceActivity` we depend on. Usage limits ride along
-    /// with schedules: their threshold events use `includesPastActivity`, so
-    /// re-registering mid-day cannot hand back an allowance already spent.
+    private var mainSelectionConstraint: (selection: FamilyActivitySelection, customDomains: [String])? {
+        guard let main = selectedApps.first else { return nil }
+        let domains = settings?.enableCustomDomains == true ? main.customDomains : []
+        return (selection: main.selection, customDomains: domains)
+    }
+
     private func reregisterActivities() {
         guard settings?.hasCompletedOnboarding == true else { return }
-        scheduleService.registerAll(schedules, screenTimeService: screenTimeService)
+        scheduleService.registerAll(
+            schedules,
+            screenTimeService: screenTimeService,
+            constrainedTo: mainSelectionConstraint
+        )
         reregisterUsageLimits()
     }
 

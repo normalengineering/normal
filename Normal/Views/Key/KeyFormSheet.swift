@@ -13,8 +13,10 @@ struct KeyFormSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(QRService.self) private var qrService
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
 
     @Query private var keys: [Key]
+    @Query private var allSettings: [Settings]
 
     let existing: Key?
     var groupID: UUID?
@@ -35,8 +37,17 @@ struct KeyFormSheet: View {
         existing == nil
     }
 
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: allSettings.unwrapped.editProtectionMode,
+            keys: keys,
+            activeShieldCount: screenTimeService.activeShieldCount(),
+            allowWhenNoKeys: isNew
+        )
+    }
+
     private var isReadOnly: Bool {
-        !isNew && screenTimeService.activeShieldCount() > 0
+        !isNew && isEditBlocked
     }
 
     private var isLastKey: Bool {
@@ -132,18 +143,11 @@ struct KeyFormSheet: View {
                             .accessibilityIdentifier("key.deleteButton")
                         }
                     }
-
-                    if isReadOnly {
-                        Section {
-                        } footer: {
-                            Text(BlockedMessage.keys)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        }
-                    }
                 }
             }
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
+            .editProtectionBar(unblockAllMessage: BlockedMessage.keys, allowWhenNoKeys: isNew)
             .toolbar {
                 if isReadOnly {
                     ToolbarItem(placement: .confirmationAction) {
@@ -157,7 +161,7 @@ struct KeyFormSheet: View {
                         Button(isNew ? "Save" : "Update", action: save)
                             .fontWeight(.semibold)
                             .accessibilityIdentifier("key.saveButton")
-                            .disabled(!canSave)
+                            .disabled(!canSave || isEditBlocked)
                     }
                 }
             }
@@ -213,12 +217,13 @@ struct KeyFormSheet: View {
     }
 
     private func deleteKey() {
-        guard let existing, keys.count > 1 else { return }
+        guard let existing, !isEditBlocked, Key.canDelete(existing, in: keys) else { return }
         modelContext.delete(existing)
         dismiss()
     }
 
     private func save() {
+        guard !isEditBlocked else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
 

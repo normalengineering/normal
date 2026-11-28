@@ -5,7 +5,7 @@ struct OnboardingFinishView: View {
     let onViewFAQ: () -> Void
 
     private static let notes: [(systemImage: String, text: LocalizedStringKey)] = [
-        ("lock.open", "To make changes to apps, keys, groups, or schedules, all apps must be unblocked."),
+        ("key.fill", "To make changes to apps, keys, groups, or schedules, unblock editing with a key. You can change this in Settings."),
         ("lock.shield", "Normal can be made impossible to bypass. Instructions are in Normal's Settings > FAQ."),
     ]
 

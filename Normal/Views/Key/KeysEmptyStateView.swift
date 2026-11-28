@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct KeysEmptyStateView: View {
+    var isAddDisabled: Bool = false
     let onAddKey: () -> Void
 
     private var noKeysDescription: LocalizedStringKey {
@@ -37,5 +38,6 @@ struct KeysEmptyStateView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .frame(maxWidth: .infinity)
+            .disabled(isAddDisabled)
     }
 }

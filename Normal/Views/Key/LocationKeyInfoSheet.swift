@@ -7,10 +7,14 @@ struct LocationKeyInfoSheet: View {
 
     let key: Key
     let currentLocation: CLLocation?
-    let canDelete: Bool
+    let deleteDisabledReason: LocalizedStringKey?
     let onDelete: () -> Void
 
     @State private var showDeleteConfirmation = false
+
+    private var canDelete: Bool {
+        deleteDisabledReason == nil
+    }
 
     private var tint: Color {
         key.radiusKind?.zoneColor ?? .accentColor
@@ -57,8 +61,8 @@ struct LocationKeyInfoSheet: View {
                 .controlSize(.large)
                 .disabled(!canDelete)
 
-                if !canDelete {
-                    Text("At least one key must exist. Add another key before deleting this one.")
+                if let deleteDisabledReason {
+                    Text(deleteDisabledReason)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

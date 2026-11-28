@@ -18,6 +18,11 @@ final class Settings {
     var enableCustomDomains: Bool = false
     var skipBlockWithoutKeyConfirmation: Bool = false
     var dailyLimitResetMinutes: Int = 0
+    var editProtectionRawValue: String?
+    var overridesEditDefaultDuration: Bool = false
+    var editDefaultUnblockSeconds: Int?
+    var overridesEditDefaultKey: Bool = false
+    var editDefaultKeyType: KeyType?
 
     static let maxEmergencyUnblocks = 3
     private static let emergencyWindowDays = 180

@@ -3,8 +3,12 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
+    @Query private var keys: [Key]
     let settings: Settings
     let availableKeyTypes: [KeyType]
+
+    @State private var customDomainsAuthAction: ProtectedAction?
 
     private static let defaultPageOptions: [AppTab] = [.home, .groups, .schedules]
     private static let writeReviewURL = URL(string: "https://apps.apple.com/app/id6768861415?action=write-review")!
@@ -22,23 +26,57 @@ struct GeneralSettingsView: View {
                 }
             #endif
         }
+        .keySelect(
+            action: $customDomainsAuthAction,
+            defaultKeyType: settings.resolvedEditDefaultKeyType
+        )
     }
 
     private var hasActiveFilter: Bool {
         screenTimeService.hasActiveCustomDomainFilter()
     }
 
+    private var isCustomDomainsToggleDisabled: Bool {
+        settings.editProtectionMode == .unblockAll && hasActiveFilter
+    }
+
+    private var customDomainsBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableCustomDomains },
+            set: { enabled in
+                if enabled {
+                    settings.enableCustomDomains = true
+                    return
+                }
+                if settings.editProtectionMode == .requireKey,
+                    editSessionService.isEditingBlocked(
+                        mode: .requireKey,
+                        keys: keys,
+                        activeShieldCount: screenTimeService.activeShieldCount()
+                    )
+                {
+                    customDomainsAuthAction = .weaken { proof in
+                        guard proof.coversAllApps else { return }
+                        settings.enableCustomDomains = false
+                    }
+                } else {
+                    settings.enableCustomDomains = false
+                }
+            }
+        )
+    }
+
     private var websitesSection: some View {
         Section {
             Toggle(
                 "Enable Custom Websites",
-                isOn: Bindable(settings).enableCustomDomains
+                isOn: customDomainsBinding
             )
-            .disabled(hasActiveFilter)
+            .disabled(isCustomDomainsToggleDisabled)
         } header: {
             Text("Websites")
         } footer: {
-            if hasActiveFilter {
+            if isCustomDomainsToggleDisabled {
                 Text("Unblock all apps to turn this off.")
             }
         }
@@ -102,6 +140,13 @@ struct GeneralSettingsView: View {
     private var blockingSection: some View {
         Section {
             UsageSummaryView()
+
+            NavigationLink {
+                EditProtectionView(settings: settings)
+            } label: {
+                LabeledContent("Edit Protection", value: settings.editProtectionMode.shortLabel)
+            }
+            .accessibilityIdentifier("settings.editProtectionLink")
 
             AdultContentToggleView(defaultKeyType: settings.defaultKeyType)
 

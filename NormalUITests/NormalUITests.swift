@@ -86,7 +86,7 @@ final class NormalUITests: XCTestCase {
 
     @MainActor
     func testAddKeyViaScanCreatesKey() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestEditProtection", "unblockAll"])
 
         let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable when onboarding is skipped")
@@ -116,7 +116,7 @@ final class NormalUITests: XCTestCase {
 
     @MainActor
     func testAddLocationKeyCreatesKey() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestEditProtection", "unblockAll"])
 
         let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable when onboarding is skipped")
@@ -156,7 +156,7 @@ final class NormalUITests: XCTestCase {
 
     @MainActor
     func testLocationPickerShowsMapAndCurrentLocationControl() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding"])
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestEditProtection", "unblockAll"])
 
         let keysTab = app.mainTab("Keys")
         require(keysTab, "Keys tab should be reachable when onboarding is skipped")
@@ -183,7 +183,7 @@ final class NormalUITests: XCTestCase {
 
     @MainActor
     func testLocationKeyInfoClosesWithTheCloseButton() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedLocationKey"])
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedLocationKey", "-uiTestEditProtection", "unblockAll"])
         app.mainTab("Keys").tap()
         app.buttons["keys.addButton"].tap()
         let locationSegment = app.buttons["Location"]
@@ -206,7 +206,7 @@ final class NormalUITests: XCTestCase {
 
     @MainActor
     func testUpdatingSelectionWarnsThatSchedulesMayBeAffected() {
-        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedSchedule"])
+        let app = launch(["-uiTestMode", "-uiTestSkipOnboarding", "-uiTestSeedSchedule", "-uiTestEditProtection", "unblockAll"])
 
         let appSelectTab = app.mainTab("App Select")
         require(appSelectTab, "App Select tab should be reachable")

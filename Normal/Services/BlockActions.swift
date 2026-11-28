@@ -1,4 +1,6 @@
+import FamilyControls
 import Foundation
+import SwiftData
 import UIKit
 
 enum BlockActions {
@@ -49,6 +51,11 @@ enum BlockActions {
                 screenTimeService: screenTimeService
             )
         case .permanent:
+            if grant.target.group == nil {
+                timedUnblockService.clearAll()
+            } else if let group = grant.target.group, timedUnblockService.isGroupUnblockActive(groupId: group.id) {
+                timedUnblockService.cancelGroup(groupId: group.id)
+            }
             screenTimeService.unblockPermanently(grant, settings: settings)
             timing = .exact
         }
@@ -56,17 +63,82 @@ enum BlockActions {
         return timing
     }
 
+    static func updateMainSelection(
+        from oldSelection: FamilyActivitySelection,
+        oldCustomDomains: [String],
+        to newSelection: FamilyActivitySelection,
+        newCustomDomains: [String],
+        schedules: [BlockSchedule],
+        settings: Settings,
+        screenTimeService: any ScreenTimeProviding,
+        timedUnblockService: TimedUnblockService,
+        scheduleService: ScheduleService
+    ) {
+        let effectiveNewDomains = settings.enableCustomDomains ? newCustomDomains : []
+        let effectiveOldDomains = settings.enableCustomDomains ? oldCustomDomains : []
+        if !schedules.isEmpty {
+            scheduleService.syncAllToSharedStore(
+                schedules,
+                constrainedTo: (selection: newSelection, customDomains: effectiveNewDomains)
+            )
+        }
+        if timedUnblockService.isMainUnblockActive {
+            timedUnblockService.updateMainSelection(
+                newSelection,
+                customDomains: effectiveNewDomains,
+                screenTimeService: screenTimeService
+            )
+        } else {
+            let becameEmpty = newSelection.isEmpty && effectiveNewDomains.isEmpty
+            if becameEmpty {
+                timedUnblockService.clearAll()
+            } else {
+                timedUnblockService.pruneGroupUnblocks(
+                    to: newSelection,
+                    customDomains: effectiveNewDomains,
+                    screenTimeService: screenTimeService
+                )
+            }
+            screenTimeService.unblockRemovedFromMain(
+                from: oldSelection,
+                customDomains: effectiveOldDomains,
+                to: newSelection,
+                customDomains: effectiveNewDomains,
+                clearAppDeletion: becameEmpty && settings.blockAllPreventsAppDelete
+            )
+        }
+    }
+
+    static func deleteGroup(
+        _ group: AppGroup,
+        keys: [Key],
+        from context: ModelContext,
+        timedUnblockService: TimedUnblockService,
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        let hadTimedUnblock = timedUnblockService.isGroupUnblockActive(groupId: group.id)
+        if hadTimedUnblock {
+            timedUnblockService.cancelGroup(groupId: group.id)
+        }
+        group.deleteCascading(keys: keys, from: context)
+        if hadTimedUnblock {
+            screenTimeService.reconcile()
+        }
+    }
+
     static func emergencyUnblock(
         schedules: [BlockSchedule],
         screenTimeService: any ScreenTimeProviding,
         timedUnblockService: TimedUnblockService,
         scheduleService: ScheduleService,
-        usageLimitService: UsageLimitService
+        usageLimitService: UsageLimitService,
+        editSessionService: EditSessionService? = nil
     ) {
         timedUnblockService.discardAll()
         scheduleService.disableAll(schedules, screenTimeService: screenTimeService)
         usageLimitService.overrideToday()
         screenTimeService.removeAllRestrictions()
+        editSessionService?.grantEmergencyAccess()
         playHaptic()
     }
 

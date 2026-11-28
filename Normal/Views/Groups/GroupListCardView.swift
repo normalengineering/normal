@@ -5,6 +5,7 @@ import SwiftUI
 struct GroupListCardView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Environment(EditSessionService.self) private var editSessionService
     @Environment(\.modelContext) private var modelContext
 
     @Query private var selectedApps: [SelectedApps]
@@ -12,8 +13,6 @@ struct GroupListCardView: View {
     @Query private var allKeys: [Key]
 
     let appGroup: AppGroup
-    // Hosted on the stable GroupsView list rather than this card: a sheet attached to
-    // a card row whose block/unblock buttons swap gets wedged and won't re-present.
     @Binding var authAction: ProtectedAction?
     @Binding var pendingGroupID: UUID?
     @Binding var durationGrant: UnblockGrant?
@@ -31,8 +30,12 @@ struct GroupListCardView: View {
         settings.enableCustomDomains ? appGroup.customDomains : []
     }
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: settings.editProtectionMode,
+            keys: allKeys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
     }
 
     private var blockStatus: BlockStatus {
@@ -80,16 +83,16 @@ struct GroupListCardView: View {
         }
         .opacity(needsSync ? DS.Opacity.dim : 1)
         .onTapGesture {
-            if needsSync {
+            if needsSync, !isEditBlocked {
                 isReselecting = true
             } else {
                 isEditing = true
             }
         }
         .editDeleteContextMenu(
-            isDisabled: isBlocked,
+            isDisabled: isEditBlocked,
             onEdit: {
-                if needsSync {
+                if needsSync, !isEditBlocked {
                     isReselecting = true
                 } else {
                     isEditing = true
@@ -101,14 +104,35 @@ struct GroupListCardView: View {
             GroupFormSheet(existing: appGroup)
         }
         .sheet(isPresented: $isReselecting) {
-            SelectAppsForGroupSheet(selection: reselectionBinding, customDomains: reselectionDomainsBinding)
+            SelectAppsForGroupSheet(
+                selection: .constant(appGroup.selection),
+                customDomains: .constant(appGroup.customDomains)
+            ) { newSelection, newDomains in
+                guard !isEditBlocked else { return }
+                appGroup.selection = newSelection
+                appGroup.customDomains = newDomains
+                appGroup.lastUpdated = .now
+                timedUnblockService.updateGroupSelection(
+                    groupId: appGroup.id,
+                    selection: newSelection,
+                    customDomains: settings.enableCustomDomains ? newDomains : [],
+                    screenTimeService: screenTimeService
+                )
+            }
         }
         .deleteConfirmation(
             title: "Delete Group?",
             itemName: appGroup.name,
             isPresented: $showDeleteConfirmation,
             onDelete: {
-                appGroup.deleteCascading(keys: allKeys, from: modelContext)
+                guard !isEditBlocked else { return }
+                BlockActions.deleteGroup(
+                    appGroup,
+                    keys: allKeys,
+                    from: modelContext,
+                    timedUnblockService: timedUnblockService,
+                    screenTimeService: screenTimeService
+                )
             }
         )
     }
@@ -152,36 +176,6 @@ struct GroupListCardView: View {
             tokens: appGroup.selection.allTokens,
             customDomains: customDomains,
             maxCount: 6
-        )
-    }
-
-    private var reselectionBinding: Binding<FamilyActivitySelection> {
-        Binding(
-            get: { appGroup.selection },
-            set: { newValue in
-                appGroup.selection = newValue
-                appGroup.lastUpdated = .now
-                timedUnblockService.updateGroupSelection(
-                    groupId: appGroup.id,
-                    selection: newValue,
-                    customDomains: customDomains
-                )
-            }
-        )
-    }
-
-    private var reselectionDomainsBinding: Binding<[String]> {
-        Binding(
-            get: { appGroup.customDomains },
-            set: { newValue in
-                appGroup.customDomains = newValue
-                appGroup.lastUpdated = .now
-                timedUnblockService.updateGroupSelection(
-                    groupId: appGroup.id,
-                    selection: appGroup.selection,
-                    customDomains: settings.enableCustomDomains ? newValue : []
-                )
-            }
         )
     }
 

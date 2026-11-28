@@ -106,7 +106,7 @@ struct StatusDetailView: View {
                         Label(domain, systemImage: "globe")
                             .labelStyle(.titleAndIcon)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        let status: BlockStatus = overallStatus == .none ? .none : .all
+                        let status: BlockStatus = screenTimeService.isCustomDomainShielded(domain) ? .all : .none
                         StatusBadge(
                             title: LocalizedStringKey(status.shortLabel),
                             systemImage: status.icon,

@@ -164,13 +164,24 @@ final class TimedUnblockService {
         let previous =
             existing.flatMap { try? FamilyActivitySelection.fromData($0.selectionData) }
             ?? FamilyActivitySelection()
-        screenTimeService.updateMainList(
-            from: previous,
-            customDomains: existing?.customDomains ?? [],
-            to: selection,
-            customDomains: customDomains,
-            addedBlockedAsOf: (existing?.startDate ?? clock()).addingTimeInterval(-1)
-        )
+        let previousDomains = existing?.customDomains ?? []
+        let hadItems = !previous.isEmpty || !previousDomains.isEmpty
+
+        if hadItems, selection.isEmpty, customDomains.isEmpty {
+            cancelMonitoring(activityName: activityName)
+            forget(id: Self.mainID)
+            syncHeartbeat()
+            screenTimeService.unblockRemovedFromMain(
+                from: previous,
+                customDomains: previousDomains,
+                to: selection,
+                customDomains: customDomains,
+                clearAppDeletion: existing?.blockAllPreventsAppDelete == true
+            )
+            return
+        }
+
+        let addedDate = (existing.map { ShieldResolver.startDate(of: $0) } ?? clock()).addingTimeInterval(-1)
         try? persist(
             id: Self.mainID,
             selection: selection,
@@ -182,22 +193,126 @@ final class TimedUnblockService {
             scheduleTask: false,
             blockAllPreventsAppDelete: existing?.blockAllPreventsAppDelete
         )
+        screenTimeService.updateMainList(
+            from: previous,
+            customDomains: previousDomains,
+            to: selection,
+            customDomains: customDomains,
+            addedBlockedAsOf: addedDate
+        )
     }
 
-    func updateGroupSelection(groupId: UUID, selection: FamilyActivitySelection, customDomains: [String] = []) {
+    func updateGroupSelection(
+        groupId: UUID,
+        selection: FamilyActivitySelection,
+        customDomains: [String] = [],
+        screenTimeService: (any ScreenTimeProviding)? = nil
+    ) {
         let id = groupId.uuidString
         guard let endDate = activeUnblocks[id] else { return }
         let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupId)
+        let existing = sharedStore.findTimedUnblock(activityName: activityName)
+        let existingSelection = existing.flatMap { try? FamilyActivitySelection.fromData($0.selectionData) }
+        let hadItems =
+            (existingSelection.map { !$0.isEmpty } ?? false)
+            || !(existing?.customDomains.isEmpty ?? true)
+        let effectiveSelection: FamilyActivitySelection
+        let effectiveDomains: [String]
+        if let existing, let existingSelection {
+            effectiveSelection = selection.intersection(existingSelection)
+            effectiveDomains = CustomDomains.subset(customDomains, of: existing.customDomains)
+        } else {
+            effectiveSelection = selection
+            effectiveDomains = customDomains
+        }
+        if hadItems, effectiveSelection.isEmpty, effectiveDomains.isEmpty {
+            cancelGroup(groupId: groupId)
+            screenTimeService?.reconcile()
+            return
+        }
         try? persist(
             id: id,
-            selection: selection,
-            customDomains: customDomains,
-            startDate: sharedStore.findTimedUnblock(activityName: activityName)?.startDate,
+            selection: effectiveSelection,
+            customDomains: effectiveDomains,
+            startDate: existing?.startDate,
             endDate: endDate,
             activityName: activityName,
             isGroupUnblock: true,
             scheduleTask: false
         )
+        screenTimeService?.reconcile()
+    }
+
+    func pruneGroupUnblocks(
+        to selection: FamilyActivitySelection,
+        customDomains: [String],
+        screenTimeService: any ScreenTimeProviding
+    ) {
+        let groupIDs = activeUnblocks.keys.compactMap { $0 == Self.mainID ? nil : UUID(uuidString: $0) }
+        for groupID in groupIDs {
+            updateGroupSelection(
+                groupId: groupID,
+                selection: selection,
+                customDomains: customDomains,
+                screenTimeService: screenTimeService
+            )
+        }
+    }
+
+    func handleCustomDomainsDisabled(screenTimeService: any ScreenTimeProviding) {
+        if let endDate = activeUnblocks[Self.mainID] {
+            let activityName = SharedConstants.mainTimedUnblockActivityName
+            if let existing = sharedStore.findTimedUnblock(activityName: activityName),
+                !existing.customDomains.isEmpty
+            {
+                let selection =
+                    (try? FamilyActivitySelection.fromData(existing.selectionData)) ?? FamilyActivitySelection()
+                if selection.isEmpty {
+                    cancelMonitoring(activityName: activityName)
+                    forget(id: Self.mainID)
+                    syncHeartbeat()
+                    if existing.blockAllPreventsAppDelete == true {
+                        screenTimeService.unblockRemovedFromMain(
+                            from: FamilyActivitySelection(),
+                            customDomains: existing.customDomains,
+                            to: FamilyActivitySelection(),
+                            customDomains: [],
+                            clearAppDeletion: true
+                        )
+                    }
+                } else {
+                    try? persist(
+                        id: Self.mainID,
+                        selection: selection,
+                        customDomains: [],
+                        startDate: existing.startDate,
+                        endDate: endDate,
+                        activityName: activityName,
+                        isGroupUnblock: false,
+                        scheduleTask: false,
+                        blockAllPreventsAppDelete: existing.blockAllPreventsAppDelete
+                    )
+                }
+            }
+        }
+
+        let groupIDs = activeUnblocks.keys.compactMap { $0 == Self.mainID ? nil : UUID(uuidString: $0) }
+        for groupID in groupIDs {
+            let activityName = SharedConstants.groupTimedUnblockActivityName(for: groupID)
+            guard let existing = sharedStore.findTimedUnblock(activityName: activityName),
+                !existing.customDomains.isEmpty
+            else { continue }
+            let selection =
+                (try? FamilyActivitySelection.fromData(existing.selectionData)) ?? FamilyActivitySelection()
+            updateGroupSelection(
+                groupId: groupID,
+                selection: selection,
+                customDomains: [],
+                screenTimeService: nil
+            )
+        }
+
+        screenTimeService.clearCustomDomains()
     }
 
     private func persist(
@@ -237,16 +352,23 @@ final class TimedUnblockService {
 
     private func scheduleExpiration(id: String, at date: Date) {
         cancelExpiration(id: id)
-        let interval = date.timeIntervalSinceNow
-        guard interval > 0 else {
+        guard date > clock() else {
+            sharedStore.removeTimedUnblock(id: id)
             activeUnblocks.removeValue(forKey: id)
+            syncHeartbeat()
             return
         }
         expirationTasks[id] = Task {
-            try? await Task.sleep(for: .seconds(interval))
+            while !Task.isCancelled {
+                let interval = date.timeIntervalSince(clock())
+                guard interval > 0 else { break }
+                try? await Task.sleep(for: .seconds(interval))
+            }
             guard !Task.isCancelled else { return }
+            sharedStore.removeTimedUnblock(id: id)
             activeUnblocks.removeValue(forKey: id)
             expirationTasks.removeValue(forKey: id)
+            syncHeartbeat()
             onExpiration()
         }
     }

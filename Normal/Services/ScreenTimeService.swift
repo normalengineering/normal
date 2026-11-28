@@ -143,17 +143,52 @@ final class ScreenTimeService: ScreenTimeProviding {
         customDomains newDomains: [String],
         addedBlockedAsOf addedDate: Date
     ) {
+        let oldNormalized = Set(oldDomains.compactMap(DomainNormalizer.normalize))
+        let newNormalized = Set(newDomains.compactMap(DomainNormalizer.normalize))
         reconcile { state in
             state.unblock(
                 old.subtracting(new),
-                customDomains: oldDomains.filter { !newDomains.contains($0) },
+                customDomains: Array(oldNormalized.subtracting(newNormalized)),
                 at: clock()
             )
             state.block(
                 new.subtracting(old),
-                customDomains: newDomains.filter { !oldDomains.contains($0) },
+                customDomains: Array(newNormalized.subtracting(oldNormalized)),
                 at: addedDate
             )
+        }
+    }
+
+    func unblockRemovedFromMain(
+        from old: FamilyActivitySelection,
+        customDomains oldDomains: [String],
+        to new: FamilyActivitySelection,
+        customDomains newDomains: [String],
+        clearAppDeletion: Bool
+    ) {
+        let oldNormalized = Set(oldDomains.compactMap(DomainNormalizer.normalize))
+        let newNormalized = Set(newDomains.compactMap(DomainNormalizer.normalize))
+        let removedSelection = old.subtracting(new)
+        let removedDomains = Array(oldNormalized.subtracting(newNormalized))
+        guard !removedSelection.isEmpty || !removedDomains.isEmpty || clearAppDeletion else { return }
+        reconcile { state in
+            let now = clock()
+            state.unblock(removedSelection, customDomains: removedDomains, at: now)
+            if clearAppDeletion {
+                state.setAppDeletionBlocked(false, at: now)
+            }
+        }
+    }
+
+    func clearCustomDomains() {
+        reconcile { state in
+            state.customDomains.reset(blocking: [], at: clock())
+        }
+    }
+
+    func preservePermanentSchedule(_ previous: ScheduleDTO) {
+        reconcile { state in
+            ShieldResolver.materializePermanentSchedule(previous, into: &state, at: clock())
         }
     }
 
@@ -223,6 +258,11 @@ final class ScreenTimeService: ScreenTimeProviding {
     func isShielded(_ token: SelectedTokenKind) -> Bool {
         _ = lastUpdate
         return shield.isShielded(token)
+    }
+
+    func isCustomDomainShielded(_ domain: String) -> Bool {
+        _ = lastUpdate
+        return shield.isCustomDomainShielded(domain)
     }
 
     func hasActiveCustomDomainFilter() -> Bool {

@@ -4,14 +4,21 @@ import SwiftUI
 struct GroupKeysViewer: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
 
     @Query(filter: #Predicate<Key> { $0.groupID != nil }, sort: [SortDescriptor(\Key.sortIndex)])
     private var groupKeys: [Key]
+    @Query private var allKeys: [Key]
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
     private var groups: [AppGroup]
+    @Query private var allSettings: [Settings]
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: allSettings.unwrapped.editProtectionMode,
+            keys: allKeys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
     }
 
     private var sections: [(group: AppGroup, keys: [Key])] {
@@ -28,17 +35,13 @@ struct GroupKeysViewer: View {
                     ForEach(section.keys) { key in
                         GroupKeyRow(key: key)
                     }
-                    .onDelete(perform: isBlocked ? nil : { offsets in delete(offsets, in: section.keys) })
+                    .onDelete(perform: isEditBlocked ? nil : { offsets in delete(offsets, in: section.keys) })
                 }
             }
         }
         .navigationTitle("Group Keys")
         .navigationBarTitleDisplayMode(.inline)
-        .bottomFooter {
-            if isBlocked, !sections.isEmpty {
-                FooterMessage(text: "Unblock all apps to delete keys.")
-            }
-        }
+        .editProtectionBar(unblockAllMessage: "Unblock all apps to delete keys.")
         .overlay {
             if sections.isEmpty {
                 ContentUnavailableView(
@@ -51,6 +54,7 @@ struct GroupKeysViewer: View {
     }
 
     private func delete(_ offsets: IndexSet, in keys: [Key]) {
+        guard !isEditBlocked else { return }
         for index in offsets {
             modelContext.delete(keys[index])
         }

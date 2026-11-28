@@ -14,6 +14,7 @@ struct AppContainer: View {
     @State private var emergencyUnblockService: EmergencyUnblockService
     @State private var donationService = DonationService()
     @State private var usageLimitService: UsageLimitService
+    @State private var editSessionService: EditSessionService
     @State private var unlockInbox: UnlockRequestInbox
 
     init(services: AppServices) {
@@ -23,6 +24,7 @@ struct AppContainer: View {
         _appReviewService = State(initialValue: services.appReview)
         _emergencyUnblockService = State(initialValue: services.emergencyUnblock)
         _usageLimitService = State(initialValue: services.usageLimit)
+        _editSessionService = State(initialValue: services.editSession)
         _unlockInbox = State(initialValue: services.unlockInbox)
     }
 
@@ -39,11 +41,16 @@ struct AppContainer: View {
             .environment(emergencyUnblockService)
             .environment(donationService)
             .environment(usageLimitService)
+            .environment(editSessionService)
             .environment(unlockInbox)
-            .task { mirrorCustomDomainsEnabled() }
+            .onAppear { mirrorCustomDomainsEnabled() }
             .onChange(of: allSettings.first?.enableCustomDomains ?? false) { _, enabled in
                 scheduleService.mirrorCustomDomainsEnabled(enabled)
-                screenTimeService.reconcile()
+                if !enabled {
+                    timedUnblockService.handleCustomDomainsDisabled(screenTimeService: screenTimeService)
+                } else {
+                    screenTimeService.reconcile()
+                }
             }
     }
 
