@@ -93,6 +93,22 @@ final class StatefulScreenTimeSpy: ScreenTimeProviding {
         addedBlockedAsOf _: Date
     ) {}
 
+    func unblockRemovedFromMain(
+        from _: FamilyActivitySelection,
+        customDomains _: [String],
+        to _: FamilyActivitySelection,
+        customDomains _: [String],
+        clearAppDeletion: Bool
+    ) {
+        if clearAppDeletion {
+            appDeleteDisabled = false
+        }
+    }
+
+    func clearCustomDomains() {}
+
+    func preservePermanentSchedule(_: ScheduleDTO) {}
+
     func reconcile() {
         checkInvariant()
     }

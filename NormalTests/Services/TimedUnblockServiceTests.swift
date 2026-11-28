@@ -732,18 +732,17 @@ struct TimedUnblockServiceTests {
         let screenTime = FakeScreenTimeService()
         let groupId = UUID()
 
-        // Group timed-unblock starts while the group blocks reddit.com.
+        let selection = TokenFixtures.selection(apps: [1])
         try service.startGroup(
             duration: .fifteenMinutes,
             groupId: groupId,
-            selection: FamilyActivitySelection(),
+            selection: selection,
             customDomains: ["reddit.com"],
             screenTimeService: screenTime
         )
         let endDate = service.groupUnblockEndDate(groupId: groupId)
 
-        // User edits the group mid-unblock and removes the domain.
-        service.updateGroupSelection(groupId: groupId, selection: FamilyActivitySelection(), customDomains: [])
+        service.updateGroupSelection(groupId: groupId, selection: selection, customDomains: [])
 
         let dto = store.timedUnblocks.first { $0.id == groupId.uuidString }
         #expect(dto?.customDomains == [], "Reblock payload reflects the removed domain")

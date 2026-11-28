@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct CustomDomainSubsetRow: View {
@@ -73,9 +74,21 @@ struct CustomDomainsSubsetLink: View {
 }
 
 struct CustomDomainsSubsetEditor: View {
+    @Query private var allSettings: [Settings]
+    @Query private var keys: [Key]
     let available: [String]
     @Binding var selected: [String]
     var isEditable: Bool = true
+
+    private var lockedMessage: LocalizedStringKey {
+        if allSettings.unwrapped.editProtectionMode == .requireKey,
+            EditSessionService.hasUsableGlobalKey(in: keys)
+        {
+            "Unblock editing to change custom domains."
+        } else {
+            BlockedMessage.customDomains
+        }
+    }
 
     var body: some View {
         Form {
@@ -90,7 +103,7 @@ struct CustomDomainsSubsetEditor: View {
                 }
             } footer: {
                 if !isEditable {
-                    Text(BlockedMessage.customDomains)
+                    Text(lockedMessage)
                 }
             }
         }

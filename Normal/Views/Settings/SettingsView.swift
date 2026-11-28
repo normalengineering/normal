@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(TimedUnblockService.self) private var timedUnblockService
     @Environment(EmergencyUnblockService.self) private var emergencyUnblockService
     @Environment(UsageLimitService.self) private var usageLimitService
+    @Environment(EditSessionService.self) private var editSessionService
     @Query private var allSettings: [Settings]
     @Query private var keys: [Key]
     @Query private var schedules: [BlockSchedule]
@@ -47,14 +48,14 @@ struct SettingsView: View {
                     Button("Cancel", role: .cancel) {}
                 } message: {
                     Text(
-                        "This will immediately remove all app blocks. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining."
+                        "This will immediately remove all app blocks and unblock editing until you re-block it. Each unblock regenerates after 6 months. You have \(settings.emergencyUnblocksAvailable) remaining."
                     )
                 }
                 .alert("All Apps Unblocked", isPresented: $showSuccessAlert) {
                     Button("OK", role: .cancel) {}
                 } message: {
                     Text(
-                        "All app blocks have been removed. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining."
+                        "All app blocks have been removed and editing is unblocked until you block it again. You have \(settings.emergencyUnblocksAvailable) emergency unblock\(settings.emergencyUnblocksAvailable == 1 ? "" : "s") remaining."
                     )
                 }
         }
@@ -130,7 +131,8 @@ struct SettingsView: View {
             screenTimeService: screenTimeService,
             timedUnblockService: timedUnblockService,
             scheduleService: scheduleService,
-            usageLimitService: usageLimitService
+            usageLimitService: usageLimitService,
+            editSessionService: editSessionService
         )
         showSuccessAlert = true
     }

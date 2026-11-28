@@ -35,6 +35,14 @@ struct NormalApp: App {
             settings.skipBlockWithoutKeyConfirmation = UITestSupport.skipBypassConfirm
             settings.customUnblockDurationSeconds = UITestSupport.unblockDurationSeconds
             settings.defaultUnblockSeconds = UITestSupport.defaultDurationSeconds
+            if let editMode = UITestSupport.editProtectionMode {
+                settings.editProtectionMode = editMode
+            }
+            if let editSeconds = UITestSupport.editDefaultDurationSeconds,
+                let duration = TimedUnblockDuration(validating: editSeconds)
+            {
+                settings.editDurationOverride = .value(duration)
+            }
             context.insert(settings)
         }
 

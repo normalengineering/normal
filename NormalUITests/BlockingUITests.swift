@@ -117,7 +117,7 @@ final class BlockingUITests: XCTestCase {
     }
 
     func testBlockingDisablesKeysTab() {
-        let app = launch()
+        let app = launch(["-uiTestEditProtection", "unblockAll"])
         blockViaBypass(app)
 
         app.mainTab("Keys").tap()
@@ -377,7 +377,7 @@ final class BlockingUITests: XCTestCase {
     }
 
     func testGroupDefaultDurationSkipsTheDurationSheet() {
-        let app = launch(["-uiTestSeedGroupKey"])
+        let app = launch(["-uiTestSeedGroupKey", "-uiTestEditProtection", "unblockAll"])
         app.mainTab("Groups").tap()
 
         let group = app.staticTexts["Test Group"]
@@ -583,7 +583,7 @@ final class BlockingUITests: XCTestCase {
     }
 
     func testDuplicateScheduleAddsDisabledCopy() {
-        let app = launch(["-uiTestSeedSchedule"])
+        let app = launch(["-uiTestSeedSchedule", "-uiTestEditProtection", "unblockAll"])
 
         app.mainTab("Schedules").tap()
         let original = app.staticTexts["Test Schedule"]

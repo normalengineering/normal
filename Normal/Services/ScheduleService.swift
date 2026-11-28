@@ -44,9 +44,10 @@ final class ScheduleService {
 
     func registerAll(
         _ schedules: [BlockSchedule],
-        screenTimeService: any ScreenTimeProviding
+        screenTimeService: any ScreenTimeProviding,
+        constrainedTo main: (selection: FamilyActivitySelection, customDomains: [String])? = nil
     ) {
-        syncAllToSharedStore(schedules)
+        syncAllToSharedStore(schedules, constrainedTo: main)
         let wanted = Set(schedules.filter(\.isEnabled).map { activityName(for: $0).rawValue })
         let stale = activityCenter.monitoredActivityNames.filter { $0.hasPrefix("schedule_") && !wanted.contains($0) }
         if !stale.isEmpty {
@@ -71,10 +72,11 @@ final class ScheduleService {
     func remove(
         _ schedule: BlockSchedule,
         remaining: [BlockSchedule],
-        screenTimeService: any ScreenTimeProviding
+        screenTimeService: any ScreenTimeProviding,
+        constrainedTo main: (selection: FamilyActivitySelection, customDomains: [String])? = nil
     ) {
         activityCenter.stopMonitoring([activityName(for: schedule)])
-        syncAllToSharedStore(remaining)
+        syncAllToSharedStore(remaining, constrainedTo: main)
         activityCenter.syncHeartbeat(sharedStore: sharedStore, at: clock())
         screenTimeService.reconcile()
     }
@@ -82,10 +84,16 @@ final class ScheduleService {
     func toggleEnabled(
         _ schedule: BlockSchedule,
         allSchedules: [BlockSchedule],
-        screenTimeService: any ScreenTimeProviding
+        screenTimeService: any ScreenTimeProviding,
+        constrainedTo main: (selection: FamilyActivitySelection, customDomains: [String])? = nil
     ) throws {
         schedule.isEnabled.toggle()
-        try syncAndPersist(schedule, allSchedules: allSchedules, screenTimeService: screenTimeService)
+        try syncAndPersist(
+            schedule,
+            allSchedules: allSchedules,
+            screenTimeService: screenTimeService,
+            constrainedTo: main
+        )
     }
 
     func disableAll(
@@ -103,27 +111,38 @@ final class ScheduleService {
         screenTimeService.reconcile()
     }
 
-    func syncAllToSharedStore(_ schedules: [BlockSchedule], activating activatedID: UUID? = nil) {
+    func syncAllToSharedStore(
+        _ schedules: [BlockSchedule],
+        activating activatedID: UUID? = nil,
+        constrainedTo main: (selection: FamilyActivitySelection, customDomains: [String])? = nil
+    ) {
         var previous: [UUID: Date] = [:]
         for dto in sharedStore.loadSchedules() {
             previous[dto.id] = dto.activatedAt
         }
         sharedStore.saveSchedules(
             schedules.compactMap { schedule in
-                schedule.toDTO(activatedAt: schedule.id == activatedID ? clock() : previous[schedule.id])
+                schedule.toDTO(
+                    activatedAt: schedule.id == activatedID ? clock() : previous[schedule.id],
+                    constrainedTo: main
+                )
             })
     }
 
     func syncAndPersist(
         _ schedule: BlockSchedule,
         allSchedules: [BlockSchedule],
-        screenTimeService: any ScreenTimeProviding
+        screenTimeService: any ScreenTimeProviding,
+        constrainedTo main: (selection: FamilyActivitySelection, customDomains: [String])? = nil
     ) throws {
         let previous = sharedStore.loadSchedules().first { $0.id == schedule.id }
         let wasEnabled = previous?.isEffectivelyEnabled(monitoredActivities: activityCenter.monitoredActivityNames) == true
-        let rulesChanged = previous.map { !schedule.hasSameRules(as: $0) } ?? true
-        let activates = schedule.isEnabled && (!wasEnabled || (schedule.isTimed && rulesChanged))
-        syncAllToSharedStore(allSchedules, activating: activates ? schedule.id : nil)
+        let rulesChanged = previous.map { !schedule.hasSameRules(as: $0, constrainedTo: main) } ?? true
+        let activates = schedule.isEnabled && (!wasEnabled || rulesChanged)
+        if activates, let previous, !previous.isTimed, wasEnabled, rulesChanged {
+            screenTimeService.preservePermanentSchedule(previous)
+        }
+        syncAllToSharedStore(allSchedules, activating: activates ? schedule.id : nil, constrainedTo: main)
         screenTimeService.reconcile()
         activityCenter.syncHeartbeat(sharedStore: sharedStore, at: clock())
         try sync(schedule)

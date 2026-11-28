@@ -31,11 +31,10 @@ struct CustomDomainsEditor: View {
         }
         .navigationTitle("Custom Domains")
         .navigationBarTitleDisplayMode(.inline)
-        .bottomFooter {
-            if !canRemove {
-                FooterMessage(text: BlockedMessage.customDomains)
-            }
-        }
+        .editProtectionBar(
+            unblockAllMessage: BlockedMessage.customDomains,
+            blockedLabel: "Removing domains is blocked."
+        )
         .sensoryFeedback(trigger: messageVersion) { _, _ in
             message == nil ? .impact(weight: .medium) : .warning
         }

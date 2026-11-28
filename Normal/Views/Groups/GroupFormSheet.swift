@@ -7,6 +7,7 @@ struct GroupFormSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Environment(EditSessionService.self) private var editSessionService
 
     @Query private var allGroups: [AppGroup]
     @Query private var allSettings: [Settings]
@@ -50,36 +51,20 @@ struct GroupFormSheet: View {
         return keyType.label
     }
 
-    private var durationSelection: Binding<DefaultOverride<TimedUnblockDuration>> {
-        Binding(
-            get: {
-                if case .value(let duration) = durationOverride, !durations.contains(duration) {
-                    return .none
-                }
-                return durationOverride
-            },
-            set: { durationOverride = $0 }
-        )
-    }
-
-    private var keySelection: Binding<DefaultOverride<KeyType>> {
-        Binding(
-            get: {
-                if case .value(let keyType) = keyOverride, !groupKeyTypes.contains(keyType) {
-                    return .none
-                }
-                return keyOverride
-            },
-            set: { keyOverride = $0 }
-        )
-    }
-
     private var isNew: Bool {
         existing == nil
     }
 
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: allSettings.unwrapped.editProtectionMode,
+            keys: allKeys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
+    }
+
     private var isReadOnly: Bool {
-        !isNew && screenTimeService.activeShieldCount() > 0
+        !isNew && isEditBlocked
     }
 
     private var customDomainsEnabled: Bool {
@@ -163,11 +148,7 @@ struct GroupFormSheet: View {
             }
             .navigationTitle(isReadOnly ? "Group" : (isNew ? "New Group" : "Edit Group"))
             .navigationBarTitleDisplayMode(.inline)
-            .bottomFooter {
-                if isReadOnly {
-                    FooterMessage(text: BlockedMessage.groups)
-                }
-            }
+            .editProtectionBar(unblockAllMessage: BlockedMessage.groups)
             .toolbar {
                 if isReadOnly {
                     ToolbarItem(placement: .confirmationAction) {
@@ -180,7 +161,7 @@ struct GroupFormSheet: View {
                     ToolbarItem(placement: .confirmationAction) {
                         Button(isNew ? "Save" : "Update", action: save)
                             .fontWeight(.semibold)
-                            .disabled(!canSave)
+                            .disabled(!canSave || isEditBlocked)
                     }
                 }
             }
@@ -211,6 +192,7 @@ struct GroupFormSheet: View {
     private var groupKeyDeleteAction: ((IndexSet) -> Void)? {
         guard !isReadOnly else { return nil }
         return { offsets in
+            guard !isEditBlocked else { return }
             for index in offsets {
                 modelContext.delete(groupKeys[index])
             }
@@ -218,65 +200,16 @@ struct GroupFormSheet: View {
     }
 
     private var unblockingSection: some View {
-        Section("Unblocking") {
-            Group {
-                if #available(iOS 18.0, *) {
-                    Picker("Default Duration", selection: durationSelection) {
-                        durationOptions(appDefault: String(localized: "App Default (\(appDefaultDurationLabel))"))
-                    } currentValueLabel: {
-                        Text(rowLabel(for: durationSelection.wrappedValue) { $0.label })
-                    }
-                } else {
-                    Picker("Default Duration", selection: durationSelection) {
-                        durationOptions(appDefault: String(localized: "App Default"))
-                    }
-                }
-            }
-            .adaptivePickerStyle()
-            .accessibilityIdentifier("groupForm.defaultDuration")
-
-            Group {
-                if #available(iOS 18.0, *) {
-                    Picker("Default Key", selection: keySelection) {
-                        keyOptions(appDefault: String(localized: "App Default (\(appDefaultKeyLabel))"))
-                    } currentValueLabel: {
-                        Text(rowLabel(for: keySelection.wrappedValue) { $0.label })
-                    }
-                } else {
-                    Picker("Default Key", selection: keySelection) {
-                        keyOptions(appDefault: String(localized: "App Default"))
-                    }
-                }
-            }
-            .adaptivePickerStyle()
-            .accessibilityIdentifier("groupForm.defaultKey")
-        }
-    }
-
-    @ViewBuilder
-    private func durationOptions(appDefault: String) -> some View {
-        Text(appDefault).tag(DefaultOverride<TimedUnblockDuration>.appDefault)
-        Text("None").tag(DefaultOverride<TimedUnblockDuration>.none)
-        ForEach(durations) { duration in
-            Text(duration.label).tag(DefaultOverride.value(duration))
-        }
-    }
-
-    @ViewBuilder
-    private func keyOptions(appDefault: String) -> some View {
-        Text(appDefault).tag(DefaultOverride<KeyType>.appDefault)
-        Text("None").tag(DefaultOverride<KeyType>.none)
-        ForEach(groupKeyTypes) { type in
-            Label(type.label, systemImage: type.icon).tag(DefaultOverride.value(type))
-        }
-    }
-
-    private func rowLabel<Value>(for choice: DefaultOverride<Value>, value: (Value) -> String) -> String {
-        switch choice {
-        case .appDefault: String(localized: "App Default")
-        case .none: String(localized: "None")
-        case .value(let chosen): value(chosen)
-        }
+        UnblockingDefaultsSection(
+            durationOverride: $durationOverride,
+            keyOverride: $keyOverride,
+            durations: durations,
+            availableKeyTypes: groupKeyTypes,
+            appDefaultDurationLabel: appDefaultDurationLabel,
+            appDefaultKeyLabel: appDefaultKeyLabel,
+            durationAccessibilityID: "groupForm.defaultDuration",
+            keyAccessibilityID: "groupForm.defaultKey"
+        )
     }
 
     private var groupKeysSection: some View {
@@ -300,8 +233,14 @@ struct GroupFormSheet: View {
     }
 
     private func deleteGroup() {
-        guard let existing else { return }
-        existing.deleteCascading(keys: allKeys, from: modelContext)
+        guard let existing, !isEditBlocked else { return }
+        BlockActions.deleteGroup(
+            existing,
+            keys: allKeys,
+            from: modelContext,
+            timedUnblockService: timedUnblockService,
+            screenTimeService: screenTimeService
+        )
         dismiss()
     }
 
@@ -326,6 +265,7 @@ struct GroupFormSheet: View {
     }
 
     private func save() {
+        guard !isEditBlocked else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
 
@@ -341,7 +281,8 @@ struct GroupFormSheet: View {
             timedUnblockService.updateGroupSelection(
                 groupId: existing.id,
                 selection: selection,
-                customDomains: effectiveCustomDomains
+                customDomains: effectiveCustomDomains,
+                screenTimeService: screenTimeService
             )
         } else {
             let nextIndex = SortIndexing.nextIndex(after: allGroups, sortIndex: \.sortIndex)

@@ -5,6 +5,10 @@ struct TimedUnblockSheet: View {
 
     let title: String
     let durations: [TimedUnblockDuration]
+    let timedHeader: LocalizedStringKey
+    let timedFooter: LocalizedStringKey
+    let permanentTitle: LocalizedStringKey
+    let permanentFooter: LocalizedStringKey
     let onConfirm: (UnblockLength) throws -> Void
 
     @State private var selection: UnblockLength
@@ -14,10 +18,18 @@ struct TimedUnblockSheet: View {
         title: String,
         durations: [TimedUnblockDuration],
         initialDuration: TimedUnblockDuration?,
+        timedHeader: LocalizedStringKey = "Timed Unblock",
+        timedFooter: LocalizedStringKey = "Apps will automatically re-block after this time, even if you close the app.",
+        permanentTitle: LocalizedStringKey = "Until Manually Re-Blocked",
+        permanentFooter: LocalizedStringKey = "You will need to manually block apps again.",
         onConfirm: @escaping (UnblockLength) throws -> Void
     ) {
         self.title = title
         self.durations = durations
+        self.timedHeader = timedHeader
+        self.timedFooter = timedFooter
+        self.permanentTitle = permanentTitle
+        self.permanentFooter = permanentFooter
         self.onConfirm = onConfirm
         _selection = State(initialValue: (initialDuration ?? durations.first).map(UnblockLength.timed) ?? .permanent)
     }
@@ -36,21 +48,21 @@ struct TimedUnblockSheet: View {
                         .accessibilityIdentifier("timedUnblock.duration.\(duration.seconds)")
                     }
                 } header: {
-                    Text("Timed Unblock")
+                    Text(timedHeader)
                 } footer: {
-                    Text("Apps will automatically re-block after this time, even if you close the app.")
+                    Text(timedFooter)
                 }
 
                 Section {
                     ChoiceListRow(
-                        title: "Until Manually Re-Blocked",
+                        title: permanentTitle,
                         isSelected: selection == .permanent
                     ) {
                         selection = .permanent
                     }
                     .accessibilityIdentifier("timedUnblock.permanent")
                 } footer: {
-                    Text("You will need to manually block apps again.")
+                    Text(permanentFooter)
                 }
 
                 if let error {

@@ -29,6 +29,15 @@ protocol ScreenTimeProviding: AnyObject {
         customDomains newDomains: [String],
         addedBlockedAsOf addedDate: Date
     )
+    func unblockRemovedFromMain(
+        from old: FamilyActivitySelection,
+        customDomains oldDomains: [String],
+        to new: FamilyActivitySelection,
+        customDomains newDomains: [String],
+        clearAppDeletion: Bool
+    )
+    func clearCustomDomains()
+    func preservePermanentSchedule(_ previous: ScheduleDTO)
     func removeAllRestrictions()
     func reconcile()
     func activeShieldCount() -> Int

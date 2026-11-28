@@ -49,8 +49,29 @@ struct HomeView: View {
                         Text("Please select apps to block in the selection tab.")
                             .foregroundStyle(.secondary)
                     }
+                    if screenTimeService.activeShieldCount() > 0 {
+                        Section {
+                            Button {
+                                authAction = .weaken { proof in
+                                    guard proof.coversAllApps else { return }
+                                    timedUnblockService.clearAll()
+                                    screenTimeService.unblockAll(
+                                        blockAllPreventsAppDelete: settings.blockAllPreventsAppDelete
+                                    )
+                                }
+                            } label: {
+                                Label("Unblock All", systemImage: "lock.open.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .accessibilityIdentifier("home.unblockAll")
+                        }
+                    }
+                    if screenTimeService.isAppDeleteDisabled {
+                        AppDeleteToggleView()
+                    }
                 }
             }
+            .activeEditSessionBar()
             .protectedAction($authAction, defaultKeyType: settings.defaultKeyType)
             .sheet(item: $durationGrant) { grant in
                 UnblockDurationSheet(grant: grant) { timing in

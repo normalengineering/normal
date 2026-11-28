@@ -3,11 +3,13 @@ import SwiftUI
 
 struct GroupsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\AppGroup.sortIndex)])
     private var appGroups: [AppGroup]
     @Query private var selectedApps: [SelectedApps]
     @Query private var allSettings: [Settings]
+    @Query private var keys: [Key]
     @State private var isShowingSheet = false
 
     @State private var authAction: ProtectedAction?
@@ -15,17 +17,26 @@ struct GroupsView: View {
     @State private var durationGrant: UnblockGrant?
     @State private var unblockAlert: UnblockAlert?
 
-    private var hasSelection: Bool {
-        selectedApps.first?.selection.isEmpty == false
+    private var settings: Settings {
+        allSettings.unwrapped
     }
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+    private var hasSelection: Bool {
+        selectedApps.first?.hasItemsToBlock(customDomainsEnabled: settings.enableCustomDomains) == true
+    }
+
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: settings.editProtectionMode,
+            keys: keys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
     }
 
     var body: some View {
         NavigationStack {
             content
+                .editProtectionBar(unblockAllMessage: BlockedMessage.groups)
                 .navigationTitle("App Groups")
                 .settingsToolbar()
                 .toolbar {
@@ -33,7 +44,7 @@ struct GroupsView: View {
                         Button(action: openSheet) {
                             Label("Add Group", systemImage: "plus")
                         }
-                        .disabled(!hasSelection || isBlocked)
+                        .disabled(!hasSelection || isEditBlocked)
                         .sheet(isPresented: $isShowingSheet) {
                             GroupFormSheet()
                         }
@@ -57,18 +68,12 @@ struct GroupsView: View {
                         durationGrant: $durationGrant,
                         unblockAlert: $unblockAlert
                     )
-                }, onMove: move
+                },
+                onMove: isEditBlocked ? nil : { move(from: $0, to: $1) }
             )
-            .bottomFooter {
-                if isBlocked {
-                    FooterMessage(text: BlockedMessage.groups)
-                }
-            }
-            // Host the key prompt on the stable list, scoped to whichever card
-            // triggered it, instead of on the card row.
             .protectedAction(
                 $authAction,
-                defaultKeyType: allSettings.unwrapped.defaultKeyType(
+                defaultKeyType: settings.defaultKeyType(
                     for: appGroups.first { $0.id == pendingGroupID }
                 ),
                 keyGroupID: pendingGroupID
@@ -81,6 +86,7 @@ struct GroupsView: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
+        guard !isEditBlocked else { return }
         _ = SortIndexing.reorder(appGroups, from: source, to: destination, sortIndex: \.sortIndex)
     }
 
@@ -94,6 +100,7 @@ struct GroupsView: View {
             } actions: {
                 Button("Create Group", action: openSheet)
                     .buttonStyle(.borderedProminent)
+                    .disabled(isEditBlocked)
             }
         } else {
             ContentUnavailableView {
@@ -105,6 +112,10 @@ struct GroupsView: View {
     }
 
     private func openSheet() {
-        screenTimeService.ifAuthorized { isShowingSheet = true }
+        guard !isEditBlocked else { return }
+        screenTimeService.ifAuthorized {
+            guard !isEditBlocked else { return }
+            isShowingSheet = true
+        }
     }
 }

@@ -19,7 +19,7 @@ struct EmergencyUnblockView: View {
             } header: {
                 Text("Emergency Unblock")
             } footer: {
-                Text("Removes all blocks immediately without a key. Each use regenerates after 6 months.")
+                Text("Removes all blocks and unblocks editing immediately without a key. Each use regenerates after 6 months.")
             }
 
             Section {

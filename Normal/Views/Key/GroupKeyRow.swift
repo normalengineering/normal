@@ -4,12 +4,19 @@ import SwiftUI
 struct GroupKeyRow: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
+    @Query private var allKeys: [Key]
+    @Query private var allSettings: [Settings]
     let key: Key
 
     @State private var isEditing = false
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: allSettings.unwrapped.editProtectionMode,
+            keys: allKeys,
+            activeShieldCount: screenTimeService.activeShieldCount()
+        )
     }
 
     var body: some View {
@@ -33,9 +40,12 @@ struct GroupKeyRow: View {
         }
         .buttonStyle(.plain)
         .editDeleteContextMenu(
-            isDisabled: isBlocked,
+            isDisabled: isEditBlocked,
             onEdit: { isEditing = true },
-            onDelete: { modelContext.delete(key) }
+            onDelete: {
+                guard !isEditBlocked else { return }
+                modelContext.delete(key)
+            }
         )
         .sheet(isPresented: $isEditing) {
             KeyFormSheet(existing: key)

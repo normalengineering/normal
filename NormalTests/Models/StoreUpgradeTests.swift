@@ -401,6 +401,9 @@ struct StoreUpgradeTests {
         #expect(!settings.skipBlockWithoutKeyConfirmation)
         #expect(settings.dailyLimitResetMinutes == 0)
         #expect(settings.unblockDurations == TimedUnblockDuration.presets)
+        #expect(settings.editProtectionMode == .requireKey)
+        #expect(settings.editDurationOverride == .appDefault)
+        #expect(settings.editKeyOverride == .appDefault)
     }
 
     @Test func version15StoreKeepsDurationsResetTimeAndDailyLimits() throws {
@@ -430,6 +433,9 @@ struct StoreUpgradeTests {
         #expect(settings.skipBlockWithoutKeyConfirmation)
         #expect(settings.dailyLimitResetMinutes == 240)
         #expect(settings.blockAllPreventsAppDelete)
+        #expect(settings.editProtectionMode == .requireKey)
+        #expect(settings.editDurationOverride == .appDefault)
+        #expect(settings.editKeyOverride == .appDefault)
 
         let limit = try #require(try container.mainContext.fetch(FetchDescriptor<UsageLimit>()).first)
         #expect(limit.id == limitID)
@@ -437,5 +443,25 @@ struct StoreUpgradeTests {
         #expect(limit.minutesPerDay == 45)
         #expect(limit.lockAnchor == Self.updated)
         #expect(limit.createdAt == nil)
+    }
+
+    @Test func editProtectionSettingsSurviveStoreReopen() throws {
+        let url = storeURL()
+        defer { removeStore(at: url) }
+        do {
+            let container = try reopen(at: url)
+            let settings = Normal.Settings()
+            settings.editProtectionMode = .unblockAll
+            settings.editDurationOverride = .value(.fourHours)
+            settings.editKeyOverride = .value(.nfc)
+            container.mainContext.insert(settings)
+            try container.mainContext.save()
+        }
+
+        let container = try reopen(at: url)
+        let settings = try #require(try container.mainContext.fetch(FetchDescriptor<Normal.Settings>()).first)
+        #expect(settings.editProtectionMode == .unblockAll)
+        #expect(settings.editDurationOverride == .value(.fourHours))
+        #expect(settings.editKeyOverride == .value(.nfc))
     }
 }

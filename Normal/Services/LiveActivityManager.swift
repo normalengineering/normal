@@ -36,10 +36,21 @@ enum LiveActivityManager {
             Task { await activity.end(nil, dismissalPolicy: .immediate) }
         }
         let running = all.filter { isRunning($0.activityState) }
-        let runningByID = Dictionary(
-            running.map { ($0.attributes.unblockID, $0) },
-            uniquingKeysWith: { first, _ in first }
-        )
+        var runningByID: [String: Activity<TimedUnblockActivityAttributes>] = [:]
+        for activity in running {
+            let id = activity.attributes.unblockID
+            if let existing = runningByID[id] {
+                let desiredTitle = titles[id]
+                if existing.attributes.title != desiredTitle, activity.attributes.title == desiredTitle {
+                    runningByID[id] = activity
+                    Task { await existing.end(nil, dismissalPolicy: .immediate) }
+                } else {
+                    Task { await activity.end(nil, dismissalPolicy: .immediate) }
+                }
+            } else {
+                runningByID[id] = activity
+            }
+        }
         let plan = LiveActivityPlan(activeIDs: Set(active.keys), runningIDs: Set(runningByID.keys))
 
         for id in plan.toEnd {
@@ -49,7 +60,21 @@ enum LiveActivityManager {
 
         for id in plan.toUpdate {
             guard let activity = runningByID[id], let endDate = active[id] else { continue }
-            Task { await activity.update(content(endingAt: endDate)) }
+            let desiredTitle = titles[id] ?? String(localized: "Apps")
+            if activity.attributes.title != desiredTitle {
+                let attributes = TimedUnblockActivityAttributes(
+                    title: desiredTitle,
+                    unblockID: id,
+                    startDate: startDates[id] ?? activity.attributes.startDate
+                )
+                let newContent = content(endingAt: endDate)
+                Task {
+                    await activity.end(nil, dismissalPolicy: .immediate)
+                    _ = try? Activity.request(attributes: attributes, content: newContent)
+                }
+            } else {
+                Task { await activity.update(content(endingAt: endDate)) }
+            }
         }
 
         for id in plan.toStart {

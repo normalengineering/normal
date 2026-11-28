@@ -3,33 +3,47 @@ import SwiftUI
 
 struct KeysView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(EditSessionService.self) private var editSessionService
 
     @Query(filter: #Predicate<Key> { $0.groupID == nil }, sort: [SortDescriptor(\Key.sortIndex)])
     private var keys: [Key]
     @Query(filter: #Predicate<Key> { $0.groupID != nil })
     private var groupKeys: [Key]
+    @Query private var allKeys: [Key]
+    @Query private var allSettings: [Settings]
     @State private var isShowingSheet = false
     @State private var isShowingGroupKeys = false
 
-    private var isBlocked: Bool {
-        screenTimeService.activeShieldCount() > 0 && !keys.isEmpty
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
+
+    private var isEditBlocked: Bool {
+        editSessionService.isEditingBlocked(
+            mode: settings.editProtectionMode,
+            keys: allKeys,
+            activeShieldCount: screenTimeService.activeShieldCount(),
+            allowWhenNoKeys: true
+        )
     }
 
     var body: some View {
         NavigationStack {
             content
+                .editProtectionBar(unblockAllMessage: BlockedMessage.keys, allowWhenNoKeys: true)
                 .sheet(isPresented: $isShowingGroupKeys) { groupKeysSheet }
                 .navigationTitle("Keys")
                 .settingsToolbar()
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button {
+                            guard !isEditBlocked else { return }
                             isShowingSheet.toggle()
                         } label: {
                             Label("Add Key", systemImage: "plus")
                         }
                         .accessibilityIdentifier("keys.addButton")
-                        .disabled(isBlocked)
+                        .disabled(isEditBlocked)
                         .sheet(isPresented: $isShowingSheet) {
                             KeyFormSheet()
                         }
@@ -41,22 +55,26 @@ struct KeysView: View {
     private var content: some View {
         Group {
             if keys.isEmpty {
-                KeysEmptyStateView { isShowingSheet = true }
+                VStack(spacing: 0) {
+                    KeysEmptyStateView(isAddDisabled: isEditBlocked) {
+                        guard !isEditBlocked else { return }
+                        isShowingSheet = true
+                    }
+                    if !groupKeys.isEmpty {
+                        groupKeysLink
+                            .padding(.horizontal, DS.Spacing.lg)
+                            .padding(.bottom, DS.Spacing.sm)
+                    }
+                }
             } else {
                 ReorderableListView(
                     items: keys,
                     rowContent: { key in
                         KeyListCardView(key: key)
-                    }, onMove: move, footer: { groupKeysRow })
-            }
-        }
-        .bottomFooter {
-            if isBlocked {
-                FooterMessage(text: BlockedMessage.keys)
-            } else if keys.isEmpty, !groupKeys.isEmpty {
-                groupKeysLink
-                    .padding(.horizontal, DS.Spacing.lg)
-                    .padding(.bottom, DS.Spacing.sm)
+                    },
+                    onMove: isEditBlocked ? nil : { move(from: $0, to: $1) },
+                    footer: { groupKeysRow }
+                )
             }
         }
     }
@@ -101,6 +119,7 @@ struct KeysView: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
+        guard !isEditBlocked else { return }
         _ = SortIndexing.reorder(keys, from: source, to: destination, sortIndex: \.sortIndex)
     }
 }

@@ -58,6 +58,11 @@ enum UITestSupport {
 
     static let defaultDurationSeconds: Int? = value(after: "-uiTestDefaultDuration").flatMap(Int.init)
 
+    static let editProtectionMode: EditProtectionMode? = value(after: "-uiTestEditProtection")
+        .flatMap(EditProtectionMode.init(rawValue:))
+
+    static let editDefaultDurationSeconds: Int? = value(after: "-uiTestEditDefaultDuration").flatMap(Int.init)
+
     static let stubScanValue = "UITEST-SCAN-VALUE"
 
     static let mainSelection = selection(apps: websitesOnly ? [] : [1, 2, 3])

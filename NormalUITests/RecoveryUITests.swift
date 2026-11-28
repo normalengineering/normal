@@ -241,7 +241,7 @@ final class RecoveryUITests: XCTestCase {
     }
 
     func testCannotDeleteLastKey() {
-        let app = launch([])
+        let app = launch(["-uiTestEditProtection", "unblockAll"])
 
         app.mainTab("Keys").tap()
         let card = app.staticTexts["Test Key"].firstMatch

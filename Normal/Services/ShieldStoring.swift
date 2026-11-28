@@ -22,6 +22,10 @@ extension ShieldStoring {
         currentShields().isShielded(token)
     }
 
+    func isCustomDomainShielded(_ domain: String) -> Bool {
+        currentShields().isCustomDomainShielded(domain)
+    }
+
     func hasActiveCustomDomainFilter() -> Bool {
         !currentShields().customDomains.isEmpty
     }
@@ -59,6 +63,11 @@ extension ShieldPlan {
         case .webDomain(let t): webDomains.contains(t)
         case .category(let t): categories.contains(t)
         }
+    }
+
+    func isCustomDomainShielded(_ domain: String) -> Bool {
+        guard let normalized = DomainNormalizer.normalize(domain) else { return false }
+        return customDomains.contains(normalized)
     }
 }
 
