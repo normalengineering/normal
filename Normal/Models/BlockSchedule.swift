@@ -115,19 +115,30 @@ final class BlockSchedule: Identifiable {
         )
     }
 
-    func hasSameRules(as dto: ScheduleDTO) -> Bool {
-        startHour == dto.startHour
+    func hasSameRules(
+        as dto: ScheduleDTO,
+        constrainedTo main: SelectionConstraint? = nil
+    ) -> Bool {
+        let effectiveSelection = main?.intersect(selection) ?? selection
+        let effectiveDomains = main?.intersect(customDomains) ?? customDomains
+        return startHour == dto.startHour
             && startMinute == dto.startMinute
             && effectiveDurationMinutes == dto.durationMinutes
             && weekdays == dto.weekdays
             && shouldBlock == dto.shouldBlock
             && isTimed == dto.isTimed
-            && customDomains == dto.customDomains
-            && (try? FamilyActivitySelection.fromData(dto.selectionData)) == selection
+            && Set(effectiveDomains.compactMap(DomainNormalizer.normalize))
+                == Set(dto.customDomains.compactMap(DomainNormalizer.normalize))
+            && (try? FamilyActivitySelection.fromData(dto.selectionData)) == effectiveSelection
     }
 
-    func toDTO(activatedAt: Date? = nil) -> ScheduleDTO? {
-        guard let data = try? selection.toData() else { return nil }
+    func toDTO(
+        activatedAt: Date? = nil,
+        constrainedTo main: SelectionConstraint? = nil
+    ) -> ScheduleDTO? {
+        let effectiveSelection = main?.intersect(selection) ?? selection
+        let effectiveDomains = main?.intersect(customDomains) ?? customDomains
+        guard let data = try? effectiveSelection.toData() else { return nil }
         return ScheduleDTO(
             id: id,
             name: name,
@@ -138,7 +149,7 @@ final class BlockSchedule: Identifiable {
             weekdays: weekdays,
             shouldBlock: shouldBlock,
             isTimed: isTimed,
-            customDomains: customDomains,
+            customDomains: effectiveDomains,
             isEnabled: isEnabled,
             activatedAt: activatedAt
         )

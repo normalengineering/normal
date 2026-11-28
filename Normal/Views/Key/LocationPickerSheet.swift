@@ -7,6 +7,7 @@ struct LocationPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(LocationService.self) private var locationService
+    @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var keys: [Key]
 
@@ -20,6 +21,23 @@ struct LocationPickerSheet: View {
     @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var permissionDenied = false
     @State private var inspectedKey: Key?
+
+    private func deleteDisabledReason(for key: Key) -> LocalizedStringKey? {
+        if screenTimeService.activeShieldCount() > 0 && !keys.isEmpty {
+            return "Unblock all apps to delete keys."
+        }
+        if groupID != nil, key.groupID != groupID {
+            return "Global keys can be deleted in the Keys tab."
+        }
+        if !Key.canDelete(key, in: keys) {
+            return "At least one key must exist. Add another key before deleting this one."
+        }
+        return nil
+    }
+
+    private func canDelete(_ key: Key) -> Bool {
+        deleteDisabledReason(for: key) == nil
+    }
 
     private var existingZones: [Key] {
         Key.scoped(keys, toGroup: groupID)
@@ -66,7 +84,7 @@ struct LocationPickerSheet: View {
                 LocationKeyInfoSheet(
                     key: key,
                     currentLocation: currentLocation,
-                    canDelete: Key.canDelete(key, in: keys),
+                    deleteDisabledReason: deleteDisabledReason(for: key),
                     onDelete: { delete(key) }
                 )
             }
@@ -125,7 +143,7 @@ struct LocationPickerSheet: View {
     }
 
     private func delete(_ key: Key) {
-        guard Key.canDelete(key, in: keys) else { return }
+        guard canDelete(key) else { return }
         modelContext.delete(key)
         inspectedKey = nil
     }

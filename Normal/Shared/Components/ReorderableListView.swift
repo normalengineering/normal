@@ -3,13 +3,13 @@ import SwiftUI
 struct ReorderableListView<T: Identifiable, Content: View, Footer: View>: View {
     let items: [T]
     let rowContent: (T) -> Content
-    let onMove: (IndexSet, Int) -> Void
+    let onMove: ((IndexSet, Int) -> Void)?
     let footer: Footer
 
     init(
         items: [T],
         @ViewBuilder rowContent: @escaping (T) -> Content,
-        onMove: @escaping (IndexSet, Int) -> Void,
+        onMove: ((IndexSet, Int) -> Void)?,
         @ViewBuilder footer: () -> Footer = { EmptyView() }
     ) {
         self.items = items

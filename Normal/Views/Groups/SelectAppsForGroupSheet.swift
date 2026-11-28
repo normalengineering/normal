@@ -10,6 +10,7 @@ struct SelectAppsForGroupSheet: View {
 
     @Binding var selection: FamilyActivitySelection
     var customDomains: Binding<[String]>?
+    var onSave: ((FamilyActivitySelection, [String]) -> Void)?
 
     @State private var workingSelection = FamilyActivitySelection()
     @State private var workingDomains: [String] = []
@@ -46,11 +47,16 @@ struct SelectAppsForGroupSheet: View {
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Done") {
-                            selection = workingSelection
-                            customDomains?.wrappedValue = workingDomains
+                            if let onSave {
+                                onSave(workingSelection, workingDomains)
+                            } else {
+                                selection = workingSelection
+                                customDomains?.wrappedValue = workingDomains
+                            }
                             dismiss()
                         }
                         .fontWeight(.semibold)
+                        .disabled(onSave != nil && workingSelection.isEmpty && (!showsDomains || workingDomains.isEmpty))
                     }
                 }
         }

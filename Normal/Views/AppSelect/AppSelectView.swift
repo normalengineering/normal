@@ -5,6 +5,7 @@ import SwiftUI
 struct AppSelectView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
     @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Environment(ScheduleService.self) private var scheduleService
     @Environment(\.modelContext) private var modelContext
 
     @Query private var selectedApps: [SelectedApps]
@@ -16,13 +17,18 @@ struct AppSelectView: View {
     @State private var isFamilyActivityPickerPresented = false
     @State private var selection = FamilyActivitySelection()
     @State private var customDomains: [String] = []
+    @State private var hasLoaded = false
+
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
 
     private var mainSelection: SelectedApps? {
         selectedApps.first
     }
 
     private var customDomainsEnabled: Bool {
-        allSettings.first?.enableCustomDomains ?? false
+        settings.enableCustomDomains
     }
 
     private var effectiveCustomDomains: [String] {
@@ -94,6 +100,7 @@ struct AppSelectView: View {
             .alert(selectionChangeWarning?.title ?? "", isPresented: $showSelectionChangeAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Continue", role: .destructive) {
+                    guard !isBlocked else { return }
                     isFamilyActivityPickerPresented = true
                 }
             } message: {
@@ -107,14 +114,19 @@ struct AppSelectView: View {
                     selection = mainSelection.selection
                     customDomains = mainSelection.customDomains
                 }
+                hasLoaded = true
             }
             .onChange(of: selection, persistSelection)
-            .onChange(of: customDomains) { _, _ in persistCustomDomains() }
+            .onChange(of: customDomains) { oldValue, newValue in
+                persistCustomDomains(from: oldValue, to: newValue)
+            }
         }
     }
 
     private func onUpdateSelectionButton() {
+        guard !isBlocked else { return }
         screenTimeService.ifAuthorized {
+            guard !isBlocked else { return }
             if selectionChangeWarning == nil {
                 isFamilyActivityPickerPresented = true
             } else {
@@ -124,30 +136,63 @@ struct AppSelectView: View {
     }
 
     private func persistSelection(_: FamilyActivitySelection, _ new: FamilyActivitySelection) {
+        guard hasLoaded else { return }
+        let storedSelection = mainSelection?.selection ?? FamilyActivitySelection()
+        guard new != storedSelection else { return }
+        guard !isBlocked else {
+            selection = storedSelection
+            return
+        }
+        let storedDomains = mainSelection?.customDomains ?? []
+        let nextDomains = mainSelection?.customDomains ?? customDomains
         if let existing = mainSelection {
             existing.selection = new
             existing.lastUpdated = .now
         } else {
-            modelContext.insert(SelectedApps(selection: new, customDomains: customDomains))
+            modelContext.insert(SelectedApps(selection: new, customDomains: nextDomains))
         }
-        timedUnblockService.updateMainSelection(
-            new,
-            customDomains: effectiveCustomDomains,
-            screenTimeService: screenTimeService
+        BlockActions.updateMainSelection(
+            from: storedSelection,
+            oldCustomDomains: storedDomains,
+            to: new,
+            newCustomDomains: nextDomains,
+            schedules: schedules,
+            settings: settings,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService,
+            scheduleService: scheduleService
         )
     }
 
-    private func persistCustomDomains() {
+    private func persistCustomDomains(from _: [String], to new: [String]) {
+        guard hasLoaded else { return }
+        let storedDomains = mainSelection?.customDomains ?? []
+        guard new != storedDomains else { return }
+        if isBlocked {
+            let storedSet = Set(storedDomains.compactMap(DomainNormalizer.normalize))
+            let newSet = Set(new.compactMap(DomainNormalizer.normalize))
+            guard storedSet.isSubset(of: newSet) else {
+                customDomains = storedDomains
+                return
+            }
+        }
+        let storedSelection = mainSelection?.selection ?? selection
         if let existing = mainSelection {
-            existing.customDomains = customDomains
+            existing.customDomains = new
             existing.lastUpdated = .now
         } else {
-            modelContext.insert(SelectedApps(selection: selection, customDomains: customDomains))
+            modelContext.insert(SelectedApps(selection: storedSelection, customDomains: new))
         }
-        timedUnblockService.updateMainSelection(
-            selection,
-            customDomains: effectiveCustomDomains,
-            screenTimeService: screenTimeService
+        BlockActions.updateMainSelection(
+            from: storedSelection,
+            oldCustomDomains: storedDomains,
+            to: storedSelection,
+            newCustomDomains: new,
+            schedules: schedules,
+            settings: settings,
+            screenTimeService: screenTimeService,
+            timedUnblockService: timedUnblockService,
+            scheduleService: scheduleService
         )
     }
 }

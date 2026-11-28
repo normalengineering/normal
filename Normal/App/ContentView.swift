@@ -12,6 +12,7 @@ struct ContentView: View {
     @Query private var allSettings: [Settings]
     @Query private var schedules: [BlockSchedule]
     @Query private var usageLimits: [UsageLimit]
+    @Query private var selectedApps: [SelectedApps]
 
     @State private var navigationCoordinator = NavigationCoordinator()
 
@@ -56,6 +57,7 @@ struct ContentView: View {
     private func onAppear() {
         if let settings {
             emergencyUnblockService.reconcile(into: settings)
+            scheduleService.mirrorCustomDomainsEnabled(settings.enableCustomDomains)
         }
 
         timedUnblockService.reconcile(screenTimeService: screenTimeService)
@@ -73,12 +75,20 @@ struct ContentView: View {
         }
     }
 
+    private var mainSelectionConstraint: SelectionConstraint? {
+        selectedApps.first?.effectiveConstraint(customDomainsEnabled: settings?.enableCustomDomains ?? false)
+    }
+
     /// Re-registers every `DeviceActivity` we depend on. Usage limits ride along
     /// with schedules: their threshold events use `includesPastActivity`, so
     /// re-registering mid-day cannot hand back an allowance already spent.
     private func reregisterActivities() {
         guard settings?.hasCompletedOnboarding == true else { return }
-        scheduleService.registerAll(schedules, screenTimeService: screenTimeService)
+        scheduleService.registerAll(
+            schedules,
+            screenTimeService: screenTimeService,
+            constrainedTo: mainSelectionConstraint
+        )
         reregisterUsageLimits()
     }
 

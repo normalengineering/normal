@@ -52,16 +52,8 @@ struct GroupListCardView: View {
     }
 
     private var needsSync: Bool {
-        guard let main = selectedApps.first else { return false }
-        if !appGroup.selection.isSubset(of: main.selection) {
-            return true
-        }
-        if settings.enableCustomDomains,
-            CustomDomains.needsResync(appGroup.customDomains, main: main.customDomains)
-        {
-            return true
-        }
-        return false
+        selectedApps.first?.effectiveConstraint(customDomainsEnabled: settings.enableCustomDomains)
+            .needsSync(selection: appGroup.selection, customDomains: appGroup.customDomains) ?? false
     }
 
     var body: some View {
@@ -80,7 +72,7 @@ struct GroupListCardView: View {
         }
         .opacity(needsSync ? DS.Opacity.dim : 1)
         .onTapGesture {
-            if needsSync {
+            if needsSync, !isBlocked {
                 isReselecting = true
             } else {
                 isEditing = true
@@ -89,7 +81,7 @@ struct GroupListCardView: View {
         .editDeleteContextMenu(
             isDisabled: isBlocked,
             onEdit: {
-                if needsSync {
+                if needsSync, !isBlocked {
                     isReselecting = true
                 } else {
                     isEditing = true
@@ -101,14 +93,36 @@ struct GroupListCardView: View {
             GroupFormSheet(existing: appGroup)
         }
         .sheet(isPresented: $isReselecting) {
-            SelectAppsForGroupSheet(selection: reselectionBinding, customDomains: reselectionDomainsBinding)
+            SelectAppsForGroupSheet(
+                selection: .constant(appGroup.selection),
+                customDomains: .constant(appGroup.customDomains)
+            ) { newSelection, newDomains in
+                guard !isBlocked else { return }
+                let filteredDomains = CustomDomains.subset(newDomains, of: selectedApps.first?.customDomains ?? [])
+                appGroup.selection = newSelection
+                appGroup.customDomains = filteredDomains
+                appGroup.lastUpdated = .now
+                timedUnblockService.updateGroupSelection(
+                    groupId: appGroup.id,
+                    selection: newSelection,
+                    customDomains: settings.enableCustomDomains ? filteredDomains : [],
+                    screenTimeService: screenTimeService
+                )
+            }
         }
         .deleteConfirmation(
             title: "Delete Group?",
             itemName: appGroup.name,
             isPresented: $showDeleteConfirmation,
             onDelete: {
-                appGroup.deleteCascading(keys: allKeys, from: modelContext)
+                guard !isBlocked else { return }
+                BlockActions.deleteGroup(
+                    appGroup,
+                    keys: allKeys,
+                    from: modelContext,
+                    timedUnblockService: timedUnblockService,
+                    screenTimeService: screenTimeService
+                )
             }
         )
     }
@@ -152,36 +166,6 @@ struct GroupListCardView: View {
             tokens: appGroup.selection.allTokens,
             customDomains: customDomains,
             maxCount: 6
-        )
-    }
-
-    private var reselectionBinding: Binding<FamilyActivitySelection> {
-        Binding(
-            get: { appGroup.selection },
-            set: { newValue in
-                appGroup.selection = newValue
-                appGroup.lastUpdated = .now
-                timedUnblockService.updateGroupSelection(
-                    groupId: appGroup.id,
-                    selection: newValue,
-                    customDomains: customDomains
-                )
-            }
-        )
-    }
-
-    private var reselectionDomainsBinding: Binding<[String]> {
-        Binding(
-            get: { appGroup.customDomains },
-            set: { newValue in
-                appGroup.customDomains = newValue
-                appGroup.lastUpdated = .now
-                timedUnblockService.updateGroupSelection(
-                    groupId: appGroup.id,
-                    selection: appGroup.selection,
-                    customDomains: settings.enableCustomDomains ? newValue : []
-                )
-            }
         )
     }
 

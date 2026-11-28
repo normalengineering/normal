@@ -30,6 +30,16 @@ private struct WidgetActionResponder: ViewModifier {
         allSettings.first?.unblockDurations ?? TimedUnblockDuration.presets
     }
 
+    private var groupsFingerprint: [String] {
+        groups.map {
+            "\($0.id.uuidString)|\($0.name)|\($0.sortIndex)|\($0.lastUpdated.timeIntervalSinceReferenceDate)"
+        }
+    }
+
+    private var customDomainsEnabled: Bool {
+        allSettings.first?.enableCustomDomains ?? false
+    }
+
     func body(content: Content) -> some View {
         content
             .protectedAction(
@@ -47,7 +57,8 @@ private struct WidgetActionResponder: ViewModifier {
             .onChange(of: unlockInbox.pending, initial: true) { _, _ in takeInboxRequest() }
             .onChange(of: scenePhase) { _, _ in takeInboxRequest() }
             .onChange(of: screenTimeService.authorizationState) { _, _ in takeInboxRequest() }
-            .onChange(of: groups) { _, _ in syncGroups() }
+            .onChange(of: groupsFingerprint) { _, _ in syncGroups() }
+            .onChange(of: customDomainsEnabled) { _, _ in syncGroups() }
             .onChange(of: keys) { _, _ in syncWidget() }
             .onChange(of: screenTimeService.lastUpdate) { _, _ in syncWidget() }
             .onChange(of: unblockDurations) { _, _ in syncWidget() }

@@ -213,12 +213,13 @@ struct KeyFormSheet: View {
     }
 
     private func deleteKey() {
-        guard let existing, keys.count > 1 else { return }
+        guard let existing, !isReadOnly, Key.canDelete(existing, in: keys) else { return }
         modelContext.delete(existing)
         dismiss()
     }
 
     private func save() {
+        guard !isReadOnly else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
 

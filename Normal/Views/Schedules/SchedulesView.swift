@@ -10,11 +10,16 @@ struct SchedulesView: View {
     private var schedules: [BlockSchedule]
     @Query private var selectedApps: [SelectedApps]
     @Query private var keys: [Key]
+    @Query private var allSettings: [Settings]
 
     @State private var isShowingSheet = false
 
+    private var settings: Settings {
+        allSettings.unwrapped
+    }
+
     private var hasAppSelection: Bool {
-        selectedApps.first?.selection.isEmpty == false
+        selectedApps.first?.hasItemsToBlock(customDomainsEnabled: settings.enableCustomDomains) == true
     }
 
     private var isBlocked: Bool {
@@ -57,7 +62,8 @@ struct SchedulesView: View {
                 items: schedules,
                 rowContent: { schedule in
                     ScheduleCardView(schedule: schedule)
-                }, onMove: move
+                },
+                onMove: isBlocked ? nil : { move(from: $0, to: $1) }
             )
             .bottomFooter {
                 if let message = bottomMessage {
@@ -68,8 +74,10 @@ struct SchedulesView: View {
     }
 
     private func move(from source: IndexSet, to destination: Int) {
+        guard !isBlocked else { return }
         let reordered = SortIndexing.reorder(schedules, from: source, to: destination, sortIndex: \.sortIndex)
-        scheduleService.syncAllToSharedStore(reordered)
+        let constraint = selectedApps.first?.effectiveConstraint(customDomainsEnabled: settings.enableCustomDomains)
+        scheduleService.syncAllToSharedStore(reordered, constrainedTo: constraint)
     }
 
     private var bottomMessage: LocalizedStringKey? {
@@ -115,6 +123,10 @@ struct SchedulesView: View {
     }
 
     private func openSheet() {
-        screenTimeService.ifAuthorized { isShowingSheet = true }
+        guard !isBlocked else { return }
+        screenTimeService.ifAuthorized {
+            guard !isBlocked else { return }
+            isShowingSheet = true
+        }
     }
 }

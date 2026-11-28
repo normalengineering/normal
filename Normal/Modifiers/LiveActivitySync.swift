@@ -10,9 +10,14 @@ private struct LiveActivitySyncModifier: ViewModifier {
         settingsRows.first?.showTimedUnblockLiveActivity ?? true
     }
 
+    private var groupTitles: [String] {
+        groups.map { "\($0.id.uuidString)|\($0.name)" }
+    }
+
     func body(content: Content) -> some View {
         content
             .onChange(of: timedUnblockService.activeUnblocks) { _, _ in reconcile() }
+            .onChange(of: groupTitles) { _, _ in reconcile() }
             .onChange(of: liveActivityEnabled) { _, _ in reconcile() }
             .onAppear { reconcile() }
     }

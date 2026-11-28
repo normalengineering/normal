@@ -3,6 +3,10 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @Environment(ScreenTimeService.self) private var screenTimeService
+    @Environment(ScheduleService.self) private var scheduleService
+    @Environment(TimedUnblockService.self) private var timedUnblockService
+    @Query private var schedules: [BlockSchedule]
+    @Query private var selectedApps: [SelectedApps]
     let settings: Settings
     let availableKeyTypes: [KeyType]
 
@@ -28,11 +32,29 @@ struct GeneralSettingsView: View {
         screenTimeService.hasActiveCustomDomainFilter()
     }
 
+    private var customDomainsBinding: Binding<Bool> {
+        Binding(
+            get: { settings.enableCustomDomains },
+            set: { enabled in
+                if !enabled, hasActiveFilter { return }
+                BlockActions.setCustomDomainsEnabled(
+                    enabled,
+                    settings: settings,
+                    schedules: schedules,
+                    mainSelection: selectedApps.first,
+                    screenTimeService: screenTimeService,
+                    timedUnblockService: timedUnblockService,
+                    scheduleService: scheduleService
+                )
+            }
+        )
+    }
+
     private var websitesSection: some View {
         Section {
             Toggle(
                 "Enable Custom Websites",
-                isOn: Bindable(settings).enableCustomDomains
+                isOn: customDomainsBinding
             )
             .disabled(hasActiveFilter)
         } header: {

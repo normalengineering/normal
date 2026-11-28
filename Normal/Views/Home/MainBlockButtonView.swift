@@ -29,6 +29,7 @@ struct MainBlockButtonView: View {
 
     private var canShowUnblock: Bool {
         blockStatus.canUnblockAll(timedUnblockActive: timedUnblockService.isMainUnblockActive)
+            || screenTimeService.activeShieldCount() > 0
     }
 
     var body: some View {
